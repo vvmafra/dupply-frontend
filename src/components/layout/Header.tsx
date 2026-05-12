@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ModeToggle } from "@/components/mode-toggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProfileLabel } from "@/domain/auth/auth.helpers";
@@ -26,6 +27,7 @@ export function Header() {
             <span className="hidden sm:block">{user.name}</span>
           </div>
         )}
+        <ModeToggle />
         <Button
           variant="ghost"
           size="icon-sm"

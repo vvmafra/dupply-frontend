@@ -16,11 +16,11 @@ export function getValidationStatusLabel(status: ValidationStatus): string {
 export function getValidationStatusColor(status: ValidationStatus): string {
   const colors: Record<ValidationStatus, string> = {
     NOT_STARTED: "text-muted-foreground bg-muted",
-    DOCUMENTS_PENDING: "text-warning-foreground bg-warning/15",
-    KYC_PENDING: "text-warning-foreground bg-warning/15",
-    UNDER_REVIEW: "text-info-foreground bg-info/15",
-    APPROVED: "text-success-foreground bg-success/15",
-    REJECTED: "text-destructive bg-destructive/15",
+    DOCUMENTS_PENDING: "text-warning bg-warning/20",
+    KYC_PENDING: "text-warning bg-warning/20",
+    UNDER_REVIEW: "text-info bg-info/20",
+    APPROVED: "text-success bg-success/20",
+    REJECTED: "text-destructive bg-destructive/20",
   };
   return colors[status];
 }

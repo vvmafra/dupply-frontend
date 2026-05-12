@@ -47,7 +47,7 @@ export function SellerKycCard({ kycStatus, onApproved }: SellerKycCardProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <ShieldCheck className="size-5 text-success" />
-              <Badge variant="outline" className="text-success-foreground bg-success/15 border-success/30">
+              <Badge variant="outline" className="text-success bg-success/20 border-success/40">
                 Aprovado
               </Badge>
             </div>

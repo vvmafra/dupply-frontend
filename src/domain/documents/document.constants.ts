@@ -15,10 +15,10 @@ export function getDocumentStatusLabel(status: DocumentStatus): string {
 export function getDocumentStatusColor(status: DocumentStatus): string {
   const colors: Record<DocumentStatus, string> = {
     PENDING: "text-muted-foreground bg-muted",
-    UPLOADED: "text-info-foreground bg-info/15",
-    UNDER_REVIEW: "text-warning-foreground bg-warning/15",
-    APPROVED: "text-success-foreground bg-success/15",
-    REJECTED: "text-destructive bg-destructive/15",
+    UPLOADED: "text-info bg-info/20",
+    UNDER_REVIEW: "text-warning bg-warning/20",
+    APPROVED: "text-success bg-success/20",
+    REJECTED: "text-destructive bg-destructive/20",
   };
   return colors[status];
 }

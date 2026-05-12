@@ -99,7 +99,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="px-2 py-1 text-xs text-sidebar-foreground/40 truncate">
-          Protótipo v0
+          Dupply MVP
         </div>
       </SidebarFooter>
       <SidebarRail />

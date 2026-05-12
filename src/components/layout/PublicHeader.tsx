@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 import { ROUTES } from "@/lib/routes";
 
 export function PublicHeader() {
@@ -11,6 +12,7 @@ export function PublicHeader() {
           <span className="text-xl font-bold text-foreground">Dupply</span>
         </Link>
         <div className="flex items-center gap-3">
+          <ModeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link to={ROUTES.login}>Entrar</Link>
           </Button>

@@ -7,9 +7,9 @@ export function getEventTypeLabel(eventType: string): string {
 
 export function getTransactionStatusColor(status: BlockchainTransactionStatus): string {
   const colors: Record<BlockchainTransactionStatus, string> = {
-    PENDING: "text-warning-foreground bg-warning/15",
-    SUCCESS: "text-success-foreground bg-success/15",
-    FAILED: "text-destructive bg-destructive/15",
+    PENDING: "text-warning bg-warning/20",
+    SUCCESS: "text-success bg-success/20",
+    FAILED: "text-destructive bg-destructive/20",
   };
   return colors[status];
 }

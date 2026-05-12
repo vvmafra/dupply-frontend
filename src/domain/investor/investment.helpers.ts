@@ -13,9 +13,9 @@ export function getInvestmentStatusLabel(status: InvestmentStatus): string {
 
 export function getInvestmentStatusColor(status: InvestmentStatus): string {
   const colors: Record<InvestmentStatus, string> = {
-    ACTIVE: "text-primary bg-primary/10",
-    SETTLED: "text-success-foreground bg-success/15",
-    DEFAULTED: "text-destructive bg-destructive/15",
+    ACTIVE: "text-primary bg-primary/15",
+    SETTLED: "text-success bg-success/20",
+    DEFAULTED: "text-destructive bg-destructive/20",
     SIMULATED: "text-muted-foreground bg-muted",
   };
   return colors[status];

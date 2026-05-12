@@ -8,12 +8,12 @@ export function getStatusLabel(status: ReceivableStatus): string {
 export function getStatusColor(status: ReceivableStatus): string {
   const colors: Record<ReceivableStatus, string> = {
     DRAFT: "text-muted-foreground bg-muted border-border",
-    UNDER_REVIEW: "text-warning-foreground bg-warning/15 border-warning/30",
-    APPROVED: "text-success-foreground bg-success/15 border-success/30",
-    LISTED: "text-info-foreground bg-info/15 border-info/30",
-    FUNDED: "text-primary bg-primary/10 border-primary/30",
-    SETTLED: "text-success-foreground bg-success/20 border-success/40",
-    DEFAULTED: "text-destructive-foreground bg-destructive/15 border-destructive/30",
+    UNDER_REVIEW: "text-warning bg-warning/20 border-warning/40",
+    APPROVED: "text-success bg-success/20 border-success/40",
+    LISTED: "text-info bg-info/20 border-info/40",
+    FUNDED: "text-primary bg-primary/15 border-primary/35",
+    SETTLED: "text-success bg-success/25 border-success/45",
+    DEFAULTED: "text-destructive bg-destructive/20 border-destructive/40",
   };
   return colors[status];
 }
@@ -24,17 +24,17 @@ export function getRiskLabel(risk: RiskLevel): string {
 
 export function getRiskColor(risk: RiskLevel): string {
   const colors: Record<RiskLevel, string> = {
-    LOW: "text-success-foreground bg-success/15 border-success/30",
-    MEDIUM: "text-warning-foreground bg-warning/15 border-warning/30",
-    HIGH: "text-destructive-foreground bg-destructive/15 border-destructive/30",
+    LOW: "text-success bg-success/20 border-success/40",
+    MEDIUM: "text-warning bg-warning/20 border-warning/40",
+    HIGH: "text-destructive bg-destructive/20 border-destructive/40",
   };
   return colors[risk];
 }
 
 export function getScoreColor(score: number): string {
-  if (score >= 80) return "text-success-foreground bg-success/15 border-success/30";
-  if (score >= 60) return "text-warning-foreground bg-warning/15 border-warning/30";
-  return "text-destructive-foreground bg-destructive/15 border-destructive/30";
+  if (score >= 80) return "text-success bg-success/20 border-success/40";
+  if (score >= 60) return "text-warning bg-warning/20 border-warning/40";
+  return "text-destructive bg-destructive/20 border-destructive/40";
 }
 
 export function getRiskFromScore(score: number): RiskLevel {
