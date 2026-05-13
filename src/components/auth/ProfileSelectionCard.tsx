@@ -44,7 +44,7 @@ export function ProfileSelectionCard() {
       {profileOptions.map((opt) => (
         <Card
           key={opt.profile}
-          className={`border-2 transition-colors cursor-pointer ${opt.accent}`}
+          className={`h-full border-2 transition-colors cursor-pointer ${opt.accent}`}
         >
           <CardHeader className="pb-3">
             <opt.icon className="size-8 mb-2" />
@@ -53,7 +53,7 @@ export function ProfileSelectionCard() {
               {opt.description}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button
               className="w-full"
               variant="default"
@@ -61,7 +61,7 @@ export function ProfileSelectionCard() {
               onClick={() => setProfile(opt.profile)}
             >
               <Link to={getProfileRedirect(opt.profile)}>
-                Acessar como {opt.label}
+                Selecionar
                 <ArrowRight className="size-4" />
               </Link>
             </Button>

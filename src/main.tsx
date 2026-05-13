@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="dark">
       <AuthProvider>
         <App />
       </AuthProvider>

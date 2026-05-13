@@ -67,7 +67,6 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={cn(config.color)}>
-            <TrendingUp className="size-3" />
             {config.label}
           </SidebarGroupLabel>
           <SidebarGroupContent>
