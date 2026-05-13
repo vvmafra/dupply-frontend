@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, TrendingUp, Store, Briefcase, ShieldCheck, ListChecks, FileText, Database, ChevronRight } from "lucide-react";
+import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, Store, Briefcase, ShieldCheck, ListChecks, FileText, Database, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/contexts/AuthContext";
