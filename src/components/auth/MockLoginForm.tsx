@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Loader as Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,9 @@ export function MockLoginForm() {
             ) : (
               "Entrar"
             )}
+          </Button>
+          <Button type="button" variant="outline" className="w-full" asChild>
+            <Link to={ROUTES.sellerRegistration}>Criar conta de cedente</Link>
           </Button>
         </form>
         <p className="text-center text-xs text-muted-foreground mt-4">

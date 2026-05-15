@@ -1,0 +1,18 @@
+---
+description: Padrões para formulários de auth/onboarding
+globs: src/components/auth/**/*.tsx,src/components/forms/**/*.tsx,src/domain/seller/**/*.ts
+alwaysApply: false
+---
+
+# Formulários e onboarding
+
+- UI de formulário deve usar componentes de `src/components/ui`.
+- Validação deve ficar no domínio (`schema`) e não espalhada na UI.
+- Erros para usuário final em português, curtos e objetivos.
+- Em fluxos por etapas, manter progressão clara (passo atual, botão voltar, continuar/finalizar).
+- Ações de demo (ex.: preenchimento automático) devem usar dados plausíveis.
+
+## Documentos
+
+- Lista de documentos obrigatórios vem de `REQUIRED_DOCUMENTS`.
+- Não duplicar catálogo de documentos em múltiplos arquivos.

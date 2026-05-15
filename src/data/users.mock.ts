@@ -13,6 +13,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     documentsProgress: 100,
     kycStatus: "APPROVED",
     onboardingStep: 4,
+    analystDuplicatasAccess: "APPROVED",
     createdAt: "2025-04-20T09:00:00Z",
   },
   {
@@ -27,6 +28,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     documentsProgress: 100,
     kycStatus: "APPROVED",
     onboardingStep: 4,
+    analystDuplicatasAccess: "APPROVED",
     createdAt: "2025-04-25T10:00:00Z",
   },
   {
@@ -41,6 +43,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     documentsProgress: 60,
     kycStatus: "PENDING",
     onboardingStep: 2,
+    analystDuplicatasAccess: "PENDING",
     createdAt: "2025-05-01T08:00:00Z",
   },
   {
@@ -55,6 +58,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     documentsProgress: 90,
     kycStatus: "PENDING",
     onboardingStep: 3,
+    analystDuplicatasAccess: "PENDING",
     createdAt: "2025-05-03T11:00:00Z",
   },
   {
@@ -69,6 +73,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     documentsProgress: 100,
     kycStatus: "APPROVED",
     onboardingStep: 4,
+    analystDuplicatasAccess: "UNDER_REVIEW",
     createdAt: "2025-05-05T14:00:00Z",
   },
 ];

@@ -15,7 +15,7 @@ export function SelectProfilePage() {
     <div className="flex min-h-svh flex-col bg-background">
       <PublicHeader />
       <main className="flex flex-1 items-center justify-center p-4">
-        <div className="w-full max-w-2xl space-y-6">
+        <div className="w-full max-w-5xl space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight">Selecione seu perfil</h1>
             <p className="text-muted-foreground">Escolha como deseja acessar a plataforma Dupply</p>

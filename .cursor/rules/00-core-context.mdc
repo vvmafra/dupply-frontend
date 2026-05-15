@@ -1,0 +1,18 @@
+---
+description: Contexto global do projeto Dupply
+alwaysApply: true
+---
+
+# Contexto do projeto
+
+- Produto: plataforma de antecipação de recebíveis tokenizados.
+- Personas ativas: `seller`, `admin` e `riskAnalyst` (analista de risco). Não reintroduzir `investor`.
+- Textos de UI: manter em português.
+- Paths/rotas e chaves técnicas: manter em inglês (ex.: `/register/seller`).
+- Reutilizar componentes existentes antes de criar novos.
+- Priorizar simplicidade e consistência visual com as telas já existentes.
+
+## Antes de finalizar
+
+- Rodar `npm run typecheck` após alterações relevantes.
+- Não quebrar fluxos existentes de autenticação, seleção de perfil e navegação.

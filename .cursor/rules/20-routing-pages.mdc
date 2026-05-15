@@ -1,0 +1,17 @@
+---
+description: Padrões de roteamento e páginas
+globs: src/App.tsx,src/lib/routes.ts,src/pages/**/*.tsx
+alwaysApply: false
+---
+
+# Rotas e páginas
+
+- Toda rota nova deve entrar em `ROUTES` antes de ser usada em página/componente.
+- Paths de rota em inglês e estáveis.
+- Guardas de autenticação/permissão devem seguir o padrão de `ProtectedRoute`.
+- Não usar strings mágicas de rota em vários arquivos; consumir `ROUTES`.
+- Em páginas públicas, preservar padrão com `PublicHeader` quando aplicável.
+
+## Exemplo
+
+- Preferir `Link to={ROUTES.seller.dashboard}` em vez de `Link to="/seller"`.

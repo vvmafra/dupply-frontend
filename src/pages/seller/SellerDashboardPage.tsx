@@ -1,45 +1,59 @@
 import { useEffect, useState } from "react";
 import { SellerDashboardSummary } from "@/components/seller/SellerDashboardSummary";
+import {
+  SellerDashboardSummarySkeleton,
+  SellerDuplicatasPreviewCardSkeleton,
+  SellerValidationProgressCardSkeleton,
+} from "@/components/seller/SellerPageCardsSkeleton";
 import { SellerValidationProgress } from "@/components/seller/SellerValidationProgress";
-import { SellerReceivablesTable } from "@/components/seller/SellerReceivablesTable";
+import { SellerDuplicatasPreview } from "@/components/seller/SellerDuplicatasPreview";
 import { fetchCurrentSeller } from "@/services/seller.service";
-import { fetchReceivables } from "@/services/receivables.service";
+import { fetchDuplicatasBySeller } from "@/services/duplicata.service";
+import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
 import type { SellerCompany } from "@/domain/seller/seller.types";
-import type { Receivable } from "@/domain/receivables/receivable.types";
+import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 
 export function SellerDashboardPage() {
   const [seller, setSeller] = useState<SellerCompany | null>(null);
-  const [receivables, setReceivables] = useState<Receivable[]>([]);
+  const [duplicatas, setDuplicatas] = useState<DuplicataTitulo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [s, r] = await Promise.all([fetchCurrentSeller(), fetchReceivables()]);
+      const s = await fetchCurrentSeller();
+      const d = await fetchDuplicatasBySeller(s.id);
       setSeller(s);
-      setReceivables(r);
+      setDuplicatas(d);
       setLoading(false);
     }
     load();
   }, []);
 
-  if (loading) {
-    return <div className="p-6 text-sm text-muted-foreground">Carregando...</div>;
-  }
-
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Visão geral dos seus recebíveis</p>
+        <p className="text-sm text-muted-foreground">Visão geral das suas duplicatas</p>
       </div>
 
-      {seller && (
-        <SellerValidationProgress seller={seller} />
+      {loading ? (
+        <>
+          <SellerValidationProgressCardSkeleton />
+          <SellerDashboardSummarySkeleton />
+          <SellerDuplicatasPreviewCardSkeleton />
+        </>
+      ) : (
+        <>
+          {seller && (
+            <SellerValidationProgress seller={seller} duplicatas={duplicatas} />
+          )}
+          <SellerDashboardSummary duplicatas={duplicatas} />
+          <SellerDuplicatasPreview
+            duplicatas={duplicatas}
+            canRegisterNew={seller ? canSellerRegisterDuplicatas(seller) : false}
+          />
+        </>
       )}
-
-      <SellerDashboardSummary receivables={receivables} />
-
-      <SellerReceivablesTable receivables={receivables.slice(0, 5)} />
     </div>
   );
 }

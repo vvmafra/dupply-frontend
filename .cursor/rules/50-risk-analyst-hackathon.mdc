@@ -1,0 +1,17 @@
+---
+description: Fluxo analista de risco e duplicatas hackathon
+globs: src/pages/analyst/**/*.tsx,src/pages/SellerReviewDetailPage.tsx,src/services/seller-review.service.ts,src/services/duplicata.service.ts,src/domain/risk-analyst/**/*.ts,src/domain/duplicata/**/*.ts
+alwaysApply: false
+---
+
+# Analista de risco (`riskAnalyst`)
+
+- Rotas sob `/analyst/*`; perfil em código: `riskAnalyst`.
+- Cadastro de cedente: lista em `/analyst/sellers`, detalhe com score e pontos de atenção **mockados como IA** (`seller-review.service` + `seller-reviews.mock`).
+- Duplicatas: lista `/analyst/duplicatas`, detalhe com ações **Aprovar / Reprovar / Pendente** (`duplicata.service`).
+- Admin vê cedentes e analista responsável em `/admin/sellers` (somente leitura na revisão).
+
+## Cedente — duplicata enxuta
+
+- Formulário hackathon: `NewDuplicataForm` + rotas `ROUTES.seller.duplicatas`.
+- Não duplicar lógica de domínio fora de `src/domain/duplicata` e serviços dedicados.

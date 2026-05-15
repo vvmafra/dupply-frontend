@@ -8,9 +8,9 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   SCORE_CALCULATED: "Score Calculado",
   RECEIVABLE_APPROVED: "Recebível Aprovado",
   RECEIVABLE_LISTED: "Recebível Listado",
-  INVESTMENT_SIMULATED: "Investimento Simulado",
+  FUND_ACQUISITION_SIMULATED: "Aquisição pelo fundo simulada",
   PAYMENT_REGISTERED: "Pagamento Registrado",
-  INVESTOR_REDEMPTION_SIMULATED: "Resgate Simulado",
+  FUND_REDEMPTION_SIMULATED: "Resgate pelo fundo simulado",
 };
 
 export const MOCK_TRANSACTIONS: BlockchainTransaction[] = [
@@ -107,7 +107,7 @@ export const MOCK_TRANSACTIONS: BlockchainTransaction[] = [
   },
   {
     id: "tx-008",
-    eventType: "INVESTMENT_SIMULATED",
+    eventType: "FUND_ACQUISITION_SIMULATED",
     transactionHash: "b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4",
     ledger: 4825001,
     network: "Stellar Testnet",
@@ -116,7 +116,7 @@ export const MOCK_TRANSACTIONS: BlockchainTransaction[] = [
     relatedSellerName: "Alpha Distribuidora LTDA",
     amount: 50000,
     createdAt: "2025-05-07T10:15:00Z",
-    payload: { receivableId: "rec-001", investorId: "inv-001", amount: 50000 },
+    payload: { receivableId: "rec-001", fundId: "fidc-001", amount: 50000 },
   },
   {
     id: "tx-009",
@@ -159,7 +159,7 @@ export const MOCK_TRANSACTIONS: BlockchainTransaction[] = [
   },
   {
     id: "tx-012",
-    eventType: "INVESTOR_REDEMPTION_SIMULATED",
+    eventType: "FUND_REDEMPTION_SIMULATED",
     transactionHash: "f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2",
     ledger: 4827001,
     network: "Stellar Testnet",
@@ -168,6 +168,6 @@ export const MOCK_TRANSACTIONS: BlockchainTransaction[] = [
     relatedSellerName: "LogMais Transportes LTDA",
     amount: 42350,
     createdAt: "2025-05-10T16:30:00Z",
-    payload: { receivableId: "rec-002", investorId: "inv-002", redemptionAmount: 42350 },
+    payload: { receivableId: "rec-002", fundId: "fidc-001", redemptionAmount: 42350 },
   },
 ];

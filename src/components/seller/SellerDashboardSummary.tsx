@@ -1,43 +1,43 @@
-import { FileText, Clock, CircleCheck as CheckCircle2, Coins } from "lucide-react";
+import { FileText, Clock, CircleCheck as CheckCircle2, Ban } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { formatCurrencyBRL } from "@/lib/formatters";
-import type { Receivable } from "@/domain/receivables/receivable.types";
+import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 
 interface SellerDashboardSummaryProps {
-  receivables: Receivable[];
+  duplicatas: DuplicataTitulo[];
 }
 
-export function SellerDashboardSummary({ receivables }: SellerDashboardSummaryProps) {
-  const total = receivables.reduce((sum, r) => sum + r.grossAmount, 0);
-  const underReview = receivables.filter((r) => r.status === "UNDER_REVIEW").length;
-  const approved = receivables.filter((r) => r.status === "APPROVED" || r.status === "LISTED").length;
-  const funded = receivables.filter((r) => r.status === "FUNDED" || r.status === "SETTLED").length;
+export function SellerDashboardSummary({ duplicatas }: SellerDashboardSummaryProps) {
+  const total = duplicatas.reduce((sum, d) => sum + d.valor, 0);
+  const pending = duplicatas.filter((d) => d.analiseAnalista === "pendente").length;
+  const approved = duplicatas.filter((d) => d.analiseAnalista === "aprovado").length;
+  const rejected = duplicatas.filter((d) => d.analiseAnalista === "reprovado").length;
 
   return (
     <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
       <MetricCard
-        title="Total cadastrado"
+        title="Total em face"
         value={formatCurrencyBRL(total)}
         icon={FileText}
-        subtitle={`${receivables.length} recebíveis`}
+        subtitle={`${duplicatas.length} duplicatas`}
       />
       <MetricCard
         title="Em análise"
-        value={underReview}
+        value={pending}
         icon={Clock}
         accent="text-warning"
       />
       <MetricCard
-        title="Aprovados / Listados"
+        title="Aprovadas"
         value={approved}
         icon={CheckCircle2}
         accent="text-success"
       />
       <MetricCard
-        title="Financiados"
-        value={funded}
-        icon={Coins}
-        accent="text-primary"
+        title="Reprovadas"
+        value={rejected}
+        icon={Ban}
+        accent="text-destructive"
       />
     </div>
   );

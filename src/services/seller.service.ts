@@ -15,3 +15,11 @@ export async function updateSellerValidationStatus(
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   if (seller) Object.assign(seller, updates);
 }
+
+export async function approveAnalystDuplicatasAccess(sellerId: string): Promise<void> {
+  await sleep(350);
+  const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
+  if (seller) {
+    seller.analystDuplicatasAccess = "APPROVED";
+  }
+}

@@ -35,6 +35,9 @@ export async function adminApproveValidation(sellerId: string): Promise<void> {
     seller.validationStatus = "APPROVED";
     seller.kycStatus = "APPROVED";
     seller.documentsProgress = 100;
+    if (seller.analystDuplicatasAccess === "PENDING") {
+      seller.analystDuplicatasAccess = "UNDER_REVIEW";
+    }
   }
 }
 
@@ -43,5 +46,6 @@ export async function adminRejectValidation(sellerId: string): Promise<void> {
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   if (seller) {
     seller.validationStatus = "REJECTED";
+    seller.analystDuplicatasAccess = "REJECTED";
   }
 }

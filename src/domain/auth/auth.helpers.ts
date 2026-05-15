@@ -4,8 +4,8 @@ import { ROUTES } from "@/lib/routes";
 export function getProfileLabel(profile: UserProfile): string {
   const labels: Record<UserProfile, string> = {
     seller: "Cedente",
-    investor: "Investidor",
     admin: "Admin",
+    riskAnalyst: "Analista de risco",
   };
   return labels[profile];
 }
@@ -13,8 +13,8 @@ export function getProfileLabel(profile: UserProfile): string {
 export function getProfileDescription(profile: UserProfile): string {
   const descriptions: Record<UserProfile, string> = {
     seller: "Antecipe seus recebíveis e obtenha liquidez de forma simples.",
-    investor: "Invista em operações validadas e diversifique sua carteira.",
-    admin: "Monitore a plataforma, validações e operações internas.",
+    admin: "Monitore cedentes, analistas e operações internas da plataforma.",
+    riskAnalyst: "Analise cadastros de cedentes e duplicatas com apoio de IA (simulado).",
   };
   return descriptions[profile];
 }
@@ -22,8 +22,8 @@ export function getProfileDescription(profile: UserProfile): string {
 export function getProfileRedirect(profile: UserProfile): string {
   const redirects: Record<UserProfile, string> = {
     seller: ROUTES.seller.dashboard,
-    investor: ROUTES.investor.dashboard,
     admin: ROUTES.admin.dashboard,
+    riskAnalyst: ROUTES.analyst.dashboard,
   };
   return redirects[profile];
 }

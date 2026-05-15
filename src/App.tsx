@@ -1,27 +1,30 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
+import { ROUTES } from "@/lib/routes";
 
 import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { SelectProfilePage } from "@/pages/SelectProfilePage";
+import { SellerRegistrationPage } from "@/pages/SellerRegistrationPage";
 import { ConfirmationPage } from "@/pages/ConfirmationPage";
 
 import { SellerDashboardPage } from "@/pages/seller/SellerDashboardPage";
 import { SellerValidationPage } from "@/pages/seller/SellerValidationPage";
-import { SellerReceivablesPage } from "@/pages/seller/SellerReceivablesPage";
-import { NewReceivablePage } from "@/pages/seller/NewReceivablePage";
-import { ReceivableDetailPage } from "@/pages/seller/ReceivableDetailPage";
-
-import { InvestorDashboardPage } from "@/pages/investor/InvestorDashboardPage";
-import { MarketplacePage } from "@/pages/investor/MarketplacePage";
-import { MarketplaceDetailPage } from "@/pages/investor/MarketplaceDetailPage";
-import { InvestorPositionsPage } from "@/pages/investor/InvestorPositionsPage";
-
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminValidationsPage } from "@/pages/admin/AdminValidationsPage";
 import { AdminReceivablesPage } from "@/pages/admin/AdminReceivablesPage";
 import { AdminTransactionsPage } from "@/pages/admin/AdminTransactionsPage";
+import { AdminSellersPage } from "@/pages/admin/AdminSellersPage";
+
+import { AnalystDashboardPage } from "@/pages/analyst/AnalystDashboardPage";
+import { AnalystSellersPage } from "@/pages/analyst/AnalystSellersPage";
+import { AnalystDuplicatasPage } from "@/pages/analyst/AnalystDuplicatasPage";
+import { AnalystDuplicataDetailPage } from "@/pages/analyst/AnalystDuplicataDetailPage";
+import { SellerReviewDetailPage } from "@/pages/SellerReviewDetailPage";
+
+import { SellerDuplicatasPage } from "@/pages/seller/SellerDuplicatasPage";
+import { NewDuplicataPage } from "@/pages/seller/NewDuplicataPage";
 
 function ProtectedRoute({ children, profile }: { children: React.ReactNode; profile?: string }) {
   const { isAuthenticated, selectedProfile } = useAuth();
@@ -35,6 +38,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register/seller" element={<SellerRegistrationPage />} />
       <Route path="/select-profile" element={<SelectProfilePage />} />
       <Route path="/confirmation/:id" element={<ConfirmationPage />} />
 
@@ -54,60 +58,81 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/seller/receivables" element={<Navigate to={ROUTES.seller.duplicatas.list} replace />} />
+      <Route path="/seller/receivables/new" element={<Navigate to={ROUTES.seller.duplicatas.new} replace />} />
+      <Route path="/seller/receivables/:id" element={<Navigate to={ROUTES.seller.duplicatas.list} replace />} />
+
       <Route
-        path="/seller/receivables"
+        path="/seller/duplicatas"
         element={
           <ProtectedRoute profile="seller">
-            <AppShell><SellerReceivablesPage /></AppShell>
+            <AppShell><SellerDuplicatasPage /></AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/seller/receivables/new"
+        path="/seller/duplicatas/new"
         element={
           <ProtectedRoute profile="seller">
-            <AppShell><NewReceivablePage /></AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/seller/receivables/:id"
-        element={
-          <ProtectedRoute profile="seller">
-            <AppShell><ReceivableDetailPage /></AppShell>
+            <AppShell><NewDuplicataPage /></AppShell>
           </ProtectedRoute>
         }
       />
 
       <Route
-        path="/investor"
+        path="/analyst"
         element={
-          <ProtectedRoute profile="investor">
-            <AppShell><InvestorDashboardPage /></AppShell>
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell><AnalystDashboardPage /></AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/investor/marketplace"
+        path="/analyst/sellers"
         element={
-          <ProtectedRoute profile="investor">
-            <AppShell><MarketplacePage /></AppShell>
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell><AnalystSellersPage /></AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/investor/marketplace/:id"
+        path="/analyst/sellers/:sellerId"
         element={
-          <ProtectedRoute profile="investor">
-            <AppShell><MarketplaceDetailPage /></AppShell>
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell><SellerReviewDetailPage /></AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/investor/positions"
+        path="/analyst/duplicatas"
         element={
-          <ProtectedRoute profile="investor">
-            <AppShell><InvestorPositionsPage /></AppShell>
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell><AnalystDuplicatasPage /></AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analyst/duplicatas/:id"
+        element={
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell><AnalystDuplicataDetailPage /></AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/sellers"
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell><AdminSellersPage /></AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/sellers/:sellerId"
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell><SellerReviewDetailPage /></AppShell>
           </ProtectedRoute>
         }
       />

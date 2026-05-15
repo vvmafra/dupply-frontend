@@ -39,7 +39,7 @@ export async function createReceivable(data: Partial<Receivable>): Promise<Recei
       { id: `ev-${id}-2`, label: "Documentos enviados", date: "", completed: false },
       { id: `ev-${id}-3`, label: "Análise iniciada", date: "", completed: false },
       { id: `ev-${id}-4`, label: "Score calculado", date: "", completed: false },
-      { id: `ev-${id}-5`, label: "Aprovado para marketplace", date: "", completed: false },
+      { id: `ev-${id}-5`, label: "Aprovado para o fundo", date: "", completed: false },
       { id: `ev-${id}-6`, label: "Financiamento confirmado", date: "", completed: false },
       { id: `ev-${id}-7`, label: "Pagamento registrado", date: "", completed: false },
       { id: `ev-${id}-8`, label: "Operação liquidada", date: "", completed: false },

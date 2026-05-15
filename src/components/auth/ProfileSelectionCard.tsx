@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Building2, TrendingUp, Shield, ArrowRight } from "lucide-react";
+import { Building2, Shield, ArrowRight, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,23 +16,23 @@ const profileOptions: {
   {
     profile: "seller",
     label: "Cedente",
-    description: "Antecipe seus recebíveis. Cadastre sua empresa, envie documentos e liste operações para análise.",
+    description: "Antecipe seus recebíveis. Cadastre sua empresa, envie documentos e liste operações para análise pelo fundo.",
     icon: Building2,
     accent: "text-primary border-primary/20 bg-primary/5 hover:bg-primary/10",
   },
   {
-    profile: "investor",
-    label: "Investidor",
-    description: "Acesse oportunidades validadas no marketplace. Simule aportes em operações aprovadas.",
-    icon: TrendingUp,
-    accent: "text-chart-2 border-chart-2/20 bg-chart-2/5 hover:bg-chart-2/10",
-  },
-  {
     profile: "admin",
     label: "Administrador",
-    description: "Monitore validações, gerencie recebíveis, acompanhe métricas da plataforma e registros internos.",
+    description: "Monitore cedentes, analistas de risco, validações e operações internas.",
     icon: Shield,
     accent: "text-chart-4 border-chart-4/20 bg-chart-4/5 hover:bg-chart-4/10",
+  },
+  {
+    profile: "riskAnalyst",
+    label: "Analista de risco",
+    description: "Revise cadastros de cedentes e duplicatas com score e alertas gerados por IA (simulado).",
+    icon: ClipboardList,
+    accent: "text-chart-3 border-chart-3/20 bg-chart-3/5 hover:bg-chart-3/10",
   },
 ];
 
@@ -40,7 +40,7 @@ export function ProfileSelectionCard() {
   const { setProfile } = useAuth();
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {profileOptions.map((opt) => (
         <Card
           key={opt.profile}

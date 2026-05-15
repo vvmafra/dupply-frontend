@@ -1,4 +1,4 @@
-export type UserProfile = "seller" | "investor" | "admin";
+export type UserProfile = "seller" | "admin" | "riskAnalyst";
 
 export interface MockUser {
   id: string;

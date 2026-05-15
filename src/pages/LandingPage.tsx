@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ShieldCheck, TrendingUp, Zap } from "lucide-react";
+import { ArrowRight, ShieldCheck, Landmark, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/PublicHeader";
@@ -12,14 +12,14 @@ const FEATURES = [
     description: "Transforme seus recebíveis em capital de giro em tempo recorde, sem burocracia excessiva.",
   },
   {
-    icon: TrendingUp,
-    title: "Rentabilidade atrativa",
-    description: "Invista em duplicatas comerciais selecionadas com retornos acima da média do mercado.",
+    icon: Landmark,
+    title: "Lastro em fundo estruturado",
+    description: "Duplicatas tokenizadas com lastro em fundo FIDC/TIDC, com critérios de crédito e governança definidos.",
   },
   {
     icon: ShieldCheck,
     title: "Transparência total",
-    description: "Cada operação é registrada e auditável, garantindo segurança para cedentes e investidores.",
+    description: "Cada operação é registrada e auditável, garantindo segurança para cedentes e para o fundo.",
   },
 ];
 
@@ -38,8 +38,8 @@ export function LandingPage() {
               Antecipação de recebíveis simples e eficiente
             </h1>
             <p className="text-lg text-muted-foreground text-balance">
-              A Dupply conecta empresas que precisam de capital de giro com investidores em busca de rentabilidade.
-              Tudo de forma digital, rápida e transparente.
+              A Dupply conecta empresas que precisam de capital de giro a um fundo estruturado (FIDC/TIDC)
+              que lastreia duplicatas tokenizadas. Tudo de forma digital, rápida e transparente.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Button size="lg" asChild>

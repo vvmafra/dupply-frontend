@@ -1,0 +1,20 @@
+---
+description: Convenções React + TypeScript para frontend
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# React + TypeScript
+
+- Usar componentes funcionais com export nomeado.
+- Preferir tipagem explícita para props e retorno quando necessário.
+- Evitar `any`; usar `unknown` + narrowing quando preciso.
+- Imports internos via alias `@/`.
+- Seguir o estilo já predominante do arquivo tocado (não reformatar sem necessidade).
+
+## Organização
+
+- UI em `src/components`.
+- Regras de domínio em `src/domain`.
+- Serviços/mocks em `src/services` e `src/data`.
+- Rotas centralizadas em `src/lib/routes.ts`.

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, Store, Briefcase, ShieldCheck, ListChecks, FileText, Database, ChevronRight } from "lucide-react";
+import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, ShieldCheck, ListChecks, Database, ChevronRight, Users, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,18 +28,19 @@ interface NavItem {
 const sellerNav: NavItem[] = [
   { label: "Painel", href: ROUTES.seller.dashboard, icon: LayoutDashboard },
   { label: "Validação", href: ROUTES.seller.validation, icon: FileCheck2 },
-  { label: "Recebíveis", href: ROUTES.seller.receivables.list, icon: FileText },
-  { label: "Cadastrar recebível", href: ROUTES.seller.receivables.new, icon: FilePlus },
+  { label: "Duplicatas", href: ROUTES.seller.duplicatas.list, icon: Receipt },
+  { label: "Nova duplicata", href: ROUTES.seller.duplicatas.new, icon: FilePlus },
 ];
 
-const investorNav: NavItem[] = [
-  { label: "Painel", href: ROUTES.investor.dashboard, icon: LayoutDashboard },
-  { label: "Marketplace", href: ROUTES.investor.marketplace.list, icon: Store },
-  { label: "Minhas posições", href: ROUTES.investor.positions, icon: Briefcase },
+const analystNav: NavItem[] = [
+  { label: "Painel", href: ROUTES.analyst.dashboard, icon: LayoutDashboard },
+  { label: "Cedentes", href: ROUTES.analyst.sellers.list, icon: Users },
+  { label: "Duplicatas", href: ROUTES.analyst.duplicatas.list, icon: Receipt },
 ];
 
 const adminNav: NavItem[] = [
   { label: "Painel", href: ROUTES.admin.dashboard, icon: LayoutDashboard },
+  { label: "Cedentes (risco)", href: ROUTES.admin.sellers.list, icon: Users },
   { label: "Validações", href: ROUTES.admin.validations, icon: ShieldCheck },
   { label: "Recebíveis", href: ROUTES.admin.receivables, icon: ListChecks },
   { label: "Transações internas", href: ROUTES.admin.transactions, icon: Database },
@@ -47,8 +48,8 @@ const adminNav: NavItem[] = [
 
 const profileConfig = {
   seller: { nav: sellerNav, label: "Cedente", color: "text-primary" },
-  investor: { nav: investorNav, label: "Investidor", color: "text-chart-2" },
   admin: { nav: adminNav, label: "Admin", color: "text-chart-4" },
+  riskAnalyst: { nav: analystNav, label: "Analista", color: "text-chart-2" },
 };
 
 export function AppSidebar() {

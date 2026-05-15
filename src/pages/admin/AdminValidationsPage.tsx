@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminValidationTable } from "@/components/admin/AdminValidationTable";
+import { AdminValidationTableSkeleton } from "@/components/admin/AdminPagesSkeleton";
 import { fetchAllSellers, adminApproveValidation, adminRejectValidation } from "@/services/admin.service";
 import type { AdminValidationRow } from "@/domain/admin/admin.types";
 import type { SellerCompany } from "@/domain/seller/seller.types";
@@ -44,17 +45,17 @@ export function AdminValidationsPage() {
     );
   }
 
-  if (loading) {
-    return <div className="p-6 text-sm text-muted-foreground">Carregando...</div>;
-  }
-
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Validações</h1>
         <p className="text-sm text-muted-foreground">Gerencie o cadastro e validação de cedentes</p>
       </div>
-      <AdminValidationTable rows={rows} onApprove={handleApprove} onReject={handleReject} />
+      {loading ? (
+        <AdminValidationTableSkeleton />
+      ) : (
+        <AdminValidationTable rows={rows} onApprove={handleApprove} onReject={handleReject} />
+      )}
     </div>
   );
 }

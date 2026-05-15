@@ -1,0 +1,17 @@
+---
+description: Convenções de serviços e dados mock
+globs: src/services/**/*.ts,src/data/**/*.ts
+alwaysApply: false
+---
+
+# Serviços e mocks
+
+- Serviços devem expor funções pequenas, previsíveis e tipadas.
+- Em modo mock, preservar latência simulada (`sleep`) para UX realista.
+- Não misturar regra de UI dentro de serviço.
+- Nomes de função devem refletir intenção (`fetch*`, `create*`, `update*`).
+
+## Consistência
+
+- Estrutura de dados mock deve respeitar os tipos de domínio.
+- Mudanças em contrato de dados exigem ajuste de domínio + consumidores.

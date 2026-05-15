@@ -10,7 +10,7 @@ export const SELLER_VISIBLE_STATUSES: ReceivableStatus[] = [
   "DEFAULTED",
 ];
 
-export const MARKETPLACE_VISIBLE_STATUSES: ReceivableStatus[] = [
+export const FUND_VISIBLE_STATUSES: ReceivableStatus[] = [
   "LISTED",
 ];
 
