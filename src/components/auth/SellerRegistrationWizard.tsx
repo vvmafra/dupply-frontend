@@ -12,7 +12,6 @@ import { CompanyStepFields } from "@/components/auth/seller-registration/Company
 import { DocumentsStepFields } from "@/components/auth/seller-registration/DocumentsStepFields";
 import { RegistrationStepIndicator } from "@/components/auth/seller-registration/RegistrationStepIndicator";
 import { RepresentativeStepFields } from "@/components/auth/seller-registration/RepresentativeStepFields";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   createInitialSellerRegistrationValues,
   SELLER_REGISTRATION_STEPS,
@@ -42,7 +41,6 @@ function StepFields({ stepId }: { stepId: SellerRegistrationStepId }) {
 export function SellerRegistrationWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const { login, setProfile } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<SellerRegistrationFormValues>({
@@ -118,9 +116,10 @@ export function SellerRegistrationWizard() {
     setSubmitting(true);
     const response = await registerSeller(result.data);
     if (response.success) {
-      login(result.data.email, result.data.responsibleName);
-      setProfile("seller");
-      navigate(ROUTES.seller.validation);
+      navigate(ROUTES.sellerRegistrationComplete, {
+        replace: true,
+        state: { registrationComplete: true },
+      });
     }
     setSubmitting(false);
   }

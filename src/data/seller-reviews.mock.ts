@@ -23,5 +23,8 @@ export function buildInitialSellerReviews(): SellerReviewSummary[] {
     reviewedByAnalystId: index < 2 ? "analyst-ana" : null,
     reviewedByAnalystName: index < 2 ? "Ana Risco" : null,
     reviewedAt: index < 2 ? "2025-05-10T14:30:00Z" : null,
+    analystCadastralDecision: index < 2 ? "APPROVED" : null,
+    analystReviewJustification:
+      index < 2 ? "Cadastro conferido conforme política interna do fundo (mock)." : null,
   }));
 }

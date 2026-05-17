@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnalystDuplicatasTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
-import { Badge } from "@/components/ui/badge";
+import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import {
   Table,
   TableBody,
@@ -18,12 +18,6 @@ import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 const tipoLabel: Record<DuplicataTitulo["tipo"], string> = {
   mercantil: "Mercantil",
   servico: "Serviço",
-};
-
-const analiseLabel: Record<DuplicataTitulo["analiseAnalista"], string> = {
-  pendente: "Pendente",
-  aprovado: "Aprovado",
-  reprovado: "Reprovado",
 };
 
 export function AnalystDuplicatasPage() {
@@ -72,7 +66,7 @@ export function AnalystDuplicatasPage() {
                   <TableCell>{tipoLabel[d.tipo]}</TableCell>
                   <TableCell className="text-right">{formatCurrencyBRL(d.valor)}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{analiseLabel[d.analiseAnalista]}</Badge>
+                    <DuplicataAnaliseBadge status={d.analiseAnalista} />
                   </TableCell>
                 </TableRow>
               ))}

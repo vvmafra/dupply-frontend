@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Receipt } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,12 +14,6 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { formatCurrencyBRL } from "@/lib/formatters";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
-
-const analiseLabel: Record<DuplicataTitulo["analiseAnalista"], string> = {
-  pendente: "Pendente",
-  aprovado: "Aprovado",
-  reprovado: "Reprovado",
-};
 
 interface SellerValidationDuplicatasOverviewProps {
   readonly items: DuplicataTitulo[];
@@ -83,7 +77,7 @@ export function SellerValidationDuplicatasOverview({
                     <TableCell className="text-right">{formatCurrencyBRL(d.valor)}</TableCell>
                     <TableCell>{d.dataVencimento}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{analiseLabel[d.analiseAnalista]}</Badge>
+                      <DuplicataAnaliseBadge status={d.analiseAnalista} />
                     </TableCell>
                   </TableRow>
                 ))}

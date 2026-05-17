@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { fetchDuplicataById, setDuplicataAnaliseAnalista } from "@/services/duplicata.service";
@@ -76,10 +77,10 @@ export function AnalystDuplicataDetailPage() {
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="text-xl font-semibold tracking-tight font-mono">{d.numeroDuplicata}</h1>
         <Badge variant="outline">{tipoLabel[d.tipo]}</Badge>
-        <Badge variant="secondary">
-          Análise:{" "}
-          {d.analiseAnalista === "pendente" ? "Pendente" : d.analiseAnalista === "aprovado" ? "Aprovada" : "Reprovada"}
-        </Badge>
+        <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          Análise:
+          <DuplicataAnaliseBadge status={d.analiseAnalista} feminine />
+        </span>
       </div>
       <p className="text-sm text-muted-foreground">Cedente: {d.sellerName}</p>
 

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { CircleCheck as CheckCircle2, ArrowLeft, Loader as Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PublicShell } from "@/components/layout/PublicShell";
 import { fetchReceivableById, confirmDebtorAwareness } from "@/services/receivables.service";
 import { ReceivableStatusBadge } from "@/components/receivables/ReceivableStatusBadge";
 import { formatCurrencyBRL, formatDate } from "@/lib/formatters";
@@ -34,26 +35,34 @@ export function ConfirmationPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-svh items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
-      </div>
+      <PublicShell>
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="size-6 animate-spin text-[#7C8594]" />
+        </div>
+      </PublicShell>
     );
   }
 
   if (!receivable) {
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-4">
-        <p className="text-muted-foreground">Operação não encontrada.</p>
-        <Button variant="outline" asChild>
-          <Link to={ROUTES.home}><ArrowLeft className="size-4" />Voltar ao início</Link>
-        </Button>
-      </div>
+      <PublicShell>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
+          <p className="text-[#7C8594]">Operação não encontrada.</p>
+          <Button variant="outline" asChild>
+            <Link to={ROUTES.home}>
+              <ArrowLeft className="size-4" />
+              Voltar ao início
+            </Link>
+          </Button>
+        </div>
+      </PublicShell>
     );
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center p-4 bg-muted/30">
-      <Card className="w-full max-w-md">
+    <PublicShell>
+      <div className="flex flex-1 flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="size-5 text-primary" />
@@ -121,7 +130,8 @@ export function ConfirmationPage() {
             </>
           )}
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </PublicShell>
   );
 }

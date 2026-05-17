@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SellerDuplicatasListTableSkeleton } from "@/components/seller/SellerPageCardsSkeleton";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -19,12 +19,6 @@ import { ROUTES } from "@/lib/routes";
 import type { SellerCompany } from "@/domain/seller/seller.types";
 import { formatCurrencyBRL } from "@/lib/formatters";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
-
-const analiseLabel: Record<DuplicataTitulo["analiseAnalista"], string> = {
-  pendente: "Pendente",
-  aprovado: "Aprovado",
-  reprovado: "Reprovado",
-};
 
 export function SellerDuplicatasPage() {
   const [items, setItems] = useState<DuplicataTitulo[]>([]);
@@ -117,7 +111,7 @@ export function SellerDuplicatasPage() {
                   <TableCell className="text-right">{formatCurrencyBRL(d.valor)}</TableCell>
                   <TableCell>{d.dataVencimento}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{analiseLabel[d.analiseAnalista]}</Badge>
+                    <DuplicataAnaliseBadge status={d.analiseAnalista} />
                   </TableCell>
                 </TableRow>
               ))

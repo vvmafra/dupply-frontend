@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnalystSellersTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
-import { Badge } from "@/components/ui/badge";
+import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
+import { getSellerCadastralReviewDisplayStatus } from "@/domain/risk-analyst/seller-cadastral-review.helpers";
 import {
   Table,
   TableBody,
@@ -41,7 +42,7 @@ export function AnalystSellersPage() {
                 <TableHead>Razão social</TableHead>
                 <TableHead>CNPJ</TableHead>
                 <TableHead className="text-right">Score (IA)</TableHead>
-                <TableHead>Revisão</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -58,11 +59,7 @@ export function AnalystSellersPage() {
                   <TableCell className="font-mono text-sm">{r.taxId}</TableCell>
                   <TableCell className="text-right">{r.riskScore}</TableCell>
                   <TableCell>
-                    {r.reviewedByAnalystName ? (
-                      <Badge variant="secondary">{r.reviewedByAnalystName}</Badge>
-                    ) : (
-                      <Badge variant="outline">Pendente</Badge>
-                    )}
+                    <DuplicataAnaliseBadge status={getSellerCadastralReviewDisplayStatus(r)} />
                   </TableCell>
                 </TableRow>
               ))}

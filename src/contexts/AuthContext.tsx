@@ -2,7 +2,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import type { AuthState, UserProfile } from "@/domain/auth/auth.types";
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, name?: string) => void;
+  /** `selectedProfile` imediato evita corrida com `navigate` após login (ex.: cadastro de cedente). */
+  login: (email: string, name?: string, selectedProfileOnLogin?: UserProfile | null) => void;
   logout: () => void;
   setProfile: (profile: UserProfile) => void;
 }
@@ -16,11 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     selectedProfile: null,
   });
 
-  function login(email: string, name?: string) {
+  function login(email: string, name?: string, selectedProfileOnLogin?: UserProfile | null) {
     setState({
       isAuthenticated: true,
       user: { id: "user-demo", email, name: name ?? email.split("@")[0], profile: "seller" },
-      selectedProfile: null,
+      selectedProfile: selectedProfileOnLogin ?? null,
     });
   }
 

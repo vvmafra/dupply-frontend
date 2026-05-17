@@ -7,6 +7,7 @@ import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { SelectProfilePage } from "@/pages/SelectProfilePage";
 import { SellerRegistrationPage } from "@/pages/SellerRegistrationPage";
+import { SellerRegistrationCompletePage } from "@/pages/SellerRegistrationCompletePage";
 import { ConfirmationPage } from "@/pages/ConfirmationPage";
 
 import { SellerDashboardPage } from "@/pages/seller/SellerDashboardPage";
@@ -39,6 +40,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register/seller" element={<SellerRegistrationPage />} />
+      <Route path="/register/seller/complete" element={<SellerRegistrationCompletePage />} />
       <Route path="/select-profile" element={<SelectProfilePage />} />
       <Route path="/confirmation/:id" element={<ConfirmationPage />} />
 

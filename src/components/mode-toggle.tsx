@@ -2,6 +2,7 @@ import { Moon, Sun } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/theme-provider"
+import { cn } from "@/lib/utils"
 
 function isResolvedDark(theme: string): boolean {
   if (theme === "dark") return true
@@ -9,7 +10,11 @@ function isResolvedDark(theme: string): boolean {
   return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
-export function ModeToggle() {
+type ModeToggleProps = {
+  className?: string
+}
+
+export function ModeToggle({ className }: Readonly<ModeToggleProps>) {
   const { theme, setTheme } = useTheme()
   const dark = isResolvedDark(theme)
 
@@ -22,7 +27,7 @@ export function ModeToggle() {
       type="button"
       variant="outline"
       size="icon-sm"
-      className="relative shrink-0"
+      className={cn("relative shrink-0", className)}
       onClick={toggle}
       title={dark ? "Ativar tema claro" : "Ativar tema escuro"}
     >
