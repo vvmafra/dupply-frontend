@@ -8,7 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { fetchDuplicataById, setDuplicataAnaliseAnalista } from "@/services/duplicata.service";
+import {
+  fetchDuplicataById,
+  setDuplicataAnaliseAnalista,
+  setDuplicataOfertaAntecipacao,
+} from "@/services/duplicata.service";
 import { ROUTES } from "@/lib/routes";
 import { formatCurrencyBRL } from "@/lib/formatters";
 import type { DuplicataAnaliseAnalista, DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
@@ -63,11 +67,13 @@ export function AnalystDuplicataDetailPage() {
     if (!id || !d) return;
     setApproving(true);
     try {
-      await setAnalise("aprovado");
+      await setDuplicataOfertaAntecipacao(id, payload.descontoPercent);
+      const updated = await fetchDuplicataById(id);
+      setD(updated);
       setApprovalWizardOpen(false);
       const valorLiquido = d.valor * (1 - payload.descontoPercent / 100);
-      toast.success("Duplicata aprovada", {
-        description: `${d.numeroDuplicata} aprovada com desconto de ${payload.descontoPercent}% (líquido: ${formatCurrencyBRL(valorLiquido)}).`,
+      toast.success("Oferta enviada ao cedente", {
+        description: `${d.numeroDuplicata} aguarda aprovação do cedente (desconto ${payload.descontoPercent}%, líquido ${formatCurrencyBRL(valorLiquido)}).`,
       });
     } finally {
       setApproving(false);

@@ -90,7 +90,10 @@ export function SellerDuplicatasPreview({
                     <TableCell className="text-right">{formatCurrencyBRL(d.valor)}</TableCell>
                     <TableCell>{d.dataVencimento}</TableCell>
                     <TableCell>
-                      <DuplicataAnaliseBadge status={d.analiseAnalista} />
+                      <DuplicataAnaliseBadge
+                        status={d.analiseAnalista}
+                        interactive={d.analiseAnalista === "for_approval"}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,6 +1,8 @@
 import { sleep } from "@/lib/utils";
+import { DUPLICATA_DEMO } from "@/data/duplicata-demo.mock";
 import { INITIAL_DUPLICATAS } from "@/data/duplicatas.mock";
 import { MOCK_SELLERS } from "@/data/users.mock";
+import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
 import type { DuplicataTitulo, DuplicataAnaliseAnalista, NovaDuplicataPayload } from "@/domain/duplicata/duplicata.types";
 
 let duplicatas: DuplicataTitulo[] = INITIAL_DUPLICATAS.map((d) => ({ ...d }));
@@ -50,8 +52,8 @@ export async function createDuplicata(
     declaracoesAntifraudeAceitas: payload.declaracoesAntifraudeAceitas,
     enviadoEm: new Date().toISOString(),
     analiseAnalista: "pendente",
-    scoreUsuario: 70,
-    scoreDuplicata: 75,
+    scoreUsuario: DUPLICATA_DEMO.scoreUsuario,
+    scoreDuplicata: DUPLICATA_DEMO.scoreDuplicata,
   };
   duplicatas = [novo, ...duplicatas];
   return { ...novo };
@@ -62,5 +64,50 @@ export async function setDuplicataAnaliseAnalista(
   status: DuplicataAnaliseAnalista
 ): Promise<void> {
   await sleep(350);
-  duplicatas = duplicatas.map((d) => (d.id === id ? { ...d, analiseAnalista: status } : d));
+  duplicatas = duplicatas.map((d) => {
+    if (d.id !== id) return d;
+    const next: DuplicataTitulo = { ...d, analiseAnalista: status };
+    if (status !== "for_approval") {
+      delete next.descontoAntecipacaoPercent;
+      delete next.valorLiquidoAntecipacao;
+    }
+    return next;
+  });
+}
+
+/** Analista envia oferta de antecipação; cedente deve aprovar ou reprovar a operação. */
+export async function setDuplicataOfertaAntecipacao(
+  id: string,
+  descontoPercent: number
+): Promise<void> {
+  await sleep(350);
+  const valorLiquido = calcValorLiquidoCedente(
+    duplicatas.find((d) => d.id === id)?.valor ?? 0,
+    descontoPercent
+  );
+  duplicatas = duplicatas.map((d) =>
+    d.id === id
+      ? {
+          ...d,
+          analiseAnalista: "for_approval",
+          descontoAntecipacaoPercent: descontoPercent,
+          valorLiquidoAntecipacao: valorLiquido,
+        }
+      : d
+  );
+}
+
+/** Cedente confirma ou recusa a operação de antecipação sugerida pelo analista. */
+export async function setDuplicataDecisaoCedente(
+  id: string,
+  decision: Extract<DuplicataAnaliseAnalista, "aprovado" | "reprovado">
+): Promise<void> {
+  await sleep(400);
+  duplicatas = duplicatas.map((d) => {
+    if (d.id !== id) return d;
+    const next: DuplicataTitulo = { ...d, analiseAnalista: decision };
+    delete next.descontoAntecipacaoPercent;
+    delete next.valorLiquidoAntecipacao;
+    return next;
+  });
 }

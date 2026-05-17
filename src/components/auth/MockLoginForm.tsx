@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/routes";
 
 export function MockLoginForm() {
   const [email, setEmail] = useState("demo@dupply.com.br");
-  const [password, setPassword] = useState("demo123");
+  const [password, setPassword] = useState("Dupply@Demo2026!");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();

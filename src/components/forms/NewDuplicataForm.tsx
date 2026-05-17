@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { RegistrationUploadField } from "@/components/forms/RegistrationUploadField";
 import { createDuplicata } from "@/services/duplicata.service";
 import { ROUTES } from "@/lib/routes";
+import { getDuplicataDemoAutofillFormValues } from "@/data/duplicata-demo.mock";
 import type {
   DuplicataAceiteSacado,
   DuplicataComprovanteTipo,
@@ -53,23 +55,24 @@ export function NewDuplicataForm({ sellerId }: NewDuplicataFormProps) {
 
   /** Dados fixos só para demo/hackathon — evita preencher o formulário inteiro. */
   function fillDemoData() {
-    setTipo("mercantil");
-    setNumeroDuplicata("DUP-DEMO-8842");
-    setNumeroFatura("NF-2026-0018842");
-    setValor("18500.75");
-    setDataEmissao("2026-01-18");
-    setDataVencimento("2026-05-18");
-    setSacadoCnpj("33.444.555/0001-66");
-    setSacadoRazaoSocial("Sacado Demo Ltda");
-    setSacadoEmailFinanceiro("financeiro@sacadodemo.com.br");
-    setDocumentoFiscalTipo("nfe");
-    setDocumentoFiscalChave("35260112345678901234550010000001231234567890");
-    setFiscalUploaded(true);
-    setComprovanteTipo("entrega");
-    setComprovanteUploaded(true);
-    setStatusAceiteSacado("pendente");
-    setValorDesejadoAntecipacao("15000");
-    setDeclaracoes(true);
+    const demo = getDuplicataDemoAutofillFormValues();
+    setTipo(demo.tipo);
+    setNumeroDuplicata(demo.numeroDuplicata);
+    setNumeroFatura(demo.numeroFatura);
+    setValor(demo.valor);
+    setDataEmissao(demo.dataEmissao);
+    setDataVencimento(demo.dataVencimento);
+    setSacadoCnpj(demo.sacadoCnpj);
+    setSacadoRazaoSocial(demo.sacadoRazaoSocial);
+    setSacadoEmailFinanceiro(demo.sacadoEmailFinanceiro);
+    setDocumentoFiscalTipo(demo.documentoFiscalTipo);
+    setDocumentoFiscalChave(demo.documentoFiscalChave);
+    setFiscalUploaded(demo.fiscalUploaded);
+    setComprovanteTipo(demo.comprovanteTipo);
+    setComprovanteUploaded(demo.comprovanteUploaded);
+    setStatusAceiteSacado(demo.statusAceiteSacado);
+    setValorDesejadoAntecipacao(demo.valorDesejadoAntecipacao);
+    setDeclaracoes(demo.declaracoes);
     setErrors({});
   }
 
@@ -98,27 +101,33 @@ export function NewDuplicataForm({ sellerId }: NewDuplicataFormProps) {
     ev.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    await createDuplicata(sellerId, {
-      tipo,
-      numeroDuplicata: numeroDuplicata.trim(),
-      numeroFatura: numeroFatura.trim(),
-      valor: Number.parseFloat(valor),
-      dataEmissao,
-      dataVencimento,
-      sacadoCnpj: sacadoCnpj.trim(),
-      sacadoRazaoSocial: sacadoRazaoSocial.trim(),
-      sacadoEmailFinanceiro: sacadoEmailFinanceiro.trim(),
-      documentoFiscalTipo,
-      documentoFiscalChave: documentoFiscalChave.trim(),
-      documentoFiscalAnexado: fiscalUploaded,
-      comprovanteTipo,
-      comprovanteAnexado: comprovanteUploaded,
-      statusAceiteSacado,
-      valorDesejadoAntecipacao: Number.parseFloat(valorDesejadoAntecipacao),
-      declaracoesAntifraudeAceitas: declaracoes,
-    });
-    setLoading(false);
-    navigate(ROUTES.seller.duplicatas.list);
+    try {
+      const created = await createDuplicata(sellerId, {
+        tipo,
+        numeroDuplicata: numeroDuplicata.trim(),
+        numeroFatura: numeroFatura.trim(),
+        valor: Number.parseFloat(valor),
+        dataEmissao,
+        dataVencimento,
+        sacadoCnpj: sacadoCnpj.trim(),
+        sacadoRazaoSocial: sacadoRazaoSocial.trim(),
+        sacadoEmailFinanceiro: sacadoEmailFinanceiro.trim(),
+        documentoFiscalTipo,
+        documentoFiscalChave: documentoFiscalChave.trim(),
+        documentoFiscalAnexado: fiscalUploaded,
+        comprovanteTipo,
+        comprovanteAnexado: comprovanteUploaded,
+        statusAceiteSacado,
+        valorDesejadoAntecipacao: Number.parseFloat(valorDesejadoAntecipacao),
+        declaracoesAntifraudeAceitas: declaracoes,
+      });
+      toast.success("Duplicata enviada para análise", {
+        description: `${created.numeroDuplicata} foi registrada e está aguardando análise.`,
+      });
+      navigate(ROUTES.seller.duplicatas.list);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

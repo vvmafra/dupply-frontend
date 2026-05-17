@@ -9,7 +9,9 @@ interface SellerDashboardSummaryProps {
 
 export function SellerDashboardSummary({ duplicatas }: SellerDashboardSummaryProps) {
   const total = duplicatas.reduce((sum, d) => sum + d.valor, 0);
-  const pending = duplicatas.filter((d) => d.analiseAnalista === "pendente").length;
+  const pending = duplicatas.filter(
+    (d) => d.analiseAnalista === "pendente" || d.analiseAnalista === "for_approval"
+  ).length;
   const approved = duplicatas.filter((d) => d.analiseAnalista === "aprovado").length;
   const rejected = duplicatas.filter((d) => d.analiseAnalista === "reprovado").length;
 

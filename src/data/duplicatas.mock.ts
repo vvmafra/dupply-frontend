@@ -1,3 +1,4 @@
+import { DUPLICATA_DEMO, DUPLICATA_DEMO_VALOR_LIQUIDO } from "@/data/duplicata-demo.mock";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 
 export const INITIAL_DUPLICATAS: DuplicataTitulo[] = [
@@ -52,5 +53,33 @@ export const INITIAL_DUPLICATAS: DuplicataTitulo[] = [
     analiseAnalista: "aprovado",
     scoreUsuario: 68,
     scoreDuplicata: 72,
+  },
+  {
+    id: "dup-003",
+    sellerId: "sel-001",
+    sellerName: "Alpha Distribuidora LTDA",
+    tipo: DUPLICATA_DEMO.tipo,
+    numeroDuplicata: DUPLICATA_DEMO.numeroDuplicata,
+    numeroFatura: DUPLICATA_DEMO.numeroFatura,
+    valor: DUPLICATA_DEMO.valor,
+    dataEmissao: DUPLICATA_DEMO.dataEmissao,
+    dataVencimento: DUPLICATA_DEMO.dataVencimento,
+    sacadoCnpj: DUPLICATA_DEMO.sacadoCnpj,
+    sacadoRazaoSocial: DUPLICATA_DEMO.sacadoRazaoSocial,
+    sacadoEmailFinanceiro: DUPLICATA_DEMO.sacadoEmailFinanceiro,
+    documentoFiscalTipo: DUPLICATA_DEMO.documentoFiscalTipo,
+    documentoFiscalChave: DUPLICATA_DEMO.documentoFiscalChave,
+    documentoFiscalAnexado: DUPLICATA_DEMO.documentoFiscalAnexado,
+    comprovanteTipo: DUPLICATA_DEMO.comprovanteTipo,
+    comprovanteAnexado: DUPLICATA_DEMO.comprovanteAnexado,
+    statusAceiteSacado: DUPLICATA_DEMO.statusAceiteSacado,
+    valorDesejadoAntecipacao: DUPLICATA_DEMO.valorDesejadoAntecipacao,
+    declaracoesAntifraudeAceitas: DUPLICATA_DEMO.declaracoesAntifraudeAceitas,
+    enviadoEm: "2026-01-20T10:00:00Z",
+    analiseAnalista: "for_approval",
+    descontoAntecipacaoPercent: DUPLICATA_DEMO.descontoAntecipacaoPercent,
+    valorLiquidoAntecipacao: DUPLICATA_DEMO_VALOR_LIQUIDO,
+    scoreUsuario: DUPLICATA_DEMO.scoreUsuario,
+    scoreDuplicata: DUPLICATA_DEMO.scoreDuplicata,
   },
 ];

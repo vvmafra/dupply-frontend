@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScoreBadge } from "@/components/receivables/ScoreBadge";
+import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
 import { formatCurrencyBRL } from "@/lib/formatters";
 
 const DESCONTO_MIN = 2;
@@ -27,10 +28,6 @@ function parseDescontoPercent(value: string): number | null {
 
 function isDescontoValid(percent: number | null): percent is number {
   return percent !== null && percent >= DESCONTO_MIN && percent <= DESCONTO_MAX;
-}
-
-function calcValorLiquidoCedente(valorNota: number, descontoPercent: number): number {
-  return valorNota * (1 - descontoPercent / 100);
 }
 
 export function AnalystDuplicataApprovalWizardDialog({
