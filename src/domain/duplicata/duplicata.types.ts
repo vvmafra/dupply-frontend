@@ -31,6 +31,10 @@ export interface DuplicataTitulo {
   declaracoesAntifraudeAceitas: boolean;
   enviadoEm: string;
   analiseAnalista: DuplicataAnaliseAnalista;
+  /** Score simulado do cedente (0–100). */
+  scoreUsuario: number;
+  /** Score simulado da duplicata (0–100). */
+  scoreDuplicata: number;
 }
 
 export interface NovaDuplicataPayload {

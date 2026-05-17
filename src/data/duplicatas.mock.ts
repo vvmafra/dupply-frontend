@@ -24,6 +24,8 @@ export const INITIAL_DUPLICATAS: DuplicataTitulo[] = [
     declaracoesAntifraudeAceitas: true,
     enviadoEm: "2025-05-01T10:00:00Z",
     analiseAnalista: "pendente",
+    scoreUsuario: 74,
+    scoreDuplicata: 81,
   },
   {
     id: "dup-002",
@@ -48,5 +50,7 @@ export const INITIAL_DUPLICATAS: DuplicataTitulo[] = [
     declaracoesAntifraudeAceitas: true,
     enviadoEm: "2025-05-04T16:00:00Z",
     analiseAnalista: "aprovado",
+    scoreUsuario: 68,
+    scoreDuplicata: 72,
   },
 ];

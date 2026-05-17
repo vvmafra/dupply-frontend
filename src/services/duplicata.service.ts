@@ -50,6 +50,8 @@ export async function createDuplicata(
     declaracoesAntifraudeAceitas: payload.declaracoesAntifraudeAceitas,
     enviadoEm: new Date().toISOString(),
     analiseAnalista: "pendente",
+    scoreUsuario: 70,
+    scoreDuplicata: 75,
   };
   duplicatas = [novo, ...duplicatas];
   return { ...novo };

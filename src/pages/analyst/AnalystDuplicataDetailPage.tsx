@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { AnalystDuplicataApprovalWizardDialog } from "@/components/analyst/AnalystDuplicataApprovalWizardDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
@@ -38,6 +41,8 @@ export function AnalystDuplicataDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [d, setD] = useState<DuplicataTitulo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [approvalWizardOpen, setApprovalWizardOpen] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -52,6 +57,21 @@ export function AnalystDuplicataDetailPage() {
     await setDuplicataAnaliseAnalista(id, status);
     const updated = await fetchDuplicataById(id);
     setD(updated);
+  }
+
+  async function handleApproveConfirm(payload: { observacoes: string; descontoPercent: number }) {
+    if (!id || !d) return;
+    setApproving(true);
+    try {
+      await setAnalise("aprovado");
+      setApprovalWizardOpen(false);
+      const valorLiquido = d.valor * (1 - payload.descontoPercent / 100);
+      toast.success("Duplicata aprovada", {
+        description: `${d.numeroDuplicata} aprovada com desconto de ${payload.descontoPercent}% (líquido: ${formatCurrencyBRL(valorLiquido)}).`,
+      });
+    } finally {
+      setApproving(false);
+    }
   }
 
   if (loading || !id) {
@@ -91,10 +111,6 @@ export function AnalystDuplicataDetailPage() {
         <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
           <p>
             <span className="text-muted-foreground">Valor:</span> {formatCurrencyBRL(d.valor)}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Antecipação desejada:</span>{" "}
-            {formatCurrencyBRL(d.valorDesejadoAntecipacao)}
           </p>
           <p>
             <span className="text-muted-foreground">Emissão:</span> {d.dataEmissao}
@@ -144,6 +160,12 @@ export function AnalystDuplicataDetailPage() {
             <span className="text-muted-foreground">Declarações antifraude:</span>{" "}
             {d.declaracoesAntifraudeAceitas ? "Aceitas" : "Não"}
           </p>
+          <div className="flex justify-end pt-2">
+            <Button type="button" variant="outline" size="sm">
+              <Download className="size-4" />
+              Download
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -152,7 +174,7 @@ export function AnalystDuplicataDetailPage() {
       <div className="space-y-3">
         <p className="text-sm font-medium">Sua verificação</p>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="default" onClick={() => setAnalise("aprovado")}>
+          <Button type="button" variant="default" onClick={() => setApprovalWizardOpen(true)}>
             Aprovar duplicata
           </Button>
           <Button type="button" variant="destructive" onClick={() => setAnalise("reprovado")}>
@@ -163,6 +185,17 @@ export function AnalystDuplicataDetailPage() {
           </Button>
         </div>
       </div>
+
+      <AnalystDuplicataApprovalWizardDialog
+        open={approvalWizardOpen}
+        onOpenChange={setApprovalWizardOpen}
+        numeroDuplicata={d.numeroDuplicata}
+        valorNota={d.valor}
+        scoreUsuario={d.scoreUsuario}
+        scoreDuplicata={d.scoreDuplicata}
+        submitting={approving}
+        onConfirm={handleApproveConfirm}
+      />
     </div>
   );
 }
