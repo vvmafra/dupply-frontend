@@ -1,0 +1,31 @@
+---
+description: Fluxo de desenvolvimento — specs, features e gates
+alwaysApply: true
+---
+
+# Workflow de desenvolvimento
+
+Antes de implementar features novas ou integrações, seguir `.specs/WORKFLOW.md`.
+
+## Ordem
+
+1. Classificar escopo: Small (quick) | Medium | Large | Complex
+2. Specify → (Design) → (Tasks) → Execute → Validate
+3. PRD = `.specs/features/[slug]/spec.md` · TECH SPEC = `design.md`
+
+## Contexto obrigatório
+
+- Visão: `.specs/project/PROJECT.md`
+- Decisões/blockers: `.specs/project/STATE.md`
+- Áreas frágeis: `.specs/codebase/CONCERNS.md`
+- Skill de planejamento: `.cursor/skills/tlc-spec-driven/`
+
+## Gates
+
+- `npm run typecheck` após alterações relevantes
+- Rotas novas em `src/lib/routes.ts` antes de usar
+- Validação em `domain/` (schemas Zod), não inline na UI
+
+## Demo sexta (prioridade atual)
+
+P0 auth + duplicata · P1 cadastro/revisão · P2 wallet passkey (smart-account-kit no front, persistência no back).
