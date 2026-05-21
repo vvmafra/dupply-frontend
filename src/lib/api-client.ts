@@ -2,13 +2,14 @@ import { env } from "@/lib/env";
 import { clearAccessToken, getAccessToken } from "@/lib/token-storage";
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly body?: unknown,
-  ) {
+  readonly status: number;
+  readonly body?: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
+    this.body = body;
   }
 }
 
