@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
+import { GuestRoute, ProtectedRoute, SemiProtectedRoute } from "@/routes/guards";
 import { ROUTES } from "@/lib/routes";
 
 import { LandingPage } from "@/pages/LandingPage";
@@ -27,73 +27,101 @@ import { SellerReviewDetailPage } from "@/pages/SellerReviewDetailPage";
 import { SellerDuplicatasPage } from "@/pages/seller/SellerDuplicatasPage";
 import { NewDuplicataPage } from "@/pages/seller/NewDuplicataPage";
 
-function ProtectedRoute({ children, profile }: { children: React.ReactNode; profile?: string }) {
-  const { isAuthenticated, selectedProfile } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (profile && selectedProfile !== profile) return <Navigate to="/select-profile" replace />;
-  return <>{children}</>;
-}
-
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register/seller" element={<SellerRegistrationPage />} />
-      <Route path="/register/seller/complete" element={<SellerRegistrationCompletePage />} />
-      <Route path="/select-profile" element={<SelectProfilePage />} />
+      <Route path={ROUTES.home} element={<LandingPage />} />
+      <Route
+        path={ROUTES.login}
+        element={
+          <GuestRoute>
+            <LoginPage />
+          </GuestRoute>
+        }
+      />
+      <Route path={ROUTES.sellerRegistration} element={<SellerRegistrationPage />} />
+      <Route path={ROUTES.sellerRegistrationComplete} element={<SellerRegistrationCompletePage />} />
+      <Route
+        path={ROUTES.selectProfile}
+        element={
+          <SemiProtectedRoute>
+            <SelectProfilePage />
+          </SemiProtectedRoute>
+        }
+      />
       <Route path="/confirmation/:id" element={<ConfirmationPage />} />
 
       <Route
-        path="/seller"
+        path={ROUTES.seller.dashboard}
         element={
           <ProtectedRoute profile="seller">
-            <AppShell><SellerDashboardPage /></AppShell>
+            <AppShell>
+              <SellerDashboardPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/seller/validation"
+        path={ROUTES.seller.validation}
         element={
           <ProtectedRoute profile="seller">
-            <AppShell><SellerValidationPage /></AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/seller/receivables" element={<Navigate to={ROUTES.seller.duplicatas.list} replace />} />
-      <Route path="/seller/receivables/new" element={<Navigate to={ROUTES.seller.duplicatas.new} replace />} />
-      <Route path="/seller/receivables/:id" element={<Navigate to={ROUTES.seller.duplicatas.list} replace />} />
-
-      <Route
-        path="/seller/duplicatas"
-        element={
-          <ProtectedRoute profile="seller">
-            <AppShell><SellerDuplicatasPage /></AppShell>
+            <AppShell>
+              <SellerValidationPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/seller/duplicatas/new"
-        element={
-          <ProtectedRoute profile="seller">
-            <AppShell><NewDuplicataPage /></AppShell>
-          </ProtectedRoute>
-        }
+        path="/seller/receivables"
+        element={<Navigate to={ROUTES.seller.duplicatas.list} replace />}
+      />
+      <Route
+        path="/seller/receivables/new"
+        element={<Navigate to={ROUTES.seller.duplicatas.new} replace />}
+      />
+      <Route
+        path="/seller/receivables/:id"
+        element={<Navigate to={ROUTES.seller.duplicatas.list} replace />}
       />
 
       <Route
-        path="/analyst"
+        path={ROUTES.seller.duplicatas.list}
         element={
-          <ProtectedRoute profile="riskAnalyst">
-            <AppShell><AnalystDashboardPage /></AppShell>
+          <ProtectedRoute profile="seller">
+            <AppShell>
+              <SellerDuplicatasPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/analyst/sellers"
+        path={ROUTES.seller.duplicatas.new}
+        element={
+          <ProtectedRoute profile="seller">
+            <AppShell>
+              <NewDuplicataPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.analyst.dashboard}
         element={
           <ProtectedRoute profile="riskAnalyst">
-            <AppShell><AnalystSellersPage /></AppShell>
+            <AppShell>
+              <AnalystDashboardPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.analyst.sellers.list}
+        element={
+          <ProtectedRoute profile="riskAnalyst">
+            <AppShell>
+              <AnalystSellersPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
@@ -101,15 +129,19 @@ function AppRoutes() {
         path="/analyst/sellers/:sellerId"
         element={
           <ProtectedRoute profile="riskAnalyst">
-            <AppShell><SellerReviewDetailPage /></AppShell>
+            <AppShell>
+              <SellerReviewDetailPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/analyst/duplicatas"
+        path={ROUTES.analyst.duplicatas.list}
         element={
           <ProtectedRoute profile="riskAnalyst">
-            <AppShell><AnalystDuplicatasPage /></AppShell>
+            <AppShell>
+              <AnalystDuplicatasPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
@@ -117,16 +149,20 @@ function AppRoutes() {
         path="/analyst/duplicatas/:id"
         element={
           <ProtectedRoute profile="riskAnalyst">
-            <AppShell><AnalystDuplicataDetailPage /></AppShell>
+            <AppShell>
+              <AnalystDuplicataDetailPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
 
       <Route
-        path="/admin/sellers"
+        path={ROUTES.admin.sellers.list}
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><AdminSellersPage /></AppShell>
+            <AppShell>
+              <AdminSellersPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
@@ -134,45 +170,55 @@ function AppRoutes() {
         path="/admin/sellers/:sellerId"
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><SellerReviewDetailPage /></AppShell>
+            <AppShell>
+              <SellerReviewDetailPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
 
       <Route
-        path="/admin"
+        path={ROUTES.admin.dashboard}
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><AdminDashboardPage /></AppShell>
+            <AppShell>
+              <AdminDashboardPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/admin/validations"
+        path={ROUTES.admin.validations}
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><AdminValidationsPage /></AppShell>
+            <AppShell>
+              <AdminValidationsPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/admin/receivables"
+        path={ROUTES.admin.receivables}
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><AdminReceivablesPage /></AppShell>
+            <AppShell>
+              <AdminReceivablesPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/admin/transactions"
+        path={ROUTES.admin.transactions}
         element={
           <ProtectedRoute profile="admin">
-            <AppShell><AdminTransactionsPage /></AppShell>
+            <AppShell>
+              <AdminTransactionsPage />
+            </AppShell>
           </ProtectedRoute>
         }
       />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
     </Routes>
   );
 }

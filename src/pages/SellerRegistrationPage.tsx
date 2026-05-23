@@ -5,9 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/lib/routes";
 
 export function SellerRegistrationPage() {
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  if (user) {
+  if (isAuthenticated) {
     return <Navigate to={ROUTES.selectProfile} replace />;
   }
 

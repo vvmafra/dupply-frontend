@@ -1,14 +1,15 @@
+import type { SessionUser } from "./auth-session.types";
+
+export type { SessionUser } from "./auth-session.types";
+
 export type UserProfile = "seller" | "admin" | "riskAnalyst";
 
-export interface MockUser {
-  id: string;
-  email: string;
-  name: string;
-  profile: UserProfile;
-}
+/** @deprecated Use SessionUser — perfil ativo vive em selectedProfile */
+export type MockUser = SessionUser;
 
 export interface AuthState {
   isAuthenticated: boolean;
-  user: MockUser | null;
+  isLoading: boolean;
+  user: SessionUser | null;
   selectedProfile: UserProfile | null;
 }

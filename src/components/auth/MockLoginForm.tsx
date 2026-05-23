@@ -1,29 +1,70 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Loader as Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockLogin } from "@/services/auth.service";
+import { authLoginSchema } from "@/domain/auth/auth-login.schema";
+import { getProfileRedirect } from "@/domain/auth/auth.helpers";
+import { getAvailableProfiles, MOCK_DEMO_PROFILES, shouldAutoSelectProfile } from "@/domain/auth/auth-profiles";
+import { resolveApiMode } from "@/lib/env";
 import { ROUTES } from "@/lib/routes";
+import { login as loginFromService } from "@/services/auth.service";
+
+type LocationState = {
+  from?: { pathname: string };
+};
 
 export function MockLoginForm() {
   const [email, setEmail] = useState("demo@dupply.com.br");
   const [password, setPassword] = useState("Dupply@Demo2026!");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { loginWithSession, setProfile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as LocationState | null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const result = await mockLogin(email, password);
-    if (result.success) {
-      login(email);
-      navigate(ROUTES.selectProfile);
+
+    const parsed = authLoginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+      return;
     }
+
+    setLoading(true);
+
+    const result = await loginFromService(parsed.data.email, parsed.data.password);
+
+    if (!result.ok) {
+      toast.error(result.message);
+      setLoading(false);
+      return;
+    }
+
+    loginWithSession(result.session);
+
+    const profiles =
+      resolveApiMode() === "mock"
+        ? MOCK_DEMO_PROFILES
+        : getAvailableProfiles(result.session.user.platformRole);
+    const autoProfile = shouldAutoSelectProfile(profiles);
+
+    if (autoProfile) {
+      setProfile(autoProfile);
+      const fromPath = locationState?.from?.pathname;
+      navigate(fromPath ?? getProfileRedirect(autoProfile), { replace: true });
+    } else {
+      navigate(ROUTES.selectProfile, {
+        replace: true,
+        state: locationState?.from ? { from: locationState.from } : undefined,
+      });
+    }
+
     setLoading(false);
   }
 

@@ -2,7 +2,7 @@
 
 Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou pausar trabalho.
 
-**Última atualização:** 2026-05-21
+**Última atualização:** 2026-05-22
 
 ---
 
@@ -26,7 +26,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 | ID | Blocker | Owner | Status |
 |----|---------|-------|--------|
-| B1 | Contrato REST exato (endpoints, DTOs) | Backend | 🔴 pendente — auth assumido Bearer |
+| B1 | `GET /users/me` inexistente no backend | Backend | 🔴 pendente — auth login OK; hidratação via JWT snapshot |
 | B2 | Rota `POST /users/me/wallet` (ou equivalente) | Backend | 🔴 pendente — P2 |
 | B3 | Env vars smart-account (wasm hash, verifier, relayer) | Infra | 🟡 definir com back |
 
@@ -46,7 +46,8 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 - [x] Onda 0 scaffold: `api-client` + env + token-storage + `.env.example`
 - [x] T2: switch mock→HTTP documentado + `resolveApiMode()` em `env.ts`
 - [ ] T3–T5: adapters nos services (⏸ até endpoints back)
-- [ ] P0: auth REST + perfil + duplicata HTTP
+- [x] P0 auth: login REST/mock + persistência + guards + seleção de perfil (`auth-login-persistence` T1–T8)
+- [ ] P0: duplicata HTTP
 - [ ] P1: cadastro cedente + revisão analista HTTP
 - [ ] P2: WalletContext + smart-account-kit + link backend
 - [x] Spec `.specs/features/api-integration/` (spec + design + tasks)
@@ -73,7 +74,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 ## Handoff (última sessão)
 
-**Em andamento:** api-integration T2 done — mocks intactos; switch documentado em `design.md` § Switch mock → HTTP  
-**Próximo passo:** spec `wallet-passkey/` **ou** T3 auth quando back confirmar paths (B1)  
-**Switch API:** `.env.local` → `VITE_USE_MOCKS=false` + `VITE_API_BASE_URL=...` → reiniciar dev  
-**Novo chat:** `@.specs/project/STATE.md` + `@.specs/WORKFLOW.md` (+ feature tasks se implementando)
+**Em andamento:** auth-login-persistence T1–T8 implementados — mock default + HTTP login/restore/logout  
+**Próximo passo:** teste manual HTTP com backend local; T9 (`GET /users/me`) quando B1 desbloquear  
+**Demo HTTP:** `.env.local` → `VITE_USE_MOCKS=false` + `VITE_API_BASE_URL=http://localhost:…` → seeds `seller@dupply.dev.local`, `risk@dupply.dev.local`  
+**Novo chat:** `@.specs/project/STATE.md` + `@.specs/features/auth-login-persistence/tasks.md`

@@ -1,5 +1,5 @@
 import { env } from "@/lib/env";
-import { clearAccessToken, getAccessToken } from "@/lib/token-storage";
+import { clearAuthStorage, getAccessToken } from "@/lib/token-storage";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -21,6 +21,14 @@ export type ApiRequestOptions = {
   /** Attach Bearer token (default true). */
   auth?: boolean;
 };
+
+type UnauthorizedHandler = () => void;
+
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  onUnauthorized = handler;
+}
 
 /**
  * REST client — used when VITE_USE_MOCKS=false.
@@ -59,13 +67,16 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       signal: controller.signal,
     });
 
-    if (response.status === 401) {
-      clearAccessToken();
-      throw new ApiError("Unauthorized", 401);
-    }
-
     const text = await response.text();
     const parsed = text ? (JSON.parse(text) as unknown) : undefined;
+
+    if (response.status === 401) {
+      if (auth) {
+        clearAuthStorage();
+        onUnauthorized?.();
+      }
+      throw new ApiError("Unauthorized", 401, parsed);
+    }
 
     if (!response.ok) {
       const message =

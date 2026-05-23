@@ -1,11 +1,9 @@
-import { Link } from "react-router-dom";
 import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProfileLabel } from "@/domain/auth/auth.helpers";
-import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import {
   DUPPLY_TOPBAR_GHOST_LINK,
@@ -42,13 +40,10 @@ export function Header() {
             variant="ghost"
             size="icon-sm"
             className={cn(DUPPLY_TOPBAR_GHOST_LINK, "shrink-0")}
-            onClick={logout}
-            asChild={false}
+            onClick={() => logout({ reason: "manual" })}
             title="Sair"
           >
-            <Link to={ROUTES.home} onClick={logout}>
-              <LogOut className="size-4" />
-            </Link>
+            <LogOut className="size-4" />
           </Button>
         </div>
       </div>
