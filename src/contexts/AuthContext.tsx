@@ -1,40 +1,108 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { toast } from "sonner";
+import type { AuthSession } from "@/domain/auth/auth-session.types";
 import type { AuthState, UserProfile } from "@/domain/auth/auth.types";
+import {
+  logout as logoutFromService,
+  persistSelectedProfile,
+  restoreSession as restoreSessionFromService,
+} from "@/services/auth.service";
+import { setUnauthorizedHandler } from "@/lib/api-client";
+
+const guestState: AuthState = {
+  isAuthenticated: false,
+  isLoading: true,
+  user: null,
+  selectedProfile: null,
+};
 
 interface AuthContextValue extends AuthState {
-  /** `selectedProfile` imediato evita corrida com `navigate` após login (ex.: cadastro de cedente). */
-  login: (email: string, name?: string, selectedProfileOnLogin?: UserProfile | null) => void;
-  logout: () => void;
+  loginWithSession: (session: AuthSession, selectedProfile?: UserProfile | null) => void;
+  logout: (options?: { reason?: "manual" | "expired" }) => void;
   setProfile: (profile: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    isAuthenticated: false,
-    user: null,
-    selectedProfile: null,
-  });
+  const [state, setState] = useState<AuthState>(guestState);
+  const logoutRef = useRef<(options?: { reason?: "manual" | "expired" }) => void>(() => {});
 
-  function login(email: string, name?: string, selectedProfileOnLogin?: UserProfile | null) {
+  const loginWithSession = useCallback(
+    (session: AuthSession, selectedProfile: UserProfile | null = null) => {
+      setState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: session.user,
+        selectedProfile,
+      });
+    },
+    [],
+  );
+
+  const logout = useCallback((options?: { reason?: "manual" | "expired" }) => {
+    void logoutFromService();
     setState({
-      isAuthenticated: true,
-      user: { id: "user-demo", email, name: name ?? email.split("@")[0], profile: "seller" },
-      selectedProfile: selectedProfileOnLogin ?? null,
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      selectedProfile: null,
     });
-  }
 
-  function logout() {
-    setState({ isAuthenticated: false, user: null, selectedProfile: null });
-  }
+    if (options?.reason === "expired") {
+      toast.error("Sessão expirada");
+    }
+  }, []);
 
-  function setProfile(profile: UserProfile) {
+  logoutRef.current = logout;
+
+  const setProfile = useCallback((profile: UserProfile) => {
     setState((prev) => ({ ...prev, selectedProfile: profile }));
-  }
+    void persistSelectedProfile(profile);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const restored = await restoreSessionFromService();
+      if (cancelled) return;
+
+      if (restored) {
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: restored.session.user,
+          selectedProfile: restored.selectedProfile,
+        });
+      } else {
+        setState((prev) => ({ ...prev, isLoading: false }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logoutRef.current({ reason: "expired" });
+    });
+
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, setProfile }}>
+    <AuthContext.Provider value={{ ...state, loginWithSession, logout, setProfile }}>
       {children}
     </AuthContext.Provider>
   );
