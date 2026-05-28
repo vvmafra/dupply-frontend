@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnalystSellersTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
-import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
+import { CadastralReviewBadge } from "@/components/analyst/CadastralReviewBadge";
 import { getSellerCadastralReviewDisplayStatus } from "@/domain/risk-analyst/seller-cadastral-review.helpers";
 import {
   Table,
@@ -59,7 +59,7 @@ export function AnalystSellersPage() {
                   <TableCell className="font-mono text-sm">{r.taxId}</TableCell>
                   <TableCell className="text-right">{r.riskScore}</TableCell>
                   <TableCell>
-                    <DuplicataAnaliseBadge status={getSellerCadastralReviewDisplayStatus(r)} />
+                    <CadastralReviewBadge status={getSellerCadastralReviewDisplayStatus(r)} />
                   </TableCell>
                 </TableRow>
               ))}

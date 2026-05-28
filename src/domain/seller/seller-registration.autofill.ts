@@ -96,6 +96,7 @@ export function getSellerRegistrationStepAutofill(
         representativeCpf: "123.456.789-00",
         representativeEmail: "lin.chai@email.com",
         representativePhone: "(11) 98888-7766",
+        representativeRole: "Sócio Administrador",
       };
     case "relations":
       return {

@@ -1,7 +1,7 @@
 # API Integration — Specification
 
 **Feature slug:** `api-integration`  
-**Status:** Draft — aguardando contrato REST do backend  
+**Status:** Partial — auth contract confirmed; other domains still TBD  
 **Prioridade demo:** P0 → P1 (P2 wallet em feature separada)
 
 ---
@@ -35,12 +35,15 @@ O frontend funciona 100% com mocks in-memory. Para a demo de sexta e evolução 
 
 ## Premissas (até backend confirmar)
 
-| Aspecto | Assunção | Status |
-|---------|----------|--------|
-| Auth | **Bearer token** no header `Authorization` | 🟡 assumido — confirmar com back |
-| Base URL | `VITE_API_BASE_URL` | 🔴 pendente |
+| Aspecto | Valor | Status |
+|---------|-------|--------|
+| Auth access token | **Bearer** no header `Authorization` | ✅ confirmado |
+| Auth refresh token | Cookie **`dupply_rt`** (`HttpOnly`, `Path=/v1/auth`) | ✅ confirmado — JS não acessa |
+| Auth requests | `credentials: "include"` em `/v1/auth/*` | ✅ confirmado |
+| Base URL | `VITE_API_BASE_URL` | 🔴 pendente env por dev |
 | Modo dev | `VITE_USE_MOCKS=true` (default) | ✅ fechado |
-| Formato | JSON REST | 🟡 assumido |
+| Formato | JSON REST | ✅ confirmado |
+| CORS | Backend `credentials: true` + origin allowlist | ✅ confirmado |
 
 ---
 
@@ -73,10 +76,11 @@ O frontend funciona 100% com mocks in-memory. Para a demo de sexta e evolução 
 
 **Acceptance Criteria**:
 
-1. WHEN usuário submete login válido THEN system SHALL chamar `POST /auth/login` (path TBD) e receber token + user
-2. WHEN login sucesso THEN system SHALL persistir token e popular `AuthContext`
-3. WHEN usuário seleciona perfil THEN system SHALL chamar endpoint de perfil (TBD) ou manter local até rota existir
-4. WHEN F5 THEN sessão SHALL ser restaurada do storage se token válido
+1. WHEN usuário submete login válido THEN system SHALL chamar `POST /v1/auth/login` com `credentials: "include"`, receber `accessToken` no body e cookie `dupply_rt` via browser
+2. WHEN login sucesso THEN system SHALL persistir apenas `accessToken` + snapshot; refresh token fica no cookie HttpOnly
+3. WHEN access token expira THEN system SHALL tentar `POST /v1/auth/refresh` (sem body, `credentials: "include"`) antes de deslogar
+4. WHEN usuário faz logout THEN system SHALL chamar `POST /v1/auth/logout` com `credentials: "include"`
+5. WHEN F5 THEN sessão SHALL ser restaurada do storage; se access expirado, refresh via cookie
 
 **Independent Test**: Login → reload → ainda autenticado (com API ou mock enriquecido).
 
@@ -122,13 +126,20 @@ O frontend funciona 100% com mocks in-memory. Para a demo de sexta e evolução 
 
 ---
 
-## Endpoints placeholder (confirmar com backend)
+## Endpoints confirmados (auth)
+
+| Domínio | Método | Path | Auth | Body | Response | Service |
+|---------|--------|------|------|------|----------|---------|
+| Auth | POST | `/v1/auth/login` | — | `{ email, password }` | `{ accessToken, tokenType, expiresInSeconds }` + cookie | `auth.service.ts` |
+| Auth | POST | `/v1/auth/refresh` | cookie `dupply_rt` | — | same as login + cookie rotated | `auth.service.ts` |
+| Auth | POST | `/v1/auth/logout` | cookie `dupply_rt` | — | `204` | `auth.service.ts` |
+| Account | GET | `/v1/accounts/me` | Bearer | — | account profile | `auth.service.ts` (opcional) |
+
+## Endpoints placeholder (outros domínios — confirmar com backend)
 
 | Domínio | Método | Path (TBD) | Service |
 |---------|--------|------------|---------|
-| Auth | POST | `/auth/login` | `auth.service.ts` |
-| Auth | POST | `/auth/logout` | `auth.service.ts` |
-| User | PATCH | `/users/me/profile` | `auth.service.ts` |
+| User profile | PATCH | `/users/me/profile` | `auth.service.ts` |
 | Duplicatas | GET | `/duplicatas` | `duplicata.service.ts` |
 | Duplicatas | POST | `/duplicatas` | `duplicata.service.ts` |
 | Duplicatas | PATCH | `/duplicatas/:id/analise` | `duplicata.service.ts` |
@@ -145,7 +156,7 @@ O frontend funciona 100% com mocks in-memory. Para a demo de sexta e evolução 
 | API-02 | P1 | T1 | 🟢 |
 | API-03 | P1 | T2 | 🟢 |
 | API-04 | P1 | T2 | 🟢 |
-| AUTH-01 | P2 | T3 | 🔴 |
+| AUTH-01 | P2 | auth-login T11 | 🔴 |
 | DUP-01 | P3 | T4 | 🔴 |
 | SEL-01 | P4 | T5 | 🔴 |
 

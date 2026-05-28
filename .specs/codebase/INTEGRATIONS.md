@@ -63,15 +63,22 @@ return data.map((d) => ({ ...d })); // cópia defensiva
 
 ### Backend Dupply
 
-**Purpose:** *(planejado — não implementado)*
-**Location:** N/A
-**Authentication:** N/A
-**Key endpoints:** N/A
+**Purpose:** Auth, accounts, sellers, receivables (planejado / parcial)  
+**Location:** `src/lib/api-client.ts`, `src/services/auth.service.ts`  
+**Authentication:**
+- Access: `Authorization: Bearer <accessToken>` (sessionStorage)
+- Refresh: cookie `dupply_rt` (HttpOnly, `Path=/v1/auth`) — browser-managed; requires `credentials: "include"` on `/v1/auth/*`
 
-Quando integrar, pontos naturais de substituição:
-- `src/services/*.ts` → clients HTTP mantendo mesmas assinaturas
-- Variáveis `VITE_API_URL` via `import.meta.env`
-- `AuthContext` → token/session persistence
+**Key auth endpoints (confirmados):**
+
+| Método | Path | Notas |
+|--------|------|-------|
+| POST | `/v1/auth/login` | body `{ email, password }` → `{ accessToken, tokenType, expiresInSeconds }` + cookie |
+| POST | `/v1/auth/refresh` | sem body; cookie rotacionado |
+| POST | `/v1/auth/logout` | sem Bearer; invalida cookie |
+| GET | `/v1/accounts/me` | Bearer; perfil da conta |
+
+**Frontend pendente (T11):** `credentials: "include"` no `api-client`, silent refresh, logout HTTP.
 
 ## Webhooks
 
@@ -88,7 +95,7 @@ Nenhum sistema de filas. Toda lógica é síncrona (com `sleep` simulando latên
 **Implementation:** `src/components/theme-provider.tsx`
 **Key:** `vite-ui-theme`
 
-**Nota:** Auth **não** persiste em storage — sessão perdida ao recarregar.
+**Nota:** Auth persiste access token + snapshot em `sessionStorage`; refresh token fica no cookie HttpOnly (após T11).
 
 ## Variáveis de ambiente
 

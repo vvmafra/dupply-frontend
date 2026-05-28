@@ -10,12 +10,18 @@ import {
 import { toast } from "sonner";
 import type { AuthSession } from "@/domain/auth/auth-session.types";
 import type { AuthState, UserProfile } from "@/domain/auth/auth.types";
+import { INACTIVE_SELLER_REJECTION_MESSAGE } from "@/domain/seller/seller-registration.routing";
+import { resolveApiMode } from "@/lib/env";
+import { setUnauthorizedHandler } from "@/lib/api-client";
 import {
   logout as logoutFromService,
   persistSelectedProfile,
   restoreSession as restoreSessionFromService,
+  takeRestoreBlockReason,
 } from "@/services/auth.service";
-import { setUnauthorizedHandler } from "@/lib/api-client";
+import { fetchSellerBackendStatus } from "@/services/seller-registration.service";
+
+const ACCOUNT_INACTIVE_MESSAGE = "Sua conta está inativa. Entre em contato com o suporte.";
 
 const guestState: AuthState = {
   isAuthenticated: false,
@@ -77,6 +83,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       if (restored) {
+        if (
+          resolveApiMode() === "http" &&
+          restored.session.user.platformRole === "seller"
+        ) {
+          try {
+            const status = await fetchSellerBackendStatus();
+            if (status === "inactive") {
+              await logoutFromService();
+              toast.error(INACTIVE_SELLER_REJECTION_MESSAGE);
+              setState({ ...guestState, isLoading: false });
+              return;
+            }
+
+            setState({
+              isAuthenticated: true,
+              isLoading: false,
+              user: restored.session.user,
+              selectedProfile: restored.selectedProfile ?? "seller",
+            });
+            return;
+          } catch {
+            setState({
+              isAuthenticated: true,
+              isLoading: false,
+              user: restored.session.user,
+              selectedProfile: restored.selectedProfile ?? "seller",
+            });
+            toast.error("Não foi possível validar seu cadastro. Tentando novamente...");
+            return;
+          }
+        }
+
         setState({
           isAuthenticated: true,
           isLoading: false,
@@ -84,6 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           selectedProfile: restored.selectedProfile,
         });
       } else {
+        const blockReason = takeRestoreBlockReason();
+        if (blockReason === "account_inactive") {
+          toast.error(ACCOUNT_INACTIVE_MESSAGE);
+        }
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     })();

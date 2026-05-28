@@ -47,8 +47,7 @@ export function AnalystSellersTableSkeleton() {
   );
 }
 
-/** Mesma estrutura da tabela em `AnalystDuplicatasPage`. */
-export function AnalystDuplicatasTableSkeleton() {
+export function AnalystReceivablesTableSkeleton() {
   return (
     <div className="rounded-md border">
       <Table>

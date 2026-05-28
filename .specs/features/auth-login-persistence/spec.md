@@ -1,7 +1,7 @@
 # Auth Login & Persistência — Specification
 
 **Feature slug:** `auth-login-persistence`  
-**Status:** Draft — contrato de login confirmado no backend; `GET /users/me` ainda inexistente  
+**Status:** Draft — contrato de login/refresh/logout confirmado no backend (cookie `dupply_rt`); hidratação via `GET /v1/accounts/me` disponível  
 **Prioridade demo:** P0 (ROADMAP P0.1 + P0.2)  
 **Depende de:** infra HTTP em `.specs/features/api-integration/` (`api-client`, `env`, `token-storage`)
 
@@ -29,12 +29,10 @@ Precisamos de login REST (ou mock) com **persistência de sessão**, rotas guest
 
 | Item | Motivo |
 |------|--------|
-| Refresh token / silent renew | Backend não expõe refresh; fora do P0 |
 | OAuth / SSO / magic link | Escopo futuro |
 | Wallet / passkey | Feature `wallet-passkey` |
 | Integração HTTP de duplicatas, cadastro, revisão | Features/services separados |
-| Implementação de `GET /users/me` no backend | Dependência externa (B1); spec define fallback |
-| `POST /auth/logout` server-side | Token stateless; logout é client-side |
+| Multi-tab silent refresh coordination | Melhoria futura |
 | Testes automatizados (Vitest/E2E) | Pós-demo; gate manual + typecheck |
 | Remover credenciais demo do formulário | Pós-demo / flag DEV |
 
@@ -45,12 +43,19 @@ Precisamos de login REST (ou mock) com **persistência de sessão**, rotas guest
 | Aspecto | Valor |
 |---------|-------|
 | Endpoint login | `POST /v1/auth/login` |
-| Request body | `{ email: string, password: string }` |
-| Sucesso `200` | `{ accessToken: string, tokenType: "Bearer", expiresInSeconds: number }` |
-| Erros | `400 validation_error`, `401 invalid_credentials`, `403 account_inactive`, `503 JWT_SECRET not configured` |
+| Request body (login) | `{ email: string, password: string }` |
+| Sucesso login `200` | `{ accessToken: string, tokenType: "Bearer", expiresInSeconds: number }` + `Set-Cookie: dupply_rt=...` |
+| Endpoint refresh | `POST /v1/auth/refresh` — **sem body**; cookie `dupply_rt` anexado pelo browser |
+| Sucesso refresh `200` | Mesmo body do login + cookie `dupply_rt` rotacionado |
+| Erro refresh sem cookie | `401 { error: "missing_refresh_token" }` |
+| Endpoint logout | `POST /v1/auth/logout` — **sem body, sem Bearer**; cookie `dupply_rt` anexado pelo browser |
+| Sucesso logout | `204`; cookie `dupply_rt` limpo server-side |
+| Credenciais HTTP | `credentials: "include"` em **todas** as chamadas `/v1/auth/*` (login, refresh, logout, register) |
+| Refresh token no JS | **Proibido** — cookie `HttpOnly`; frontend nunca lê nem envia `refreshToken` explicitamente |
+| Erros login | `400 validation_error`, `401 invalid_credentials`, `403 account_inactive`, `503 JWT_SECRET not configured` |
 | Auth subsequente | Header `Authorization: Bearer <accessToken>` |
-| Claims JWT (payload) | `sub` (user id), `role`, `principalKind` |
-| Endpoint perfil | **Não existe** — `PATCH /users/me/profile` permanece TBD (ROADMAP P0.2) |
+| Claims JWT (payload) | `sub` (account id), `role`, `profileId` |
+| Endpoint perfil/conta | `GET /v1/accounts/me` (Bearer) — preferir para hidratação pós-login |
 
 **Mapeamento de roles (backend → frontend):**
 
@@ -137,8 +142,8 @@ flowchart TB
 **Acceptance Criteria**:
 
 1. WHEN usuário submete login válido em modo mock THEN `auth.service.login()` SHALL validar via mock atual e retornar sucesso sem HTTP
-2. WHEN usuário submete login válido em modo HTTP THEN `auth.service.login()` SHALL chamar `POST /v1/auth/login` via `apiRequest` com `{ auth: false }`
-3. WHEN login HTTP retorna `accessToken` THEN service SHALL persistir token via `token-storage` e retornar DTO de sessão normalizado para o domínio
+2. WHEN usuário submete login válido em modo HTTP THEN `auth.service.login()` SHALL chamar `POST /v1/auth/login` via `apiRequest` com `{ auth: false, credentials: "include" }`
+3. WHEN login HTTP retorna `accessToken` THEN service SHALL persistir token via `token-storage`, confiar no browser para armazenar `dupply_rt`, e retornar DTO de sessão normalizado para o domínio
 4. WHEN login falha (`401`, `403`, rede, timeout) THEN UI SHALL exibir toast em português e **não** alterar `AuthContext`
 5. WHEN login sucesso THEN `AuthContext` SHALL receber estado autenticado via método exposto pelo provider (ex.: `loginWithSession(session)`), **não** montando user manualmente na UI
 6. WHEN credenciais inválidas THEN system SHALL exibir mensagem genérica em PT (ex.: "E-mail ou senha incorretos") sem vazar se o e-mail existe
@@ -159,13 +164,16 @@ flowchart TB
 
 1. WHEN login sucesso THEN system SHALL persistir em `sessionStorage`: `accessToken` + snapshot `{ userId, email, platformRole, selectedProfile? }`
 2. WHEN app inicia (`AuthProvider` mount) THEN `auth.service.restoreSession()` SHALL reidratar `AuthContext` se token presente e não expirado
-3. WHEN token expirado (claim `exp` no passado) THEN system SHALL limpar storage e manter usuário deslogado
-4. WHEN restore falha (token ausente/corrompido) THEN system SHALL iniciar em estado guest sem erro visível
-5. WHEN logout THEN system SHALL limpar token **e** snapshot de sessão
+3. WHEN access token expira (claim `exp` no passado) THEN `auth.service.restoreSession()` ou fluxo de refresh SHALL tentar `POST /v1/auth/refresh` com `credentials: "include"` antes de deslogar
+4. WHEN refresh retorna novo `accessToken` THEN service SHALL atualizar `token-storage` e manter snapshot de sessão
+5. WHEN refresh falha (`401`, cookie ausente) THEN system SHALL limpar storage e manter usuário deslogado
+6. WHEN token expirado e refresh indisponível THEN system SHALL limpar storage e manter usuário deslogado
+7. WHEN restore falha (token ausente/corrompido) THEN system SHALL iniciar em estado guest sem erro visível
+8. WHEN logout THEN system SHALL chamar `POST /v1/auth/logout` com `credentials: "include"`, limpar token **e** snapshot de sessão
 
 **Independent Test**: Login → F5 → ainda autenticado; logout → F5 → guest.
 
-**Req IDs:** `ALP-05`, `ALP-06`, `ALP-07`, `ALP-08`
+**Req IDs:** `ALP-05`, `ALP-06`, `ALP-07`, `ALP-08`, `ALP-21`, `ALP-22`
 
 ---
 
@@ -226,10 +234,10 @@ flowchart TB
 
 **Acceptance Criteria**:
 
-1. WHEN usuário aciona logout THEN `auth.service.logout()` SHALL limpar storage e `AuthContext` SHALL resetar estado guest
-2. WHEN qualquer request autenticada retorna `401` THEN `api-client` SHALL limpar token e notificar `AuthContext` para logout + redirect `ROUTES.login`
-3. WHEN logout ou 401 THEN UI autenticada SHALL exibir toast opcional em PT ("Sessão expirada")
-4. WHEN logout THEN system SHALL **não** chamar endpoint inexistente no backend
+1. WHEN usuário aciona logout THEN `auth.service.logout()` SHALL chamar `POST /v1/auth/logout` com `credentials: "include"`, limpar storage e `AuthContext` SHALL resetar estado guest
+2. WHEN access token expira THEN service SHALL tentar refresh silencioso via cookie antes de tratar como sessão inválida
+3. WHEN qualquer request autenticada retorna `401` após refresh falhar THEN `api-client` SHALL limpar token e notificar `AuthContext` para logout + redirect `ROUTES.login`
+4. WHEN logout ou 401 THEN UI autenticada SHALL exibir toast opcional em PT ("Sessão expirada")
 
 **Independent Test**: Token inválido manual no storage → próxima ação HTTP → redirect login.
 
@@ -237,17 +245,17 @@ flowchart TB
 
 ---
 
-### P3: Hidratação de usuário sem `GET /users/me`
+### P3: Hidratação de usuário via `GET /v1/accounts/me`
 
-**User Story**: Como dev, quero exibir nome/e-mail do usuário logado mesmo sem endpoint de perfil.
+**User Story**: Como dev, quero exibir nome/e-mail do usuário logado a partir da API quando disponível.
 
-**Why P3**: Backend ainda não expõe `/users/me`; necessário para UX mínima.
+**Why P3**: Endpoint de conta existe; melhora UX sobre decode client-side.
 
 **Acceptance Criteria**:
 
 1. WHEN login HTTP sucesso THEN snapshot SHALL incluir `email` informado no formulário e `userId` de `sub` do JWT (decode payload **sem** verificar assinatura — apenas leitura de claims para UI)
 2. WHEN restore de sessão THEN UI SHALL usar snapshot persistido para `user.email` / `user.name` (fallback: parte local do e-mail)
-3. WHEN `GET /users/me` estiver disponível THEN service SHALL preferir endpoint e depreciar decode client-side (sem mudar `AuthContext`)
+3. WHEN `GET /v1/accounts/me` estiver disponível THEN service SHALL preferir endpoint e depreciar decode client-side (sem mudar `AuthContext`)
 
 **Independent Test**: Após login HTTP, header/sidebar mostra e-mail correto após F5.
 
@@ -301,10 +309,12 @@ Schema Zod de login (`domain/auth/auth-login.schema.ts` — a criar): e-mail + s
 
 | Operação | Camada responsável | Transporte |
 |----------|-------------------|------------|
-| Login | `auth.service.ts` | `POST /v1/auth/login` ou mock |
-| Persistir token | `auth.service.ts` → `token-storage.ts` | sessionStorage |
-| Restore sessão | `auth.service.ts` | read storage + decode exp |
-| Logout | `auth.service.ts` | clear storage |
+| Login | `auth.service.ts` | `POST /v1/auth/login` com `credentials: "include"` ou mock |
+| Refresh silencioso | `auth.service.ts` | `POST /v1/auth/refresh` com `credentials: "include"` (sem body) |
+| Persistir access token | `auth.service.ts` → `token-storage.ts` | sessionStorage |
+| Refresh token | Browser (cookie `dupply_rt`) | HttpOnly — **não** passa por `token-storage` |
+| Restore sessão | `auth.service.ts` | read storage + refresh se expirado + decode exp |
+| Logout | `auth.service.ts` | `POST /v1/auth/logout` com `credentials: "include"` + clear storage |
 | Requests autenticadas | outros services via `api-client` | Bearer automático |
 | Redirect por perfil | `domain/auth/auth.helpers.ts` | — |
 | Guards de rota | `App.tsx` (ou `routes/guards.tsx`) | consome `useAuth()` |
@@ -345,9 +355,11 @@ Schema Zod de login (`domain/auth/auth-login.schema.ts` — a criar): e-mail + s
 | ALP-17 | P2: 401 global | Design | Done |
 | ALP-18 | P2: Toast sessão expirada | Design | Done |
 | ALP-19 | P3: Snapshot email/userId | Design | Done |
-| ALP-20 | P3: Fallback GET /users/me | Design | Blocked (B1) |
+| ALP-20 | P3: Fallback GET /v1/accounts/me | Design | Ready |
+| ALP-21 | P1: Silent refresh via cookie | Design | Pending |
+| ALP-22 | P2: Logout server-side | Design | Pending |
 
-**Coverage:** 20 requisitos → 10 tasks em [tasks.md](./tasks.md) (T9 bloqueada por B1)
+**Coverage:** 22 requisitos → 11 tasks em [tasks.md](./tasks.md) (T9 opcional; T11 refresh/logout cookie)
 
 ---
 
@@ -355,7 +367,7 @@ Schema Zod de login (`domain/auth/auth-login.schema.ts` — a criar): e-mail + s
 
 - [api-integration/spec.md](../api-integration/spec.md) — infra HTTP compartilhada (API-03, API-04, AUTH-*)
 - [ROADMAP.md](../../project/ROADMAP.md) — P0.1, P0.2
-- [STATE.md](../../project/STATE.md) — blocker B1
+- [STATE.md](../../project/STATE.md) — blocker B1 atualizado (`GET /v1/accounts/me`)
 - [CONCERNS.md](../../codebase/CONCERNS.md) — auth sem persistência, guards frágeis
 - [ARCHITECTURE.md](../../codebase/ARCHITECTURE.md) — fluxo auth atual
 - Backend: `dupply-backend/src/routes/v1/auth.ts`
@@ -364,4 +376,4 @@ Schema Zod de login (`domain/auth/auth-login.schema.ts` — a criar): e-mail + s
 
 ## Próximo passo
 
-Implementar conforme [tasks.md](./tasks.md) — ordem: T1 → T2 → T3 → T4 → T5/T6 → T7 → T8 → T10.
+Implementar conforme [tasks.md](./tasks.md) — ordem: T1 → T2 → T3 → T4 → T5/T6 → T7 → T8 → **T11** (cookie refresh/logout) → T10.

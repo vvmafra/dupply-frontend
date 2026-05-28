@@ -11,7 +11,7 @@ import { MOCK_SELLERS } from "@/data/users.mock";
 import { fetchSellerReviewById } from "@/services/seller-review.service";
 import { approveAnalystDuplicatasAccess } from "@/services/seller.service";
 import { getValidationStatusLabel } from "@/domain/seller/seller.validation";
-import { getAnalystDuplicatasAccessLabel } from "@/domain/seller/seller-duplicata-access";
+import { getAnalystReceivablesAccessLabel } from "@/domain/seller/seller-receivable-access";
 import { ROUTES } from "@/lib/routes";
 import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
 
@@ -38,7 +38,7 @@ export function SellerReviewDetailPage() {
     setRow(updated);
   }, [sellerId]);
 
-  async function handleLiberarDuplicatas() {
+  async function handleLiberarReceivables() {
     if (!sellerId) return;
     await approveAnalystDuplicatasAccess(sellerId);
     await refreshRow();
@@ -98,33 +98,33 @@ export function SellerReviewDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Liberação para duplicatas</CardTitle>
+                <CardTitle className="text-base">Liberação para recebíveis</CardTitle>
                 <CardDescription>
-                  O cedente só consegue cadastrar duplicatas após esta liberação (além de KYC e cadastro aprovados na
+                  O cedente só consegue cadastrar recebíveis após esta liberação (além de KYC e cadastro aprovados na
                   plataforma).
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm">
                   Status:{" "}
-                  <Badge variant="outline">{getAnalystDuplicatasAccessLabel(row.analystDuplicatasAccess)}</Badge>
+                  <Badge variant="outline">{getAnalystReceivablesAccessLabel(row.analystDuplicatasAccess)}</Badge>
                 </p>
                 {!isAdmin && row.validationStatus === "APPROVED" && row.analystDuplicatasAccess !== "APPROVED" && row.analystDuplicatasAccess !== "REJECTED" && (
-                  <Button type="button" onClick={handleLiberarDuplicatas}>
-                    Liberar envio de duplicatas para este cedente
+                  <Button type="button" onClick={handleLiberarReceivables}>
+                    Liberar envio de recebíveis para este cedente
                   </Button>
                 )}
                 {!isAdmin && row.validationStatus !== "APPROVED" && row.analystDuplicatasAccess !== "APPROVED" && (
                   <p className="text-xs text-muted-foreground">
-                    A liberação de duplicatas fica disponível após o cadastro do cedente estar aprovado na plataforma.
+                    A liberação de recebíveis fica disponível após o cadastro do cedente estar aprovado na plataforma.
                   </p>
                 )}
                 {!isAdmin && row.analystDuplicatasAccess === "REJECTED" && (
-                  <p className="text-sm text-destructive">Envio de duplicatas não liberado para este cedente.</p>
+                  <p className="text-sm text-destructive">Envio de recebíveis não liberado para este cedente.</p>
                 )}
                 {isAdmin && (
                   <p className="text-xs text-muted-foreground">
-                    Somente o analista de risco pode liberar o cadastro de duplicatas.
+                    Somente o analista de risco pode liberar o cadastro de recebíveis.
                   </p>
                 )}
               </CardContent>

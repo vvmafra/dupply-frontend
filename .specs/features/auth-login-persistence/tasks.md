@@ -75,12 +75,12 @@
 - API: `login`, `logout`, `restoreSession`, `persistSelectedProfile`
 - `LoginResult` com códigos PT (`invalid_credentials`, `account_inactive`, `payer_unavailable`, etc.)
 - Branch mock: preservar `sleep(800)`, qualquer senha com e-mail, `platformRole: "seller"`
-- Branch HTTP: `POST /v1/auth/login` via `apiRequest(..., { auth: false })`
-- Sucesso HTTP: `setAccessToken` + `setAuthSnapshot` (email do form + `sub` do JWT)
+- Branch HTTP: `POST /v1/auth/login` via `apiRequest(..., { auth: false, credentials: "include" })`
+- Sucesso HTTP: `setAccessToken` + `setAuthSnapshot` (email do form + `sub` do JWT); cookie `dupply_rt` gerenciado pelo browser
 - Falha login: **não** gravar storage (ALP-04)
-- `restoreSession`: decode exp, limpar se expirado/malformado; mock lê só snapshot
+- `restoreSession`: decode exp; se expirado tentar refresh (T11); limpar se refresh falhar; mock lê só snapshot
 - Restore idempotente (flag ou promise memoizada — StrictMode)
-- `logout`: `clearAuthStorage`, sem endpoint backend
+- `logout`: ver T11 para HTTP server-side + `clearAuthStorage`
 
 **Done when:**
 
@@ -210,11 +210,11 @@
 - Registrar handler no boot (`AuthProvider` ou `AuthSessionSync` sob `BrowserRouter`)
 - Handler chama `logout({ reason: "expired" })` + toast opcional "Sessão expirada"
 - Redirect login via guard na próxima render **ou** `navigate(ROUTES.login)` se usar `AuthSessionSync`
-- Logout manual: sem chamada HTTP
+- Logout manual: `POST /v1/auth/logout` com `credentials: "include"` (T11)
 
 **Done when:**
 
-- [ ] Token inválido no storage + request autenticada → guest + login
+- [ ] Token inválido no storage + request autenticada → tenta refresh → guest + login se falhar
 - [ ] Logout limpa token e snapshot; F5 permanece guest
 - [ ] `npm run typecheck` passa
 
@@ -222,7 +222,33 @@
 
 ---
 
-## T9 — Adapter `GET /users/me` (P3) ⏸
+## T11 — Cookie refresh + logout HTTP 🔴
+
+**Req:** ALP-21, ALP-22  
+**Fase design:** F9  
+**Depends on:** T2, T3, T8  
+**Where:** `src/lib/api-client.ts`, `src/services/auth.service.ts`
+
+**What:**
+
+- `apiRequest`: opção `credentials?: RequestCredentials`; passar ao `fetch`
+- Auth endpoints sempre com `credentials: "include"` (`/v1/auth/login`, `/v1/auth/refresh`, `/v1/auth/logout`)
+- `refreshAccessToken()`: `POST /v1/auth/refresh` sem body; atualiza `setAccessToken`; retorna `AuthSession | null`
+- `restoreSession` (HTTP): se access expirado → tentar refresh antes de `clearAuthStorage`
+- `logout` (HTTP): `POST /v1/auth/logout` best-effort + `clearAuthStorage`
+- **Nunca** ler/gravar refresh token em `token-storage` — cookie `dupply_rt` é HttpOnly
+
+**Done when:**
+
+- [ ] Login HTTP recebe e mantém sessão após F5 mesmo com access token expirado (refresh silencioso)
+- [ ] Logout invalida sessão server-side (cookie limpo)
+- [ ] `npm run typecheck` passa
+
+**Gate:** `npm run typecheck` + teste manual: login → esperar exp / forçar exp → F5 ainda autenticado; logout → cookie ausente
+
+---
+
+## T9 — Adapter `GET /v1/accounts/me` (P3) 🔴
 
 **Req:** ALP-20  
 **Fase design:** F8  
@@ -240,7 +266,7 @@
 - [ ] Com endpoint disponível, nome/e-mail vêm da API após restore
 - [ ] Sem endpoint, comportamento atual preservado
 
-**Blocked by:** B1 — `GET /users/me` inexistente no backend ⏸
+**Blocked by:** — endpoint disponível; implementação opcional pós-T11
 
 ---
 
@@ -281,7 +307,7 @@ api-integration T1/T2 (pronto)
         T9 ⏸ quando GET /users/me existir
 ```
 
-**Próximo imediato:** T9 (`GET /users/me`) quando backend desbloquear B1 — demo HTTP completa requer teste manual com backend local.
+**Próximo imediato:** **T11** (cookie refresh + logout HTTP) — desbloqueia persistência real pós-expiração do access token; T9 opcional para hidratação via API.
 
 ---
 
@@ -290,7 +316,7 @@ api-integration T1/T2 (pronto)
 | Par | Tasks | Nota |
 |-----|-------|------|
 | Após T4 | T5 + T6 | UI login e router/guards em paralelo se duas pessoas |
-| Após T3 | T2 já feito antes de T3 | T2 é sequencial antes de T3 |
+| Após T8 | T11 | cookie auth — depende de api-client + auth.service |
 
 Nenhuma task `[P]` antes de T1 concluída.
 
@@ -308,10 +334,11 @@ Nenhuma task `[P]` antes de T1 concluída.
 | T6 | ALP-09–12 |
 | T7 | ALP-13–15 |
 | T8 | ALP-16–18 |
-| T9 | ALP-20 ⏸ |
-| T10 | ALP-01–20 (verificação) |
+| T9 | ALP-20 |
+| T10 | ALP-01–22 (verificação) |
+| T11 | ALP-21, ALP-22 |
 
-**Coverage:** 20 requisitos → 10 tasks (T9 bloqueada por B1)
+**Coverage:** 22 requisitos → 11 tasks
 
 ---
 
@@ -325,7 +352,8 @@ Executar na íntegra ao fechar **T10** — detalhes em [design.md](./design.md#t
 | HTTP seller / risk / payer | T5, T7 |
 | Login → F5 → sessão + perfil | T4, T7 |
 | Logout → F5 → guest | T8 |
-| Token expirado → guest silencioso | T3, T4 |
+| Token expirado → refresh → sessão | T11 |
+| Logout HTTP + cookie limpo | T11 |
 | Deep link protegido | T6 |
 | 401 → login | T8 |
 | Sem flash redirect no boot | T4, T6 |

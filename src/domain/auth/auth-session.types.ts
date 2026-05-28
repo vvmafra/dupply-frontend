@@ -10,8 +10,6 @@ export type SessionUser = {
 /** Resposta normalizada pós-login — independente de mock ou HTTP */
 export type AuthSession = {
   user: SessionUser;
-  accessToken?: string;
-  expiresAtMs?: number;
 };
 
 /** Snapshot persistido além do token */

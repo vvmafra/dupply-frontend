@@ -1,9 +1,9 @@
 import type { AuthSession } from "./auth-session.types";
 
-export type JwtPayload = {
+type JwtPayload = {
   sub: string;
   role: string;
-  principalKind?: string;
+  profileId?: string;
   exp?: number;
 };
 
@@ -28,16 +28,18 @@ export function decodeJwtPayload(token: string): JwtPayload | null {
   }
 }
 
+export function getSellerProfileIdFromToken(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  if (!payload || payload.role !== "seller" || !payload.profileId) return null;
+  return payload.profileId;
+}
+
 export function isTokenExpired(payload: JwtPayload): boolean {
   if (payload.exp === undefined) return true;
   return payload.exp * 1000 <= Date.now();
 }
 
-export function buildSessionFromLogin(
-  email: string,
-  accessToken: string,
-  expiresInSeconds: number,
-): AuthSession {
+export function buildSessionFromLogin(email: string, accessToken: string): AuthSession {
   const payload = decodeJwtPayload(accessToken);
   if (!payload) {
     throw new Error("Invalid token");
@@ -50,7 +52,5 @@ export function buildSessionFromLogin(
       name: email.split("@")[0] ?? email,
       platformRole: payload.role,
     },
-    accessToken,
-    expiresAtMs: Date.now() + expiresInSeconds * 1000,
   };
 }

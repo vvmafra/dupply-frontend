@@ -36,9 +36,10 @@ export function ProtectedRoute({ children, profile }: ProtectedRouteProps) {
 type GuestRouteProps = {
   children: React.ReactNode;
   redirectTo?: string;
+  allowAuthenticatedView?: boolean;
 };
 
-export function GuestRoute({ children, redirectTo }: GuestRouteProps) {
+export function GuestRoute({ children, redirectTo, allowAuthenticatedView }: GuestRouteProps) {
   const { isAuthenticated, isLoading, selectedProfile } = useAuth();
 
   if (isLoading) {
@@ -46,6 +47,10 @@ export function GuestRoute({ children, redirectTo }: GuestRouteProps) {
   }
 
   if (isAuthenticated) {
+    if (allowAuthenticatedView) {
+      return children;
+    }
+
     const target =
       redirectTo ?? (selectedProfile ? getProfileRedirect(selectedProfile) : ROUTES.selectProfile);
     return <Navigate to={target} replace />;

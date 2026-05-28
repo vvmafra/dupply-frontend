@@ -12,13 +12,21 @@ import {
   DUPPLY_TOPBAR_SIDEBAR_TRIGGER,
 } from "./dupplyTopbar.styles";
 
-export function Header() {
+interface HeaderProps {
+  /** Mantém apenas o logout clicável (ex.: cadastro em análise). */
+  logoutOnly?: boolean;
+}
+
+export function Header({ logoutOnly = false }: HeaderProps) {
   const { user, selectedProfile, logout } = useAuth();
 
   return (
-    <header className={DUPPLY_TOPBAR_HEADER}>
-      <div className={DUPPLY_TOPBAR_ROW_APP}>
-        <SidebarTrigger className={cn("shrink-0", DUPPLY_TOPBAR_SIDEBAR_TRIGGER)} />
+    <header className={cn(DUPPLY_TOPBAR_HEADER, logoutOnly && "z-[60]")}>
+      <div className={cn(DUPPLY_TOPBAR_ROW_APP, logoutOnly && "pointer-events-none")}>
+        <SidebarTrigger
+          className={cn("shrink-0", DUPPLY_TOPBAR_SIDEBAR_TRIGGER, logoutOnly && "opacity-40")}
+          disabled={logoutOnly}
+        />
         <div className="min-w-0 flex-1" />
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {selectedProfile ? (
@@ -39,7 +47,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon-sm"
-            className={cn(DUPPLY_TOPBAR_GHOST_LINK, "shrink-0")}
+            className={cn(DUPPLY_TOPBAR_GHOST_LINK, "shrink-0", logoutOnly && "pointer-events-auto")}
             onClick={() => logout({ reason: "manual" })}
             title="Sair"
           >

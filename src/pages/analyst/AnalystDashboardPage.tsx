@@ -4,13 +4,13 @@ import { Building2, ChevronRight, FileText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ReceivableListItem } from "@/domain/receivable/receivable.types";
+import { countCedentesEmRevisaoCadastral } from "@/domain/risk-analyst/analyst-overview";
+import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { fetchReceivables } from "@/services/receivable.service";
 import { fetchSellerReviews } from "@/services/seller-review.service";
-import { fetchAllDuplicatas } from "@/services/duplicata.service";
-import { countCedentesEmRevisaoCadastral, countDuplicatasAnalisePendente } from "@/domain/risk-analyst/analyst-overview";
-import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 
 function OverviewCardsSkeleton() {
   return (
@@ -63,7 +63,7 @@ function AnalystOverviewCard({
             <span
               className={cn(
                 "text-3xl font-bold tabular-nums tracking-tight sm:text-4xl",
-                value > 0 && "text-warning"
+                value > 0 && "text-warning",
               )}
             >
               {value}
@@ -76,35 +76,39 @@ function AnalystOverviewCard({
   );
 }
 
+function countReceivablesUnderReview(receivables: ReceivableListItem[]): number {
+  return receivables.filter((item) => item.status === "under_review").length;
+}
+
 export function AnalystDashboardPage() {
   const [sellerRows, setSellerRows] = useState<SellerReviewSummary[]>([]);
-  const [duplicatas, setDuplicatas] = useState<DuplicataTitulo[]>([]);
+  const [receivables, setReceivables] = useState<ReceivableListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [reviews, dups] = await Promise.all([fetchSellerReviews(), fetchAllDuplicatas()]);
+      const [reviews, items] = await Promise.all([fetchSellerReviews(), fetchReceivables()]);
       if (!cancelled) {
         setSellerRows(reviews);
-        setDuplicatas(dups);
+        setReceivables(items);
         setLoading(false);
       }
     }
-    load();
+    void load();
     return () => {
       cancelled = true;
     };
   }, []);
 
   const cedentesEmRevisao = countCedentesEmRevisaoCadastral(sellerRows);
-  const duplicatasPendentes = countDuplicatasAnalisePendente(duplicatas);
+  const receivablesPendentes = countReceivablesUnderReview(receivables);
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Painel do analista</h1>
-        <p className="text-sm text-muted-foreground">Cedentes e duplicatas na sua fila de análise.</p>
+        <p className="text-sm text-muted-foreground">Cedentes e recebíveis na sua fila de análise.</p>
       </div>
 
       {loading ? (
@@ -121,9 +125,9 @@ export function AnalystDashboardPage() {
           </div>
           <div className="flex h-full min-h-0 w-full">
             <AnalystOverviewCard
-              to={ROUTES.analyst.duplicatas.list}
-              title="Duplicatas em revisão"
-              value={duplicatasPendentes}
+              to={ROUTES.analyst.receivables.list}
+              title="Recebíveis em revisão"
+              value={receivablesPendentes}
               icon={FileText}
             />
           </div>

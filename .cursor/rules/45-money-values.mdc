@@ -1,0 +1,60 @@
+---
+description: Monetary values — UI reais, API boundary conversion per backend module contract
+globs: src/domain/**/*.ts,src/services/**/*.ts,src/components/forms/**/*.tsx
+alwaysApply: false
+---
+
+# Monetary values (frontend)
+
+The UI always displays and accepts **BRL reais with up to 2 decimal places** (inputs, tables, toasts).
+
+Conversion to backend storage format happens **only in service mappers** (`src/services/*.mapper.ts` or `src/domain/*/*.mapper.ts`), never in components.
+
+## Module contracts (current)
+
+| Module | API transport | Mapper responsibility |
+|--------|---------------|----------------------|
+| **Seller** (`/v1/sellers`) | `number` reais (e.g. `150000.00`) | Send/receive reais as-is; validate with `multipleOf(0.01)` in Zod |
+| **Receivable** (`/v1/receivables`) | `value`, `proposedValue`, `desiredAnticipationValue`: `number` **reais** | Send/receive reais as-is; backend converts to centavos internally |
+
+> DB storage is centavos (server-side only). Frontend receivable mappers use reais numbers per backend v2 routes.
+
+## Shared helpers
+
+Seller registration reuses `parseReais` / `formatReais` in `seller-registration.mapper.ts`.
+
+Receivable anticipation uses `calcProposedValueFromDiscount(faceValueReais, discountPercent)` in `receivable-antecipacao.helpers.ts` — result is reais for the risk-decision API body.
+
+Do not mix seller and receivable conversion helpers across modules.
+
+## Rules
+
+- Never `parseFloat` monetary API strings in components — map in domain/service layer.
+- Analyst discount % → compute `proposedValue` in **reais**:  
+  `proposedValue = faceValueReais * (1 - discountPercent / 100)`
+- Format for display with `formatCurrencyBRL()` from `@/lib/formatters`.
+- Zod form schemas validate user input as reais numbers with at most 2 decimal places.
+
+## Examples
+
+```typescript
+// ✅ CORRECT — mapper before POST /v1/receivables
+const body = {
+  value: form.faceValue,
+  receivableMetaData: {
+    desiredAnticipationValue: form.desiredAnticipationValue,
+  },
+};
+
+// ✅ CORRECT — mapper after GET
+const ui = {
+  faceValue: dto.value,
+  proposedValue: dto.proposedValue,
+};
+
+// ❌ WRONG — converting to centavos on receivable v2 routes
+await apiRequest({ value: Math.round(faceValue * 100) });
+
+// ❌ WRONG — showing raw API number without formatting in UI
+<span>{dto.value}</span>
+```

@@ -70,8 +70,7 @@ export function SellerValidationProgressCardSkeleton() {
   );
 }
 
-/** Cabeçalho com dois botões + tabela (5 linhas), alinhado a `SellerDuplicatasPreview` com dados. */
-export function SellerDuplicatasPreviewCardSkeleton() {
+export function SellerReceivablesPreviewCardSkeleton() {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -147,8 +146,7 @@ export function SellerKycCardSkeleton() {
   );
 }
 
-/** `lg:col-span-2`, ícone + título + descrição + botões + tabela (6 linhas). */
-export function SellerValidationDuplicatasOverviewCardSkeleton() {
+export function SellerValidationReceivablesOverviewCardSkeleton() {
   return (
     <Card className="lg:col-span-2">
       <CardHeader className="pb-3">
@@ -207,8 +205,7 @@ export function SellerValidationDuplicatasOverviewCardSkeleton() {
   );
 }
 
-/** Tabela da página `SellerDuplicatasPage` (cabeçalhos reais + 8 linhas). */
-export function SellerDuplicatasListTableSkeleton() {
+export function SellerReceivablesListTableSkeleton() {
   return (
     <div className="rounded-md border">
       <Table>
@@ -247,8 +244,7 @@ export function SellerDuplicatasListTableSkeleton() {
   );
 }
 
-/** Espelha `NewDuplicataForm`: secções, grelhas, uploads e barra de ações. */
-export function NewDuplicataFormSkeleton() {
+export function NewReceivableFormSkeleton() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="space-y-4">

@@ -169,7 +169,7 @@ function assertLoginAllowed(role: string): void  // lança se payer/inválido
 Decode **sem verificar assinatura** (ALP-19):
 
 ```ts
-type JwtPayload = { sub: string; role: string; principalKind?: string; exp?: number };
+type JwtPayload = { sub: string; role: string; profileId?: string; exp?: number };
 
 function decodeJwtPayload(token: string): JwtPayload | null
 function isTokenExpired(payload: JwtPayload): boolean  // exp no passado ou ausente → tratar como expirado em HTTP
@@ -210,6 +210,7 @@ type LoginErrorCode =
   | "unknown";
 
 async function login(email: string, password: string): Promise<LoginResult>
+async function refreshAccessToken(): Promise<AuthSession | null>
 async function logout(): Promise<void>
 async function restoreSession(): Promise<AuthSession | null>
 async function persistSelectedProfile(profile: UserProfile): Promise<void>
@@ -230,8 +231,8 @@ sequenceDiagram
     Svc->>Svc: mockLoginImpl (sleep + validação email)
     Svc->>Dom: session mock (platformRole seller default)
   else HTTP
-    Svc->>API: apiRequest(path, { auth: false, body })
-    API-->>Svc: { accessToken, tokenType, expiresInSeconds }
+    Svc->>API: apiRequest("/v1/auth/login", { auth: false, credentials: true, body })
+    API-->>Svc: Set-Cookie dupply_rt + { accessToken, tokenType, expiresInSeconds }
     Svc->>Dom: buildSessionFromLogin + assertLoginAllowed
     Svc->>Store: setAccessToken + setAuthSnapshot
   end
@@ -245,6 +246,7 @@ sequenceDiagram
 
 - Path: `POST /v1/auth/login` (prefixo `/v1` confirmado no backend).
 - Request: `{ email, password }`.
+- **Credentials:** `credentials: "include"` — obrigatório para receber e manter cookie `dupply_rt`.
 - Response DTO interno (não exportar para UI):
 
 ```ts
@@ -266,7 +268,33 @@ type LoginResponseDto = {
 | rede / timeout / abort | `network` | "Não foi possível conectar. Tente novamente." |
 | role `payer` pós-decode | `payer_unavailable` | "Este tipo de acesso ainda não está disponível na plataforma." |
 
-**Importante:** em falha de login, service **não** grava token nem altera storage (ALP-04).
+**Importante:** em falha de login, service **não** grava token nem altera storage (ALP-04). O refresh token **nunca** entra no JSON — fica no cookie `dupply_rt`.
+
+### Fluxo `refreshAccessToken()`
+
+Chamado internamente por `restoreSession()` quando o access token expirou mas o cookie de refresh pode existir.
+
+```mermaid
+sequenceDiagram
+  participant Svc as auth.service
+  participant API as POST /v1/auth/refresh
+  participant Store as token-storage
+
+  Svc->>API: apiRequest("/v1/auth/refresh", { auth: false, credentials: true })
+  alt cookie válido
+    API-->>Svc: Set-Cookie dupply_rt (rotacionado) + { accessToken, ... }
+    Svc->>Store: setAccessToken (snapshot preservado)
+    Svc-->>Svc: AuthSession renovada
+  else 401 missing/invalid cookie
+    API-->>Svc: 401
+    Svc->>Store: clearAuthStorage
+    Svc-->>Svc: null
+  end
+```
+
+- Sem body na request.
+- Não expor `refreshToken` ao domínio/UI.
+- Em sucesso, reutilizar snapshot existente para montar `AuthSession`.
 
 ### Fluxo `restoreSession()`
 
@@ -283,9 +311,16 @@ sequenceDiagram
   else HTTP mode
     Svc->>Store: getAccessToken + getAuthSnapshot
     Svc->>Dom: decodeJwtPayload + isTokenExpired
-    alt expirado ou malformado
-      Svc->>Store: clearAll
-      Svc-->>Provider: null
+    alt access token expirado
+      Svc->>Svc: refreshAccessToken()
+      alt refresh OK
+        Svc-->>Provider: AuthSession renovada
+      else refresh falhou
+        Svc->>Store: clearAll
+        Svc-->>Provider: null
+      end
+    else token válido
+      Svc-->>Provider: AuthSession
     end
   end
   Svc-->>Provider: AuthSession | null
@@ -297,9 +332,11 @@ sequenceDiagram
 
 ### Fluxo `logout()`
 
-1. `clearAccessToken()` + `clearAuthSnapshot()` em `token-storage`.
-2. Não chamar endpoint backend (fora de escopo).
+1. Se modo HTTP: `POST /v1/auth/logout` com `credentials: "include"` (best-effort — ignorar erro de rede após limpar local).
+2. `clearAccessToken()` + `clearAuthSnapshot()` em `token-storage`.
 3. Context reseta para guest.
+
+Logout **não** exige Bearer — o backend identifica a sessão pelo cookie `dupply_rt`.
 
 ### `persistSelectedProfile()`
 
@@ -326,7 +363,20 @@ Chamado por `AuthContext.setProfile()`:
 | `clearAuthSnapshot()` | remove key |
 | `clearAuthStorage()` | token + snapshot (usado em logout/401/expired) |
 
-### `src/lib/api-client.ts` — callback 401 → AuthContext
+### `src/lib/api-client.ts` — credentials + callback 401 → AuthContext
+
+Estender `ApiRequestOptions`:
+
+```ts
+export type ApiRequestOptions = {
+  method?: HttpMethod;
+  body?: unknown;
+  auth?: boolean;           // default true
+  credentials?: RequestCredentials; // default "same-origin"; usar "include" em /v1/auth/*
+};
+```
+
+Passar `credentials` ao `fetch`. Auth endpoints (`/v1/auth/login`, `/v1/auth/refresh`, `/v1/auth/logout`, `/v1/auth/register`) **sempre** usam `credentials: "include"`.
 
 Registrar handler no boot do `AuthProvider`:
 
@@ -338,11 +388,12 @@ let onUnauthorized: UnauthorizedHandler | null = null;
 export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void
 ```
 
-Comportamento em `401`:
+Comportamento em `401` (requests autenticadas):
 
-1. `clearAuthStorage()` (token + snapshot).
-2. Invocar `onUnauthorized()` se registrado.
-3. Lançar `ApiError` (callers podem ignorar se sessão já limpa).
+1. Tentar `refreshAccessToken()` **uma vez** se `auth: true` (opcional nesta fase — pode ficar no service antes do throw).
+2. Se refresh falhar: `clearAuthStorage()` (token + snapshot).
+3. Invocar `onUnauthorized()` se registrado.
+4. Lançar `ApiError` (callers podem ignorar se sessão já limpa).
 
 No `AuthProvider`:
 
@@ -525,7 +576,8 @@ useEffect(() => {
 | `src/contexts/AuthContext.tsx` | bootstrap, `isLoading`, `loginWithSession`, logout delegado | ALP-05–08, 16 |
 | `src/services/auth.service.ts` | login/logout/restore/persist | ALP-01–03, 05–08 |
 | `src/lib/token-storage.ts` | snapshot keys | ALP-05, 08 |
-| `src/lib/api-client.ts` | `setUnauthorizedHandler` | ALP-17 |
+| `src/lib/api-client.ts` | `credentials` option + `setUnauthorizedHandler` | ALP-17, ALP-21 |
+| `src/services/auth.service.ts` | refresh + logout HTTP | ALP-21, ALP-22 |
 | `src/domain/auth/auth.types.ts` | `SessionUser`, `isLoading` | ALP-19 |
 | `src/components/auth/MockLoginForm.tsx` | service + toasts | ALP-01–04 |
 | `src/pages/LoginPage.tsx` | remove inline guest guard | ALP-10 |
@@ -554,8 +606,9 @@ useEffect(() => {
 | **F4 — UI login** | MockLoginForm, toasts, erros PT | erros não mutam context | ALP-04 |
 | **F5 — Guards + ROUTES** | extrair guards, deep link state | redirects consistentes | ALP-09–12 |
 | **F6 — Perfil (P2)** | filtro por role, auto-skip, persist profile | risk só analista | ALP-13–15 |
-| **F7 — 401 + logout (P2)** | handler api-client, toast expirada | token inválido → login | ALP-16–18 |
-| **F8 — GET /users/me (P3)** | adapter prefer endpoint | fallback JWT mantido | ALP-20 |
+| **F7 — 401 + logout (P2)** | handler api-client, refresh antes de logout, toast expirada | token inválido → login | ALP-16–18, ALP-21–22 |
+| **F8 — GET /v1/accounts/me (P3)** | adapter prefer endpoint | fallback JWT mantido | ALP-20 |
+| **F9 — Cookie refresh (P1)** | `credentials: include`, `refreshAccessToken`, restore com refresh | F5 após access expirado | ALP-21–22 |
 
 Cada fase: `npm run typecheck` antes de avançar.
 
@@ -576,6 +629,18 @@ Cada fase: `npm run typecheck` antes de avançar.
 1. Guest acessa `/seller/duplicatas`.
 2. `ProtectedRoute` → `/login` com `state.from`.
 3. Login OK + perfil OK → `navigate(from)` (ALP-12).
+
+### Access token expirado → refresh → dashboard
+
+1. User F5 com access expirado mas cookie `dupply_rt` válido.
+2. `restoreSession` detecta exp → chama `refreshAccessToken`.
+3. Novo access token persistido; sessão restaurada.
+
+### Logout HTTP
+
+1. User clica logout.
+2. `POST /v1/auth/logout` com `credentials: include`.
+3. Storage limpo; cookie invalidado pelo backend.
 
 ### 401 em request autenticada
 
@@ -633,9 +698,9 @@ Cada fase: `npm run typecheck` antes de avançar.
 
 | Item | Status | Nota |
 |------|--------|------|
-| `GET /users/me` | Blocker B1 | snapshot + JWT decode até existir |
+| `GET /v1/accounts/me` | Disponível | preferir sobre JWT decode (ALP-20) |
 | `PATCH /users/me/profile` | TBD P0.2 backend | adapter interno no service |
-| Refresh token | Fora escopo | re-login em 401 |
+| Refresh token cookie | **Backend pronto** | frontend: T11 — `credentials: include` + silent refresh |
 | Testes Vitest/E2E | Pós-demo | gate manual acima |
 
 ---
@@ -645,7 +710,9 @@ Cada fase: `npm run typecheck` antes de avançar.
 | Req ID | Decisão de design |
 |--------|-------------------|
 | ALP-01 | `login()` branch mock preserva `mockLoginImpl` |
-| ALP-02 | `apiRequest("/v1/auth/login", { auth: false })` |
+| ALP-02 | `apiRequest("/v1/auth/login", { auth: false, credentials: "include" })` |
+| ALP-21 | `refreshAccessToken()` via `POST /v1/auth/refresh` + cookie |
+| ALP-22 | `logout()` chama `POST /v1/auth/logout` + clear storage |
 | ALP-03 | `setAccessToken` + `setAuthSnapshot` pós-sucesso |
 | ALP-04 | `LoginResult` + toast; context intacto em falha |
 | ALP-05 | `PersistedAuthSnapshot` em `dupply_auth_snapshot` |

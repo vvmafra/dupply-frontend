@@ -1,4 +1,3 @@
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
 
 /**
@@ -7,10 +6,5 @@ import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.ty
  * este contador deve passar a usar esse status.
  */
 export function countCedentesEmRevisaoCadastral(rows: readonly SellerReviewSummary[]): number {
-  return rows.filter((r) => r.reviewedByAnalystId == null).length;
-}
-
-/** Duplicatas com análise do analista ainda pendente. */
-export function countDuplicatasAnalisePendente(items: readonly DuplicataTitulo[]): number {
-  return items.filter((d) => d.analiseAnalista === "pendente").length;
+  return rows.filter((row) => row.reviewedByAnalystId == null).length;
 }

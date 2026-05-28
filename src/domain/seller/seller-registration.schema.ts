@@ -5,9 +5,43 @@ const requiredDocumentIds = REQUIRED_DOCUMENTS.filter((document) => document.req
   (document) => document.id
 );
 
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function parseReais(formatted: string): number {
+  const cleaned = formatted
+    .replace(/R\$\s?/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .trim();
+
+  const value = Number.parseFloat(cleaned);
+  if (Number.isNaN(value)) {
+    return 0;
+  }
+
+  return Math.round(value * 100) / 100;
+}
+
+const isoDateString = z
+  .string()
+  .min(1, "Informe a data de fundação")
+  .refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), "Informe a data de fundação");
+
+const brlMonetaryString = (message: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, message)
+    .refine((value) => parseReais(value) > 0, message);
+
 const counterpartySchema = z.object({
   legalName: z.string().trim().min(1, "Informe a razão social"),
-  taxId: z.string().trim().min(14, "Informe um CNPJ válido"),
+  taxId: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length === 14, "Informe um CNPJ válido"),
   averageShare: z.string().trim().optional(),
 });
 
@@ -25,13 +59,22 @@ export const sellerRegistrationAccessSchema = z
 
 export const sellerRegistrationCompanySchema = z.object({
   legalName: z.string().trim().min(1, "Informe a razão social"),
-  taxId: z.string().trim().min(14, "Informe um CNPJ válido"),
-  foundationDate: z.string().min(1, "Informe a data de fundação"),
-  shareCapital: z.string().trim().min(1, "Informe o capital social"),
-  revenueLast12Months: z.string().trim().min(1, "Informe o faturamento dos últimos 12 meses"),
+  taxId: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length === 14, "Informe um CNPJ válido"),
+  foundationDate: isoDateString,
+  shareCapital: brlMonetaryString("Informe o capital social"),
+  revenueLast12Months: brlMonetaryString("Informe o faturamento dos últimos 12 meses"),
   corporateEmail: z.string().trim().email("Informe um e-mail corporativo válido"),
-  phone: z.string().trim().min(10, "Informe um telefone válido"),
-  zipCode: z.string().trim().min(8, "Informe o CEP"),
+  phone: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length >= 10, "Informe um telefone válido"),
+  zipCode: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length === 8, "Informe o CEP"),
   street: z.string().trim().min(1, "Informe o logradouro"),
   number: z.string().trim().min(1, "Informe o número"),
   complement: z.string().trim().optional(),
@@ -43,9 +86,16 @@ export const sellerRegistrationCompanySchema = z.object({
 
 export const sellerRegistrationRepresentativeSchema = z.object({
   representativeName: z.string().trim().min(1, "Informe o nome do representante"),
-  representativeCpf: z.string().trim().min(11, "Informe um CPF válido"),
+  representativeCpf: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length === 11, "Informe um CPF válido"),
   representativeEmail: z.string().trim().email("Informe um e-mail pessoal válido"),
-  representativePhone: z.string().trim().min(10, "Informe um telefone pessoal válido"),
+  representativePhone: z
+    .string()
+    .trim()
+    .refine((value) => digitsOnly(value).length >= 10, "Informe um telefone pessoal válido"),
+  representativeRole: z.string().trim().min(1, "Informe o cargo do representante"),
 });
 
 export const sellerRegistrationBusinessRelationsSchema = z.object({
@@ -70,17 +120,29 @@ export const sellerRegistrationDocumentsSchema = z.object({
     }),
 });
 
+/** HTTP mode: optional document checkboxes; never blocks submit (FR-4). Wired in Task 6. */
+export const sellerRegistrationDocumentsSchemaHttp = z.object({
+  documents: z.record(z.string(), z.boolean()).optional(),
+});
+
 export const sellerRegistrationSchema = sellerRegistrationAccessSchema
   .and(sellerRegistrationCompanySchema)
   .and(sellerRegistrationRepresentativeSchema)
   .and(sellerRegistrationBusinessRelationsSchema)
   .and(sellerRegistrationDocumentsSchema);
 
+export const sellerRegistrationSchemaHttp = sellerRegistrationAccessSchema
+  .and(sellerRegistrationCompanySchema)
+  .and(sellerRegistrationRepresentativeSchema)
+  .and(sellerRegistrationBusinessRelationsSchema)
+  .and(sellerRegistrationDocumentsSchemaHttp);
+
 export type SellerRegistrationAccessValues = z.infer<typeof sellerRegistrationAccessSchema>;
 export type SellerRegistrationCompanyValues = z.infer<typeof sellerRegistrationCompanySchema>;
 export type SellerRegistrationRepresentativeValues = z.infer<typeof sellerRegistrationRepresentativeSchema>;
 export type SellerRegistrationBusinessRelationsValues = z.infer<typeof sellerRegistrationBusinessRelationsSchema>;
 export type SellerRegistrationDocumentsValues = z.infer<typeof sellerRegistrationDocumentsSchema>;
+export type SellerRegistrationDocumentsHttpValues = z.infer<typeof sellerRegistrationDocumentsSchemaHttp>;
 export type SellerRegistrationFormValues = z.infer<typeof sellerRegistrationSchema>;
 
 export const SELLER_REGISTRATION_STEPS = [
@@ -155,6 +217,7 @@ export function createInitialSellerRegistrationValues(): SellerRegistrationFormV
     representativeCpf: "",
     representativeEmail: "",
     representativePhone: "",
+    representativeRole: "",
     clients: createEmptyCounterparties(),
     suppliers: createEmptyCounterparties(),
     documents,

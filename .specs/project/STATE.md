@@ -2,7 +2,7 @@
 
 Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou pausar trabalho.
 
-**Última atualização:** 2026-05-22
+**Última atualização:** 2026-05-26
 
 ---
 
@@ -17,7 +17,8 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 | 2026-05-20 | Skill TLC em `.cursor/skills/` apenas | Evitar cópias manuais windsurf/claude |
 | 2026-05-20 | Docs de produto em `.specs/project/` | Pitch deck em `.specs/project/pitch-deck.pdf`, não em `public/` |
 | 2026-05-21 | API **mock-first** até backend pronto | `VITE_USE_MOCKS=true` default; Bearer assumido |
-| 2026-05-21 | Auth alvo: **Bearer token** | Confirmar com back quando contrato fechar |
+| 2026-05-21 | Auth alvo: **Bearer access + cookie refresh** | Backend entrega `dupply_rt` HttpOnly; front usa `credentials: "include"` em `/v1/auth/*` |
+| 2026-05-26 | Refresh token **fora do JSON** | Cookie `dupply_rt`, `Path=/v1/auth`; logout sem Bearer |
 | 2026-05-21 | Limpeza agent skills | Removidos `.windsurf/`, `.claude/`; só `.cursor/skills/` |
 
 ---
@@ -26,7 +27,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 | ID | Blocker | Owner | Status |
 |----|---------|-------|--------|
-| B1 | `GET /users/me` inexistente no backend | Backend | 🔴 pendente — auth login OK; hidratação via JWT snapshot |
+| B1 | Hidratação via `GET /v1/accounts/me` (adapter T9) | Frontend | 🟡 opcional — endpoint existe; snapshot + JWT decode suficiente por ora |
 | B2 | Rota `POST /users/me/wallet` (ou equivalente) | Backend | 🔴 pendente — P2 |
 | B3 | Env vars smart-account (wasm hash, verifier, relayer) | Infra | 🟡 definir com back |
 
@@ -47,6 +48,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 - [x] T2: switch mock→HTTP documentado + `resolveApiMode()` em `env.ts`
 - [ ] T3–T5: adapters nos services (⏸ até endpoints back)
 - [x] P0 auth: login REST/mock + persistência + guards + seleção de perfil (`auth-login-persistence` T1–T8)
+- [ ] P0 auth cookie: refresh silencioso + logout HTTP (`auth-login-persistence` **T11**)
 - [ ] P0: duplicata HTTP
 - [ ] P1: cadastro cedente + revisão analista HTTP
 - [ ] P2: WalletContext + smart-account-kit + link backend
@@ -74,7 +76,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 ## Handoff (última sessão)
 
-**Em andamento:** auth-login-persistence T1–T8 implementados — mock default + HTTP login/restore/logout  
-**Próximo passo:** teste manual HTTP com backend local; T9 (`GET /users/me`) quando B1 desbloquear  
-**Demo HTTP:** `.env.local` → `VITE_USE_MOCKS=false` + `VITE_API_BASE_URL=http://localhost:…` → seeds `seller@dupply.dev.local`, `risk@dupply.dev.local`  
-**Novo chat:** `@.specs/project/STATE.md` + `@.specs/features/auth-login-persistence/tasks.md`
+**Em andamento:** backend auth com cookie `dupply_rt` implementado; docs alinhadas  
+**Próximo passo:** implementar **T11** no frontend (`credentials: "include"`, refresh, logout HTTP)  
+**Demo HTTP:** `.env.local` → `VITE_USE_MOCKS=false` + `VITE_API_BASE_URL=http://localhost:8080` → seeds `seller@dupply.dev.local`, `risk@dupply.dev.local`; CORS origin deve estar em `CORS_ALLOWED_ORIGINS` no backend  
+**Novo chat:** `@.specs/project/STATE.md` + `@.specs/features/auth-login-persistence/tasks.md` (T11)

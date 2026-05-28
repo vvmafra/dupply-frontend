@@ -8,9 +8,10 @@ export const ROUTES = {
   seller: {
     dashboard: "/seller",
     validation: "/seller/validation",
-    duplicatas: {
-      list: "/seller/duplicatas",
-      new: "/seller/duplicatas/new",
+    receivables: {
+      list: "/seller/receivables",
+      new: "/seller/receivables/new",
+      detail: (id: string) => `/seller/receivables/${id}`,
     },
   },
 
@@ -20,9 +21,9 @@ export const ROUTES = {
       list: "/analyst/sellers",
       detail: (id: string) => `/analyst/sellers/${id}`,
     },
-    duplicatas: {
-      list: "/analyst/duplicatas",
-      detail: (id: string) => `/analyst/duplicatas/${id}`,
+    receivables: {
+      list: "/analyst/receivables",
+      detail: (id: string) => `/analyst/receivables/${id}`,
     },
   },
 
@@ -37,5 +38,8 @@ export const ROUTES = {
     },
   },
 
-  confirmation: (id: string) => `/confirmation/${id}`,
+  confirmation: {
+    path: "/confirmation/:id",
+    detail: (id: string) => `/confirmation/${id}`,
+  },
 } as const;

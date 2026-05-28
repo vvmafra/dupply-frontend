@@ -11,7 +11,7 @@ export function setAccessToken(token: string): void {
   sessionStorage.setItem(TOKEN_KEY, token);
 }
 
-export function clearAccessToken(): void {
+function clearAccessToken(): void {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
@@ -30,7 +30,7 @@ export function setAuthSnapshot(snapshot: PersistedAuthSnapshot): void {
   sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
 }
 
-export function clearAuthSnapshot(): void {
+function clearAuthSnapshot(): void {
   sessionStorage.removeItem(SNAPSHOT_KEY);
 }
 

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader as Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { resolveApiMode } from "@/lib/env";
 import { sleep } from "@/lib/utils";
 
 interface SellerKycCardProps {
@@ -12,11 +13,20 @@ interface SellerKycCardProps {
 
 export function SellerKycCard({ kycStatus, onApproved }: SellerKycCardProps) {
   const [status, setStatus] = useState<"PENDING" | "IN_PROGRESS" | "APPROVED" | "REJECTED">(kycStatus);
+  const isHttpMode = resolveApiMode() === "http";
 
-  async function handleStart() {
+  useEffect(() => {
+    setStatus(kycStatus);
+  }, [kycStatus]);
+
+  async function handleStartMock() {
     setStatus("IN_PROGRESS");
     await sleep(1800);
     setStatus("APPROVED");
+    onApproved();
+  }
+
+  function handleSubmitForReview() {
     onApproved();
   }
 
@@ -30,11 +40,16 @@ export function SellerKycCard({ kycStatus, onApproved }: SellerKycCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Nesta versão, a verificação é simulada para demonstrar o fluxo.
+          {isHttpMode
+            ? "Envie seu cadastro para análise da plataforma quando todos os dados obrigatórios estiverem completos."
+            : "Nesta versão, a verificação é simulada para demonstrar o fluxo."}
         </p>
         {status === "PENDING" && (
-          <Button onClick={handleStart} className="w-full">
-            Iniciar verificação
+          <Button
+            onClick={isHttpMode ? handleSubmitForReview : handleStartMock}
+            className="w-full"
+          >
+            {isHttpMode ? "Enviar cadastro para análise" : "Iniciar verificação"}
           </Button>
         )}
         {status === "IN_PROGRESS" && (
@@ -51,7 +66,11 @@ export function SellerKycCard({ kycStatus, onApproved }: SellerKycCardProps) {
                 Aprovado
               </Badge>
             </div>
-            <p className="text-sm text-success">KYC aprovado no ambiente de demonstração.</p>
+            <p className="text-sm text-success">
+              {isHttpMode
+                ? "Cadastro enviado para análise da plataforma."
+                : "KYC aprovado no ambiente de demonstração."}
+            </p>
           </div>
         )}
         {status === "REJECTED" && (

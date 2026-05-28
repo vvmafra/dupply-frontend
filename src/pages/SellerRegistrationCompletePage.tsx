@@ -3,6 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicShell } from "@/components/layout/PublicShell";
+import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/lib/routes";
 
 type SellerRegistrationCompleteState = {
@@ -11,8 +12,9 @@ type SellerRegistrationCompleteState = {
 
 export function SellerRegistrationCompletePage() {
   const location = useLocation();
+  const { setProfile } = useAuth();
   const fromRegistration = Boolean(
-    (location.state as SellerRegistrationCompleteState | null)?.registrationComplete
+    (location.state as SellerRegistrationCompleteState | null)?.registrationComplete,
   );
 
   if (!fromRegistration) {
@@ -30,26 +32,28 @@ export function SellerRegistrationCompletePage() {
             <div className="space-y-2">
               <CardTitle className="text-2xl font-bold">Cadastro concluído</CardTitle>
               <CardDescription className="text-base leading-relaxed">
-                Recebemos seus dados e documentos. Seu cadastro foi encaminhado para{" "}
-                <span className="font-medium text-foreground">análise de risco</span> e está na fila de
-                conferência.
+                Seu cadastro foi enviado com sucesso e está{" "}
+                <span className="font-medium text-foreground">em análise</span>. Responderemos em
+                até <span className="font-medium text-foreground">24 horas</span>.
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-6 text-center text-sm leading-relaxed text-muted-foreground">
             <p>
-              Em até <span className="font-semibold text-foreground">24 horas</span> enviamos a confirmação do
-              cadastro. Após essa etapa você poderá acessar a plataforma e registrar duplicatas.
-            </p>
-            <p className="text-sm">
-              Use o e-mail e a senha informados no cadastro quando receber a liberação para entrar.
+              Você já pode acessar sua área na plataforma. Enquanto a análise estiver em andamento,
+              algumas ações operacionais permanecem indisponíveis.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
               <Button asChild variant="default">
-                <Link to={ROUTES.home}>Voltar ao início</Link>
+                <Link
+                  to={ROUTES.seller.dashboard}
+                  onClick={() => setProfile("seller")}
+                >
+                  Acessar minha área
+                </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to={ROUTES.login}>Ir para o login</Link>
+                <Link to={ROUTES.home}>Voltar ao início</Link>
               </Button>
             </div>
           </CardContent>

@@ -1,5 +1,5 @@
 import { sleep } from "@/lib/utils";
-import { apiRequest, ApiError } from "@/lib/api-client";
+import { apiRequest, ApiError, setRefreshAccessTokenHandler } from "@/lib/api-client";
 import { resolveApiMode } from "@/lib/env";
 import {
   clearAuthStorage,
@@ -8,17 +8,29 @@ import {
   setAccessToken,
   setAuthSnapshot,
 } from "@/lib/token-storage";
-import type { AuthSession, PersistedAuthSnapshot, RestoredSession } from "@/domain/auth/auth-session.types";
+import {
+  buildAuthSnapshot,
+  mapTokenResponseToSession,
+} from "./auth-session.persistence";
+import type {
+  AuthSession,
+  PersistedAuthSnapshot,
+  RestoredSession,
+  SessionUser,
+} from "@/domain/auth/auth-session.types";
 import {
   assertLoginAllowed,
   PayerPersonaUnavailableError,
   ProfileNotAvailableError,
 } from "@/domain/auth/auth-role.mapper";
-import { buildSessionFromLogin, decodeJwtPayload, isTokenExpired } from "@/domain/auth/auth-jwt";
-import { getAvailableProfiles, shouldAutoSelectProfile } from "@/domain/auth/auth-profiles";
+import {
+  decodeJwtPayload,
+  isTokenExpired,
+} from "@/domain/auth/auth-jwt";
 import type { UserProfile } from "@/domain/auth/auth.types";
+import type { AccountResponseDTO, AuthErrorBodyDTO, AuthTokenResponseDTO } from "./auth.dto";
 
-export type LoginErrorCode =
+type LoginErrorCode =
   | "invalid_credentials"
   | "account_inactive"
   | "validation_error"
@@ -26,38 +38,17 @@ export type LoginErrorCode =
   | "network"
   | "unknown";
 
-export type LoginResult =
-  | { ok: true; session: AuthSession; redirectHint: "selectProfile" | "dashboard" }
+type LoginResult =
+  | { ok: true; session: AuthSession }
   | { ok: false; code: LoginErrorCode; message: string };
 
-type LoginResponseDto = {
-  accessToken: string;
-  tokenType: "Bearer";
-  expiresInSeconds: number;
-};
-
-type ErrorBody = {
-  error?: string;
-  message?: string;
-};
-
 let restorePromise: Promise<RestoredSession | null> | null = null;
+let restoreBlockReason: "account_inactive" | null = null;
 
-function buildSnapshot(
-  session: AuthSession,
-  selectedProfile: UserProfile | null = null,
-): PersistedAuthSnapshot {
-  return {
-    userId: session.user.id,
-    email: session.user.email,
-    platformRole: session.user.platformRole,
-    selectedProfile,
-  };
-}
-
-function buildRedirectHint(session: AuthSession): "selectProfile" | "dashboard" {
-  const profiles = getAvailableProfiles(session.user.platformRole);
-  return shouldAutoSelectProfile(profiles) ? "dashboard" : "selectProfile";
+export function takeRestoreBlockReason(): "account_inactive" | null {
+  const reason = restoreBlockReason;
+  restoreBlockReason = null;
+  return reason;
 }
 
 function sessionFromSnapshot(snapshot: PersistedAuthSnapshot): AuthSession {
@@ -70,6 +61,57 @@ function sessionFromSnapshot(snapshot: PersistedAuthSnapshot): AuthSession {
     },
   };
 }
+
+function mapAccountDtoToSessionUser(dto: AccountResponseDTO): SessionUser {
+  return {
+    id: dto.id,
+    email: dto.email,
+    name: dto.email.split("@")[0] ?? dto.email,
+    platformRole: dto.role,
+  };
+}
+
+type HydratedAccount = {
+  user: SessionUser;
+  status: AccountResponseDTO["status"];
+};
+
+async function hydrateAccountFromApi(): Promise<HydratedAccount | null> {
+  if (resolveApiMode() === "mock") return null;
+
+  try {
+    const dto = await apiRequest<AccountResponseDTO>("/v1/accounts/me");
+    return { user: mapAccountDtoToSessionUser(dto), status: dto.status };
+  } catch {
+    return null;
+  }
+}
+
+async function refreshAccessToken(): Promise<AuthSession | null> {
+  if (resolveApiMode() === "mock") return null;
+
+  const snapshot = getAuthSnapshot();
+  if (!snapshot) return null;
+
+  try {
+    const response = await apiRequest<AuthTokenResponseDTO>("/v1/auth/refresh", {
+      method: "POST",
+      auth: false,
+      credentials: "include",
+    });
+
+    setAccessToken(response.accessToken);
+    return mapTokenResponseToSession(snapshot.email, response);
+  } catch {
+    clearAuthStorage();
+    return null;
+  }
+}
+
+setRefreshAccessTokenHandler(async () => {
+  const session = await refreshAccessToken();
+  return session !== null;
+});
 
 async function mockLoginImpl(email: string, _password: string): Promise<LoginResult> {
   await sleep(800);
@@ -91,12 +133,11 @@ async function mockLoginImpl(email: string, _password: string): Promise<LoginRes
     },
   };
 
-  setAuthSnapshot(buildSnapshot(session));
+  setAuthSnapshot(buildAuthSnapshot(session));
 
   return {
     ok: true,
     session,
-    redirectHint: "selectProfile",
   };
 }
 
@@ -110,7 +151,7 @@ function mapHttpLoginError(error: unknown): LoginResult {
   }
 
   if (error instanceof ApiError) {
-    const body = error.body as ErrorBody | undefined;
+    const body = error.body as AuthErrorBodyDTO | undefined;
     const errorCode = body?.error;
 
     if (error.status === 401 || errorCode === "invalid_credentials") {
@@ -179,22 +220,36 @@ function mapHttpLoginError(error: unknown): LoginResult {
 
 async function httpLoginImpl(email: string, password: string): Promise<LoginResult> {
   try {
-    const response = await apiRequest<LoginResponseDto>("/v1/auth/login", {
+    const response = await apiRequest<AuthTokenResponseDTO>("/v1/auth/login", {
       method: "POST",
       auth: false,
+      credentials: "include",
       body: { email, password },
     });
 
-    const session = buildSessionFromLogin(email, response.accessToken, response.expiresInSeconds);
+    const session = mapTokenResponseToSession(email, response);
     assertLoginAllowed(session.user.platformRole);
 
     setAccessToken(response.accessToken);
-    setAuthSnapshot(buildSnapshot(session));
+
+    const hydrated = await hydrateAccountFromApi();
+    if (hydrated) {
+      if (hydrated.status === "inactive") {
+        clearAuthStorage();
+        return {
+          ok: false,
+          code: "account_inactive",
+          message: "Sua conta está inativa. Entre em contato com o suporte.",
+        };
+      }
+      session.user = hydrated.user;
+    }
+
+    setAuthSnapshot(buildAuthSnapshot(session));
 
     return {
       ok: true,
       session,
-      redirectHint: buildRedirectHint(session),
     };
   } catch (error) {
     return mapHttpLoginError(error);
@@ -202,6 +257,7 @@ async function httpLoginImpl(email: string, password: string): Promise<LoginResu
 }
 
 async function restoreSessionImpl(): Promise<RestoredSession | null> {
+  restoreBlockReason = null;
   const mode = resolveApiMode();
 
   if (mode === "mock") {
@@ -214,40 +270,46 @@ async function restoreSessionImpl(): Promise<RestoredSession | null> {
     };
   }
 
-  const token = getAccessToken();
   const snapshot = getAuthSnapshot();
-
-  if (!token || !snapshot) {
-    if (token || snapshot) {
-      clearAuthStorage();
-    }
-    return null;
-  }
-
-  const payload = decodeJwtPayload(token);
-  if (!payload || isTokenExpired(payload)) {
+  if (!snapshot) {
     clearAuthStorage();
     return null;
   }
 
+  const token = getAccessToken();
+  let session: AuthSession | null = null;
+
+  if (token) {
+    const payload = decodeJwtPayload(token);
+    if (payload && !isTokenExpired(payload)) {
+      session = sessionFromSnapshot(snapshot);
+    }
+  }
+
+  if (!session) {
+    session = await refreshAccessToken();
+    if (!session) return null;
+  }
+
   try {
-    assertLoginAllowed(payload.role);
+    assertLoginAllowed(session.user.platformRole);
   } catch {
     clearAuthStorage();
     return null;
   }
 
+  const hydrated = await hydrateAccountFromApi();
+  if (hydrated) {
+    if (hydrated.status === "inactive") {
+      restoreBlockReason = "account_inactive";
+      clearAuthStorage();
+      return null;
+    }
+    session.user = hydrated.user;
+  }
+
   return {
-    session: {
-      user: {
-        id: snapshot.userId,
-        email: snapshot.email,
-        name: snapshot.email.split("@")[0] ?? snapshot.email,
-        platformRole: snapshot.platformRole,
-      },
-      accessToken: token,
-      expiresAtMs: payload.exp ? payload.exp * 1000 : undefined,
-    },
+    session,
     selectedProfile: snapshot.selectedProfile,
   };
 }
@@ -261,6 +323,18 @@ export async function login(email: string, password: string): Promise<LoginResul
 }
 
 export async function logout(): Promise<void> {
+  if (resolveApiMode() === "http") {
+    try {
+      await apiRequest<void>("/v1/auth/logout", {
+        method: "POST",
+        auth: false,
+        credentials: "include",
+      });
+    } catch {
+      // best-effort — always clear local state
+    }
+  }
+
   clearAuthStorage();
   restorePromise = null;
 }

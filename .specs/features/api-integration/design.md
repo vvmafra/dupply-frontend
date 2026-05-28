@@ -1,7 +1,7 @@
 # API Integration — Design
 
 **Spec:** [spec.md](./spec.md)  
-**Status:** Draft — paths REST são placeholders
+**Status:** Auth contract confirmed — other REST paths still placeholders
 
 ---
 
@@ -72,15 +72,16 @@ export const env = {
 | `setAccessToken(token)` | Persiste / remove |
 | `clearAccessToken()` | Logout |
 
-Premissa: Bearer token curto; sessionStorage (tab-scoped) até back definir refresh.
+Premissa: Bearer access token curto em `sessionStorage`; refresh token opaco em cookie `dupply_rt` (HttpOnly, gerenciado pelo browser).
 
 ### `src/lib/api-client.ts`
 
 ```ts
-type ApiRequestOptions = {
+export type ApiRequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   auth?: boolean; // default true
+  credentials?: RequestCredentials; // use "include" for /v1/auth/*
 };
 
 async function apiRequest<T>(path: string, options?: ApiRequestOptions): Promise<T>
@@ -91,8 +92,9 @@ async function apiRequest<T>(path: string, options?: ApiRequestOptions): Promise
 1. Se `env.useMocks` → **não usar** (services chamam mock direto)
 2. Prefixa `env.apiBaseUrl + path`
 3. Headers: `Content-Type: application/json`, `Authorization: Bearer ...` se `auth`
-4. Erros: `ApiError` com `status`, `message`, body parseado
-5. 401 → `clearAccessToken()` + evento/callback para AuthContext logout
+4. `credentials`: default omit/`same-origin`; auth routes passam `"include"`
+5. Erros: `ApiError` com `status`, `message`, body parseado
+6. 401 em request autenticada → tentar refresh (service) ou `clearAuthStorage()` + callback logout
 
 ### Service adapter pattern
 
@@ -117,7 +119,7 @@ Mock logic extraída para funções `*Mock()` no mesmo arquivo ou `*.mock.impl.t
 
 ---
 
-## Auth flow (Bearer — assumido)
+## Auth flow (Bearer access + HttpOnly refresh cookie)
 
 ```mermaid
 sequenceDiagram
@@ -125,29 +127,35 @@ sequenceDiagram
   participant Svc as auth.service
   participant API as Backend REST
   participant Store as token-storage
-  participant Ctx as AuthContext
+  participant Browser as Cookie dupply_rt
 
   UI->>Svc: login(email, password)
   alt useMocks
-    Svc->>Ctx: login local (atual)
+    Svc->>Svc: mock session
   else HTTP
-    Svc->>API: POST /auth/login
-    API-->>Svc: { accessToken, user }
-    Svc->>Store: setAccessToken
-    Svc->>Ctx: login(user)
+    Svc->>API: POST /v1/auth/login (credentials: include)
+    API-->>Browser: Set-Cookie dupply_rt
+    API-->>Svc: { accessToken, tokenType, expiresInSeconds }
+    Svc->>Store: setAccessToken + snapshot
   end
+
+  Note over Svc,Browser: On access expiry or F5
+  Svc->>API: POST /v1/auth/refresh (credentials: include, no body)
+  Browser->>API: Cookie dupply_rt
+  API-->>Svc: new accessToken + rotated cookie
+  Svc->>Store: setAccessToken
 ```
 
-**DTO placeholder login response:**
+**DTO login response (confirmado):**
 
 ```ts
 type LoginResponse = {
   accessToken: string;
-  user: { id: string; email: string; name: string };
+  tokenType: "Bearer";
+  expiresInSeconds: number;
+  // refreshToken NÃO vem no JSON — cookie dupply_rt
 };
 ```
-
-Ajustar quando backend confirmar shape.
 
 ---
 
@@ -235,7 +243,8 @@ Não migrar tudo de uma vez — um service por task com gate typecheck.
 
 ## Open items (backend)
 
-- [ ] Confirmar Bearer vs alternativa
-- [ ] Paths exatos e shape dos DTOs
-- [ ] Refresh token? (fora do escopo inicial)
-- [ ] CORS origin para dev
+- [x] Bearer access token confirmed
+- [x] Auth paths: `/v1/auth/login`, `/v1/auth/refresh`, `/v1/auth/logout`
+- [x] Refresh token via HttpOnly cookie `dupply_rt` — frontend must use `credentials: "include"`
+- [ ] Confirm response DTO shapes for non-auth domains
+- [x] CORS — `credentials: true` + origin allowlist on backend

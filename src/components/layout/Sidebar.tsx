@@ -28,14 +28,14 @@ interface NavItem {
 const sellerNav: NavItem[] = [
   { label: "Painel", href: ROUTES.seller.dashboard, icon: LayoutDashboard },
   { label: "Validação", href: ROUTES.seller.validation, icon: FileCheck2 },
-  { label: "Duplicatas", href: ROUTES.seller.duplicatas.list, icon: Receipt },
-  { label: "Nova duplicata", href: ROUTES.seller.duplicatas.new, icon: FilePlus },
+  { label: "Recebíveis", href: ROUTES.seller.receivables.list, icon: Receipt },
+  { label: "Nova recebível", href: ROUTES.seller.receivables.new, icon: FilePlus },
 ];
 
 const analystNav: NavItem[] = [
   { label: "Painel", href: ROUTES.analyst.dashboard, icon: LayoutDashboard },
   { label: "Cedentes", href: ROUTES.analyst.sellers.list, icon: Users },
-  { label: "Duplicatas", href: ROUTES.analyst.duplicatas.list, icon: Receipt },
+  { label: "Recebíveis", href: ROUTES.analyst.receivables.list, icon: Receipt },
 ];
 
 const adminNav: NavItem[] = [

@@ -7,12 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSeller } from "@/contexts/SellerContext";
 import { authLoginSchema } from "@/domain/auth/auth-login.schema";
 import { getProfileRedirect } from "@/domain/auth/auth.helpers";
 import { getAvailableProfiles, MOCK_DEMO_PROFILES, shouldAutoSelectProfile } from "@/domain/auth/auth-profiles";
+import {
+  getPostLoginSellerDestination,
+  INACTIVE_SELLER_REJECTION_MESSAGE,
+} from "@/domain/seller/seller-registration.routing";
 import { resolveApiMode } from "@/lib/env";
 import { ROUTES } from "@/lib/routes";
-import { login as loginFromService } from "@/services/auth.service";
+import { login as loginFromService, logout as logoutFromService } from "@/services/auth.service";
 
 type LocationState = {
   from?: { pathname: string };
@@ -23,6 +28,7 @@ export function MockLoginForm() {
   const [password, setPassword] = useState("Dupply@Demo2026!");
   const [loading, setLoading] = useState(false);
   const { loginWithSession, setProfile } = useAuth();
+  const { refreshSeller } = useSeller();
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState | null;
@@ -46,17 +52,43 @@ export function MockLoginForm() {
       return;
     }
 
-    loginWithSession(result.session);
-
     const profiles =
       resolveApiMode() === "mock"
         ? MOCK_DEMO_PROFILES
         : getAvailableProfiles(result.session.user.platformRole);
     const autoProfile = shouldAutoSelectProfile(profiles);
+    const fromPath = locationState?.from?.pathname;
+
+    if (autoProfile === "seller" && resolveApiMode() === "http") {
+      loginWithSession(result.session);
+      setProfile(autoProfile);
+
+      const status = await refreshSeller();
+
+      if (status === "inactive") {
+        await logoutFromService();
+        toast.error(INACTIVE_SELLER_REJECTION_MESSAGE);
+        setLoading(false);
+        return;
+      }
+
+      if (!status) {
+        toast.error("Não foi possível validar seu cadastro. Tentando novamente...");
+        navigate(fromPath ?? ROUTES.seller.dashboard, { replace: true });
+        setLoading(false);
+        return;
+      }
+
+      const dest = getPostLoginSellerDestination(status);
+      navigate(fromPath && status !== "created" ? fromPath : dest, { replace: true });
+      setLoading(false);
+      return;
+    }
+
+    loginWithSession(result.session);
 
     if (autoProfile) {
       setProfile(autoProfile);
-      const fromPath = locationState?.from?.pathname;
       navigate(fromPath ?? getProfileRedirect(autoProfile), { replace: true });
     } else {
       navigate(ROUTES.selectProfile, {

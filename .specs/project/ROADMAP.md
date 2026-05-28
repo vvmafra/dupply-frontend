@@ -23,7 +23,7 @@ Referência: [PROJECT.md](./PROJECT.md) · [STATE.md](./STATE.md) · [CONCERNS.m
 
 | # | Fluxo | Front | Backend | Entregável front |
 |---|-------|-------|---------|------------------|
-| P0.1 | Auth REST + sessão | `AuthContext`, `MockLoginForm` | `POST /auth/login`, token/session | `auth.service.ts` HTTP + persistência mínima |
+| P0.1 | Auth REST + sessão | `AuthContext`, `MockLoginForm` | `POST /v1/auth/login`, cookie `dupply_rt`, refresh/logout | `auth.service.ts` HTTP + T11 cookie |
 | P0.2 | Seleção de perfil | `SelectProfilePage` | `PATCH /users/me/profile` ou equivalente | Perfil sincronizado com backend |
 | P0.3 | Duplicata end-to-end | seller cria + analyst analisa | CRUD + análise duplicatas | `duplicata.service.ts` HTTP |
 

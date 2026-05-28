@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Loader as Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -12,16 +13,23 @@ import { CompanyStepFields } from "@/components/auth/seller-registration/Company
 import { DocumentsStepFields } from "@/components/auth/seller-registration/DocumentsStepFields";
 import { RegistrationStepIndicator } from "@/components/auth/seller-registration/RegistrationStepIndicator";
 import { RepresentativeStepFields } from "@/components/auth/seller-registration/RepresentativeStepFields";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   createInitialSellerRegistrationValues,
   SELLER_REGISTRATION_STEPS,
-  sellerRegistrationSchema,
+  sellerRegistrationDocumentsSchemaHttp,
   type SellerRegistrationFormValues,
   type SellerRegistrationStepId,
 } from "@/domain/seller/seller-registration.schema";
 import { getSellerRegistrationStepAutofill } from "@/domain/seller/seller-registration.autofill";
 import { ROUTES } from "@/lib/routes";
-import { registerSeller } from "@/services/seller-registration.service";
+import {
+  finishSellerRegistration,
+  loadSellerRegistrationState,
+  mapRegistrationError,
+  registerSellerAccess,
+  saveSellerRegistrationStep,
+} from "@/services/seller-registration.service";
 
 function StepFields({ stepId }: { stepId: SellerRegistrationStepId }) {
   switch (stepId) {
@@ -38,10 +46,19 @@ function StepFields({ stepId }: { stepId: SellerRegistrationStepId }) {
   }
 }
 
+function isMetadataStep(
+  stepId: SellerRegistrationStepId,
+): stepId is "company" | "representative" | "relations" {
+  return stepId === "company" || stepId === "representative" || stepId === "relations";
+}
+
 export function SellerRegistrationWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [registeredSellerId, setRegisteredSellerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, loginWithSession } = useAuth();
 
   const form = useForm<SellerRegistrationFormValues>({
     defaultValues: createInitialSellerRegistrationValues(),
@@ -51,11 +68,46 @@ export function SellerRegistrationWizard() {
   const currentStep = SELLER_REGISTRATION_STEPS[currentStepIndex];
   const progress = useMemo(
     () => ((currentStepIndex + 1) / SELLER_REGISTRATION_STEPS.length) * 100,
-    [currentStepIndex]
+    [currentStepIndex],
   );
 
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+    setIsResuming(true);
+
+    void (async () => {
+      try {
+        const state = await loadSellerRegistrationState();
+        if (cancelled) return;
+
+        if (state.status === "created") {
+          setRegisteredSellerId(state.sellerId);
+          form.reset(state.formValues);
+          setCurrentStepIndex(state.stepIndex);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          toast.error(mapRegistrationError(err));
+        }
+      } finally {
+        if (!cancelled) {
+          setIsResuming(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, isLoading, form]);
+
   async function validateCurrentStep() {
-    const result = await currentStep.schema.safeParseAsync(form.getValues());
+    const schema =
+      currentStep.id === "documents" ? sellerRegistrationDocumentsSchemaHttp : currentStep.schema;
+    const result = await schema.safeParseAsync(form.getValues());
     if (result.success) {
       return true;
     }
@@ -72,7 +124,22 @@ export function SellerRegistrationWizard() {
     form.clearErrors();
     const isValid = await validateCurrentStep();
     if (!isValid) return;
-    setCurrentStepIndex((index) => Math.min(index + 1, SELLER_REGISTRATION_STEPS.length - 1));
+
+    setSubmitting(true);
+    try {
+      if (currentStep.id === "access") {
+        const { sellerId, session } = await registerSellerAccess(form.getValues());
+        loginWithSession(session);
+        setRegisteredSellerId(sellerId);
+      } else if (registeredSellerId && isMetadataStep(currentStep.id)) {
+        await saveSellerRegistrationStep(currentStep.id, registeredSellerId, form.getValues());
+      }
+      setCurrentStepIndex((index) => Math.min(index + 1, SELLER_REGISTRATION_STEPS.length - 1));
+    } catch (err) {
+      toast.error(mapRegistrationError(err));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleBack() {
@@ -100,31 +167,32 @@ export function SellerRegistrationWizard() {
     }
   }
 
-  async function handleSubmit(values: SellerRegistrationFormValues) {
-    const isValid = await validateCurrentStep();
-    if (!isValid) return;
-
-    const result = await sellerRegistrationSchema.safeParseAsync(values);
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        const fieldName = issue.path.join(".") as keyof SellerRegistrationFormValues | string;
-        form.setError(fieldName as never, { message: issue.message });
-      }
+  async function handleSubmit() {
+    if (currentStep.id !== "documents") return;
+    if (!registeredSellerId) {
+      toast.error("Não foi possível identificar seu cadastro. Faça login novamente.");
       return;
     }
 
     setSubmitting(true);
-    const response = await registerSeller(result.data);
-    if (response.success) {
+    try {
+      await finishSellerRegistration(registeredSellerId);
+      toast.success(
+        "Cadastro concluído! Seu perfil está em análise. Responderemos em até 24 horas.",
+      );
       navigate(ROUTES.sellerRegistrationComplete, {
         replace: true,
         state: { registrationComplete: true },
       });
+    } catch (err) {
+      toast.error(mapRegistrationError(err));
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   const isLastStep = currentStepIndex === SELLER_REGISTRATION_STEPS.length - 1;
+  const isBusy = submitting || isResuming;
 
   return (
     <Card className="w-full max-w-4xl shadow-lg">
@@ -149,7 +217,15 @@ export function SellerRegistrationWizard() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (isLastStep) {
+                void handleSubmit();
+              }
+            }}
+            className="space-y-6"
+          >
             <StepFields stepId={currentStep.id} />
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
@@ -157,7 +233,7 @@ export function SellerRegistrationWizard() {
                 type="button"
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStepIndex === 0 || submitting}
+                disabled={currentStepIndex === 0 || isBusy}
               >
                 Voltar
               </Button>
@@ -167,13 +243,13 @@ export function SellerRegistrationWizard() {
                   type="button"
                   variant="outline"
                   onClick={handleAutofill}
-                  disabled={submitting}
+                  disabled={isBusy}
                 >
                   Preencher automaticamente
                 </Button>
 
                 {isLastStep ? (
-                  <Button type="submit" disabled={submitting}>
+                  <Button type="submit" disabled={isBusy}>
                     {submitting ? (
                       <>
                         <Loader2 className="size-4 animate-spin" />
@@ -184,8 +260,15 @@ export function SellerRegistrationWizard() {
                     )}
                   </Button>
                 ) : (
-                  <Button type="button" onClick={handleNext} disabled={submitting}>
-                    Continuar
+                  <Button type="button" onClick={() => void handleNext()} disabled={isBusy}>
+                    {submitting ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      "Continuar"
+                    )}
                   </Button>
                 )}
               </div>

@@ -25,6 +25,19 @@ export function RepresentativeStepFields() {
           </FormItem>
         )}
       />
+      <FormField
+        control={form.control}
+        name="representativeRole"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Cargo / função</FormLabel>
+            <FormControl>
+              <Input placeholder="Ex.: Sócio Administrador" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField
           control={form.control}
