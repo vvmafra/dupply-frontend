@@ -7,6 +7,7 @@ export const ROUTES = {
 
   seller: {
     dashboard: "/seller",
+    walletSetup: "/seller/wallet-setup",
     validation: "/seller/validation",
     receivables: {
       list: "/seller/receivables",

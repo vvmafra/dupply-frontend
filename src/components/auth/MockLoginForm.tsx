@@ -63,24 +63,25 @@ export function MockLoginForm() {
       loginWithSession(result.session);
       setProfile(autoProfile);
 
-      const status = await refreshSeller();
+      const refreshed = await refreshSeller();
 
-      if (status === "inactive") {
+      if (refreshed?.status === "inactive") {
         await logoutFromService();
         toast.error(INACTIVE_SELLER_REJECTION_MESSAGE);
         setLoading(false);
         return;
       }
 
-      if (!status) {
+      if (!refreshed) {
         toast.error("Não foi possível validar seu cadastro. Tentando novamente...");
         navigate(fromPath ?? ROUTES.seller.dashboard, { replace: true });
         setLoading(false);
         return;
       }
 
-      const dest = getPostLoginSellerDestination(status);
-      navigate(fromPath && status !== "created" ? fromPath : dest, { replace: true });
+      const { status, walletId } = refreshed;
+      const destination = getPostLoginSellerDestination(status, walletId);
+      navigate(fromPath && status !== "created" ? fromPath : destination, { replace: true });
       setLoading(false);
       return;
     }

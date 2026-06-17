@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { AuthProvider } from "@/contexts/AuthContext.tsx"
 import { SellerProvider } from "@/contexts/SellerContext.tsx"
+import { WalletProvider } from "@/contexts/WalletContext.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -15,8 +16,10 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider defaultTheme="dark">
         <AuthProvider>
           <SellerProvider>
-            <App />
-            <Toaster richColors closeButton position="top-right" />
+            <WalletProvider>
+              <App />
+              <Toaster richColors closeButton position="top-right" />
+            </WalletProvider>
           </SellerProvider>
         </AuthProvider>
       </ThemeProvider>

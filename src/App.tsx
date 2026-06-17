@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { GuestRoute, ProtectedRoute, SemiProtectedRoute } from "@/routes/guards";
+import { SellerWalletRouteGuard } from "@/routes/SellerWalletRouteGuard";
 import { ROUTES } from "@/lib/routes";
 
 import { LandingPage } from "@/pages/LandingPage";
@@ -26,6 +27,7 @@ import { SellerReviewDetailPage } from "@/pages/SellerReviewDetailPage";
 
 import { SellerReceivablesPage } from "@/pages/seller/SellerReceivablesPage";
 import { NewReceivablePage } from "@/pages/seller/NewReceivablePage";
+import { SellerWalletSetupPage } from "@/pages/seller/SellerWalletSetupPage";
 
 function AppRoutes() {
   return (
@@ -52,12 +54,25 @@ function AppRoutes() {
       <Route path={ROUTES.confirmation.path} element={<ConfirmationPage />} />
 
       <Route
-        path={ROUTES.seller.dashboard}
+        path={ROUTES.seller.walletSetup}
         element={
           <ProtectedRoute profile="seller">
             <AppShell>
-              <SellerDashboardPage />
+              <SellerWalletSetupPage />
             </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.seller.dashboard}
+        element={
+          <ProtectedRoute profile="seller">
+            <SellerWalletRouteGuard>
+              <AppShell>
+                <SellerDashboardPage />
+              </AppShell>
+            </SellerWalletRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -65,9 +80,11 @@ function AppRoutes() {
         path={ROUTES.seller.validation}
         element={
           <ProtectedRoute profile="seller">
-            <AppShell>
-              <SellerValidationPage />
-            </AppShell>
+            <SellerWalletRouteGuard>
+              <AppShell>
+                <SellerValidationPage />
+              </AppShell>
+            </SellerWalletRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -76,9 +93,11 @@ function AppRoutes() {
         path={ROUTES.seller.receivables.list}
         element={
           <ProtectedRoute profile="seller">
-            <AppShell>
-              <SellerReceivablesPage />
-            </AppShell>
+            <SellerWalletRouteGuard>
+              <AppShell>
+                <SellerReceivablesPage />
+              </AppShell>
+            </SellerWalletRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -86,9 +105,11 @@ function AppRoutes() {
         path={ROUTES.seller.receivables.new}
         element={
           <ProtectedRoute profile="seller">
-            <AppShell>
-              <NewReceivablePage />
-            </AppShell>
+            <SellerWalletRouteGuard>
+              <AppShell>
+                <NewReceivablePage />
+              </AppShell>
+            </SellerWalletRouteGuard>
           </ProtectedRoute>
         }
       />

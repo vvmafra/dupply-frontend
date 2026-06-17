@@ -14,6 +14,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     kycStatus: "APPROVED",
     onboardingStep: 4,
     analystDuplicatasAccess: "APPROVED",
+    walletId: "mock-wallet-001",
     createdAt: "2025-04-20T09:00:00Z",
   },
   {
@@ -29,6 +30,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     kycStatus: "APPROVED",
     onboardingStep: 4,
     analystDuplicatasAccess: "APPROVED",
+    walletId: "mock-wallet-002",
     createdAt: "2025-04-25T10:00:00Z",
   },
   {
@@ -44,6 +46,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     kycStatus: "PENDING",
     onboardingStep: 2,
     analystDuplicatasAccess: "PENDING",
+    walletId: null,
     createdAt: "2025-05-01T08:00:00Z",
   },
   {
@@ -59,6 +62,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     kycStatus: "PENDING",
     onboardingStep: 3,
     analystDuplicatasAccess: "PENDING",
+    walletId: null,
     createdAt: "2025-05-03T11:00:00Z",
   },
   {
@@ -74,6 +78,7 @@ export const MOCK_SELLERS: SellerCompany[] = [
     kycStatus: "APPROVED",
     onboardingStep: 4,
     analystDuplicatasAccess: "UNDER_REVIEW",
+    walletId: null,
     createdAt: "2025-05-05T14:00:00Z",
   },
 ];

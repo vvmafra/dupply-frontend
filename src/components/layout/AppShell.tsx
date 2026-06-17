@@ -1,8 +1,10 @@
 import { useEffect, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SellerUnderReviewOverlay } from "@/components/seller/SellerUnderReviewOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSeller } from "@/contexts/SellerContext";
+import { ROUTES } from "@/lib/routes";
 import { AppSidebar } from "./Sidebar";
 import { Header } from "./Header";
 
@@ -13,6 +15,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const location = useLocation();
   const { isAuthenticated, selectedProfile } = useAuth();
   const { lifecycleStatus, refreshSellerStatus, isLoading: sellerLoading } = useSeller();
 
@@ -33,12 +36,14 @@ export function AppShell({ children }: AppShellProps) {
   }, [isAuthenticated, selectedProfile, lifecycleStatus, refreshSellerStatus]);
 
   const isUnderReview = lifecycleStatus === "in_review";
+  const isWalletSetup = location.pathname === ROUTES.seller.walletSetup;
+  const headerLogoutOnly = isUnderReview || isWalletSetup;
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header logoutOnly={isUnderReview} />
+        <Header logoutOnly={headerLogoutOnly} />
         <main
           className={isUnderReview ? "flex-1 overflow-hidden p-4 md:p-6" : "flex-1 overflow-auto p-4 md:p-6"}
           aria-hidden={isUnderReview || undefined}

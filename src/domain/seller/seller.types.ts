@@ -27,6 +27,8 @@ export interface SellerCompany {
   onboardingStep: number;
   /** Aprovado pelo analista de risco — necessário para cadastrar duplicatas. */
   analystDuplicatasAccess: AnalystDuplicatasAccessStatus;
+  /** null quando seller ativo ainda não registrou carteira smart account. */
+  walletId: string | null;
   createdAt: string;
 }
 

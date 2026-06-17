@@ -1,0 +1,99 @@
+---
+description: Integração smart-account-kit — wallet Stellar com passkey WebAuthn para sellers
+globs: src/services/wallet*.ts,src/contexts/*Wallet*.tsx,src/components/seller/*Wallet*.tsx,src/pages/seller/*Wallet*.tsx,src/domain/wallet/**
+alwaysApply: false
+---
+
+# Smart Account Kit (seller wallet)
+
+SDK frontend para smart accounts Soroban na Stellar com autenticação WebAuthn (passkey). O backend **nunca** cria, financia ou assina transações on-chain — apenas persiste referências via `POST /v1/sellers/:id/wallet`.
+
+Referências: `tasks/prd-seller-smart-wallet/prd.md`, `tasks/prd-seller-smart-wallet/integration-spec.md`, backend `.cursor/rules/module-wallet.mdc`.
+
+---
+
+## Quando usar
+
+- Seller `status === 'active'` **e** `walletId === null` → fluxo de criação (`createWallet`).
+- Seller `walletId !== null` → reconexão (`connectWallet`), **nunca** `createWallet` de novo.
+- Gating centralizado em `SellerProvider` + route guard — **não** no componente de login.
+
+---
+
+## Inicialização do SDK
+
+```typescript
+import { SmartAccountKit, IndexedDBStorage } from "smart-account-kit";
+
+const kit = new SmartAccountKit({
+  rpcUrl: import.meta.env.VITE_STELLAR_RPC_URL,
+  networkPassphrase: import.meta.env.VITE_STELLAR_NETWORK_PASSPHRASE,
+  accountWasmHash: import.meta.env.VITE_ACCOUNT_WASM_HASH,
+  webauthnVerifierAddress: import.meta.env.VITE_WEBAUTHN_VERIFIER_ADDRESS,
+  storage: new IndexedDBStorage(),
+  rpId: import.meta.env.VITE_WEBAUTHN_RP_ID,       // prod: dupply-frontend.vercel.app
+  rpName: import.meta.env.VITE_WEBAUTHN_RP_NAME,   // ex: Dupply
+});
+```
+
+- v1: **testnet only** — `network: "testnet"` no POST ao backend.
+- Mainnet e `relayerUrl` ficam para iteração futura (comentar no código quando adicionar env).
+
+---
+
+## Fluxos
+
+### Criação (primeira vez — `/seller/wallet-setup`)
+
+1. UI explica: wallet digital + passkey + responsabilidade do usuário + Friendbot (testnet).
+2. `kit.createWallet(appName, userEmail, { autoSubmit: true, autoFund: true, nativeTokenContract })`.
+3. Converter `publicKey: Uint8Array` → **hex string** para `signerPublicKey`.
+4. `POST /v1/sellers/:id/wallet` via `wallet.service.ts`.
+5. Refresh seller profile; redirecionar ao dashboard.
+
+### Reconexão (logins seguintes)
+
+1. `kit.connectWallet()` (silent) ou `kit.connectWallet({ credentialId })`.
+2. Passkey prompt se sessão IndexedDB expirou.
+
+### Recovery (deploy ok, POST falhou)
+
+- Retry POST com mesmo payload — **não** chamar `createWallet()` de novo.
+- Usar `kit.credentials.getPending()` / `syncAll()` se estado local inconsistente.
+
+---
+
+## Serviços
+
+- HTTP calls em `src/services/wallet.service.ts` — adapter pattern alinhado a `resolveApiMode()`.
+- DTOs em `src/services/wallet.dto.ts` — UI não importa DTOs diretamente.
+- Detecção `walletId === null` via `fetchCurrentSellerWithStatus()` / `SellerContext`.
+
+---
+
+## Segurança
+
+- **Nunca** persistir, logar ou enviar chave privada.
+- **Nunca** logar `credentialId`.
+- `IndexedDBStorage` como adapter padrão de credenciais.
+- WebAuthn exige contexto seguro (HTTPS ou localhost).
+
+---
+
+## UX (português)
+
+Durante registro da passkey, deixar claro:
+
+1. Uma **carteira digital** está sendo criada na rede Stellar (testnet).
+2. O acesso é protegido por **passkey** (biometria/PIN do dispositivo).
+3. O usuário é **responsável** por manter a passkey — perda pode impedir acesso à carteira.
+4. No testnet, saldo XLM é creditado automaticamente via **Friendbot**.
+
+---
+
+## Proibido
+
+- Chamar `createWallet()` quando `walletId !== null`.
+- Implementar gating de wallet no formulário de login.
+- Hardcodar endereços de contrato, RPC ou WASM hash — usar env vars.
+- Simular wallet em mock mode neste fluxo (HTTP é o caminho canônico).

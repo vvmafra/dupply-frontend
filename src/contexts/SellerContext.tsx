@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import type { SellerCompany } from "@/domain/seller/seller.types";
 import type { SellerLifecycleStatus } from "@/domain/seller/seller-registration.routing";
+import { requiresWalletSetup } from "@/domain/wallet/wallet-gating";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveApiMode } from "@/lib/env";
 import { ROUTES } from "@/lib/routes";
@@ -24,8 +25,13 @@ export type SellerContextState = {
   fetchError: string | null;
 };
 
+export type SellerRefreshResult = {
+  status: SellerLifecycleStatus;
+  walletId: string | null;
+};
+
 export type SellerContextValue = SellerContextState & {
-  refreshSeller: () => Promise<SellerLifecycleStatus | null>;
+  refreshSeller: () => Promise<SellerRefreshResult | null>;
   refreshSellerStatus: () => Promise<SellerLifecycleStatus | null>;
 };
 
@@ -66,7 +72,7 @@ function SellerContextProvider({ children }: { children: ReactNode }) {
     lifecycleStatusRef.current = state.lifecycleStatus;
   }, [state.lifecycleStatus]);
 
-  const refreshSeller = useCallback(async (): Promise<SellerLifecycleStatus | null> => {
+  const refreshSeller = useCallback(async (): Promise<SellerRefreshResult | null> => {
     setState((prev) => ({ ...prev, isLoading: true, fetchError: null }));
 
     try {
@@ -81,9 +87,14 @@ function SellerContextProvider({ children }: { children: ReactNode }) {
 
       if (status === "created") {
         navigate(ROUTES.sellerRegistration, { replace: true });
+        return { status, walletId: seller.walletId };
       }
 
-      return status;
+      if (requiresWalletSetup(status, seller.walletId)) {
+        navigate(ROUTES.seller.walletSetup, { replace: true });
+      }
+
+      return { status, walletId: seller.walletId };
     } catch (error) {
       const message =
         error instanceof Error

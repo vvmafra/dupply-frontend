@@ -1,4 +1,5 @@
 import type { SellerStatusDTO } from "@/services/seller.dto";
+import { requiresWalletSetup } from "@/domain/wallet/wallet-gating";
 import { ROUTES } from "@/lib/routes";
 
 export type SellerLifecycleStatus = SellerStatusDTO;
@@ -13,13 +14,19 @@ export class SellerRegistrationBlockedError extends Error {
   }
 }
 
-export function getPostLoginSellerDestination(status: SellerLifecycleStatus): string {
+export function getPostLoginSellerDestination(
+  status: SellerLifecycleStatus,
+  walletId: string | null,
+): string {
   switch (status) {
     case "created":
       return ROUTES.sellerRegistration;
     case "in_review":
-    case "active":
       return ROUTES.seller.dashboard;
+    case "active":
+      return requiresWalletSetup(status, walletId)
+        ? ROUTES.seller.walletSetup
+        : ROUTES.seller.dashboard;
     case "inactive":
       throw new SellerRegistrationBlockedError();
   }

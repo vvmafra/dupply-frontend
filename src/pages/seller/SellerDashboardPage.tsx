@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SellerDashboardSummary } from "@/components/seller/SellerDashboardSummary";
+import { SellerWalletReconnectBanner } from "@/components/seller/SellerWalletReconnectBanner";
 import {
   SellerDashboardSummarySkeleton,
   SellerReceivablesPreviewCardSkeleton,
@@ -61,6 +62,8 @@ export function SellerDashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <SellerWalletReconnectBanner />
+
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Visão geral dos seus recebíveis</p>

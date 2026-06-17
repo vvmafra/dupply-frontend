@@ -188,6 +188,7 @@ export function mapSellerDtoToCompany(dto: SellerPublicViewDTO): SellerCompany {
     analystDuplicatasAccess: derived.analystDuplicatasAccess,
     documentsProgress: completeness.percent,
     onboardingStep: completeness.step,
+    walletId: dto.walletId,
     createdAt: dto.createdAt,
   };
 }
