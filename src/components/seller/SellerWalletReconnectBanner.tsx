@@ -55,10 +55,10 @@ export function SellerWalletReconnectBanner() {
           type="button"
           size="sm"
           variant="outline"
-          disabled={reconnecting || connectionStatus === "connecting"}
+          disabled={reconnecting}
           onClick={() => void handleReconnect()}
         >
-          {reconnecting || connectionStatus === "connecting" ? (
+          {reconnecting ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               Reconectando...
