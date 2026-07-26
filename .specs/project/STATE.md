@@ -2,7 +2,7 @@
 
 Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou pausar trabalho.
 
-**Última atualização:** 2026-05-22
+**Última atualização:** 2026-07-26
 
 ---
 
@@ -10,10 +10,13 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 | Data | Decisão | Contexto |
 |------|---------|----------|
+| 2026-07-26 | Persona **investor** de volta (mock-first) | Marketplace: ofertas de cotas por duplicata; spec `investor-marketplace` |
+| 2026-07-26 | Captação híbrida: crowd + **FIDC no gap** | ≥ mínimo e &lt; 100% → desembolso + FIDC completa target; &lt; mínimo → estorno |
+| 2026-07-26 | 1 duplicata = 1 Oferta (entidade nova) | Admin cria após aceite do cedente; spread no cadastro da oferta dentro do deságio do analista |
 | 2026-05-20 | Demo sexta inclui **P0 + P1 + P2** | Auth, duplicata E2E, cadastro, revisão analista, passkey/wallet |
 | 2026-05-20 | Wallet **front-heavy (A)** | `smart-account-kit` no browser; backend persiste `contractId` |
 | 2026-05-20 | Negócio via **REST**; chain via backend | Front não chama RPC para regras de duplicata |
-| 2026-05-20 | Persona `investor` fora | Remover scaffold quando conveniente |
+| 2026-05-20 | Persona `investor` fora | **Superseded** em 2026-07-26 — investor retorna via `investor-marketplace` |
 | 2026-05-20 | Skill TLC em `.cursor/skills/` apenas | Evitar cópias manuais windsurf/claude |
 | 2026-05-20 | Docs de produto em `.specs/project/` | Pitch deck em `.specs/project/pitch-deck.pdf`, não em `public/` |
 | 2026-05-21 | API **mock-first** até backend pronto | `VITE_USE_MOCKS=true` default; Bearer assumido |
@@ -74,7 +77,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 ## Handoff (última sessão)
 
-**Em andamento:** auth-login-persistence T1–T8 implementados — mock default + HTTP login/restore/logout  
-**Próximo passo:** teste manual HTTP com backend local; T9 (`GET /users/me`) quando B1 desbloquear  
-**Demo HTTP:** `.env.local` → `VITE_USE_MOCKS=false` + `VITE_API_BASE_URL=http://localhost:…` → seeds `seller@dupply.dev.local`, `risk@dupply.dev.local`  
-**Novo chat:** `@.specs/project/STATE.md` + `@.specs/features/auth-login-persistence/tasks.md`
+**Em andamento:** `investor-marketplace` mock implementado (typecheck+build)  
+**Próximo passo:** smoke manual do fluxo admin→investor; commit se pedido  
+**Docs:** `@.specs/features/investor-marketplace/`  
+**Demo:** login mock → perfil Investidor ou `investor@dupply.com.br`; admin → Prontas para oferta

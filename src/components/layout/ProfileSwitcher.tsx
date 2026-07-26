@@ -4,7 +4,7 @@ import { getProfileLabel, getProfileRedirect } from "@/domain/auth/auth.helpers"
 import { Button } from "@/components/ui/button";
 import type { UserProfile } from "@/domain/auth/auth.types";
 
-const profiles: UserProfile[] = ["seller", "admin", "riskAnalyst"];
+const profiles: UserProfile[] = ["seller", "admin", "riskAnalyst", "investor"];
 
 export function ProfileSwitcher() {
   const { selectedProfile, setProfile } = useAuth();

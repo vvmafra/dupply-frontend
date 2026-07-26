@@ -5,6 +5,7 @@ const ROLE_TO_PROFILES: Record<string, UserProfile[]> = {
   admin: ["admin"],
   risk_analyst: ["riskAnalyst"],
   risk_analyst_agent: ["riskAnalyst"],
+  investor: ["investor"],
 };
 
 export class PayerPersonaUnavailableError extends Error {

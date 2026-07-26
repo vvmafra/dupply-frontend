@@ -1,4 +1,4 @@
-import { Building2, Shield, ArrowRight, ClipboardList } from "lucide-react";
+import { Building2, Shield, ArrowRight, ClipboardList, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getProfileDescription, getProfileLabel } from "@/domain/auth/auth.helpers";
@@ -23,6 +23,10 @@ const profileMeta: Record<
     icon: ClipboardList,
     accent: "text-chart-3 border-chart-3/20 bg-chart-3/5 hover:bg-chart-3/10",
   },
+  investor: {
+    icon: TrendingUp,
+    accent: "text-chart-2 border-chart-2/20 bg-chart-2/5 hover:bg-chart-2/10",
+  },
 };
 
 type ProfileSelectionCardProps = {
@@ -32,7 +36,7 @@ type ProfileSelectionCardProps = {
 
 export function ProfileSelectionCard({ profiles, onSelect }: ProfileSelectionCardProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {profiles.map((profile) => {
         const meta = profileMeta[profile];
         const Icon = meta.icon;

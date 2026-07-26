@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, ShieldCheck, ListChecks, Database, ChevronRight, Users, Receipt } from "lucide-react";
+import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, ShieldCheck, ListChecks, Database, ChevronRight, Users, Receipt, TrendingUp, Briefcase, CircleDollarSign, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,15 +41,25 @@ const analystNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { label: "Painel", href: ROUTES.admin.dashboard, icon: LayoutDashboard },
   { label: "Cedentes (risco)", href: ROUTES.admin.sellers.list, icon: Users },
+  { label: "Prontas para oferta", href: ROUTES.admin.offers.ready, icon: CircleDollarSign },
+  { label: "Ofertas", href: ROUTES.admin.offers.list, icon: Briefcase },
+  { label: "Investimentos", href: ROUTES.admin.investments, icon: TrendingUp },
   { label: "Validações", href: ROUTES.admin.validations, icon: ShieldCheck },
   { label: "Recebíveis", href: ROUTES.admin.receivables, icon: ListChecks },
   { label: "Transações internas", href: ROUTES.admin.transactions, icon: Database },
+];
+
+const investorNav: NavItem[] = [
+  { label: "Oportunidades", href: ROUTES.investor.opportunities, icon: TrendingUp },
+  { label: "Meus investimentos", href: ROUTES.investor.investments, icon: Briefcase },
+  { label: "Meus dados", href: ROUTES.investor.account, icon: UserRound },
 ];
 
 const profileConfig = {
   seller: { nav: sellerNav, label: "Cedente", color: "text-primary" },
   admin: { nav: adminNav, label: "Admin", color: "text-chart-4" },
   riskAnalyst: { nav: analystNav, label: "Analista", color: "text-chart-2" },
+  investor: { nav: investorNav, label: "Investidor", color: "text-chart-1" },
 };
 
 export function AppSidebar() {

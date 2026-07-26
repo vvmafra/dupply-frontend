@@ -38,9 +38,10 @@ Empresas cedentes precisam antecipar duplicatas com processos opacos, muitos int
 |---------|--------|-------------------|
 | **Cedente** | `seller` | Login → cadastro/onboarding → registrar duplicata → acompanhar análise → operação de antecipação |
 | **Analista de risco** | `riskAnalyst` | Revisar cadastro de cedentes (score mock/IA futura) → aprovar/reprovar/pendente duplicatas |
-| **Admin** | `admin` | Visão operacional, cedentes, transações — leitura e dashboards |
+| **Admin** | `admin` | Visão operacional, cedentes, ofertas de investimento, transações |
+| **Investidor** | `investor` | Login mock → oportunidades (cards) → investir cotas → meus investimentos |
 
-**Fora de escopo:** persona `investor` — removida do produto; pastas scaffold devem ser limpas.
+Marketplace mock: ver `.specs/features/investor-marketplace/`.
 
 ---
 
@@ -75,7 +76,7 @@ Escopo fechado: **P0 + P1 + P2** (detalhe em [ROADMAP.md](./ROADMAP.md))
 
 | Item | Motivo |
 |------|--------|
-| Persona `investor` | Descontinuada |
+| Cadastro/KYC real de investidor + API de ofertas | Mock-first em `investor-marketplace`; HTTP depois |
 | IA de risco em produção | Feature futura; manter mock até API pronta |
 | Frontend chamando Soroban/RPC direto para negócio | Blockchain via backend REST |
 | ESLint/Prettier | Não configurado; adotar só se necessário |

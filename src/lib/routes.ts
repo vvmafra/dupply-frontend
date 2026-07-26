@@ -35,6 +35,20 @@ export const ROUTES = {
       list: "/admin/sellers",
       detail: (id: string) => `/admin/sellers/${id}`,
     },
+    offers: {
+      ready: "/admin/offers/ready",
+      list: "/admin/offers",
+      detail: (id: string) => `/admin/offers/${id}`,
+      create: (duplicataId: string) => `/admin/offers/new/${duplicataId}`,
+    },
+    investments: "/admin/investments",
+  },
+
+  investor: {
+    opportunities: "/investor/opportunities",
+    offerDetail: (id: string) => `/investor/offers/${id}`,
+    investments: "/investor/investments",
+    account: "/investor/account",
   },
 
   confirmation: (id: string) => `/confirmation/${id}`,

@@ -17,6 +17,16 @@ import { AdminValidationsPage } from "@/pages/admin/AdminValidationsPage";
 import { AdminReceivablesPage } from "@/pages/admin/AdminReceivablesPage";
 import { AdminTransactionsPage } from "@/pages/admin/AdminTransactionsPage";
 import { AdminSellersPage } from "@/pages/admin/AdminSellersPage";
+import { AdminOffersReadyPage } from "@/pages/admin/AdminOffersReadyPage";
+import { AdminCreateOfferPage } from "@/pages/admin/AdminCreateOfferPage";
+import { AdminOffersPage } from "@/pages/admin/AdminOffersPage";
+import { AdminOfferDetailPage } from "@/pages/admin/AdminOfferDetailPage";
+import { AdminInvestmentsPage } from "@/pages/admin/AdminInvestmentsPage";
+
+import { InvestorOpportunitiesPage } from "@/pages/investor/InvestorOpportunitiesPage";
+import { InvestorOfferDetailPage } from "@/pages/investor/InvestorOfferDetailPage";
+import { InvestorInvestmentsPage } from "@/pages/investor/InvestorInvestmentsPage";
+import { InvestorAccountPage } from "@/pages/investor/InvestorAccountPage";
 
 import { AnalystDashboardPage } from "@/pages/analyst/AnalystDashboardPage";
 import { AnalystSellersPage } from "@/pages/analyst/AnalystSellersPage";
@@ -213,6 +223,97 @@ function AppRoutes() {
           <ProtectedRoute profile="admin">
             <AppShell>
               <AdminTransactionsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.admin.offers.ready}
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell>
+              <AdminOffersReadyPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.admin.offers.list}
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell>
+              <AdminOffersPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.admin.investments}
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell>
+              <AdminInvestmentsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/offers/new/:duplicataId"
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell>
+              <AdminCreateOfferPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/offers/:id"
+        element={
+          <ProtectedRoute profile="admin">
+            <AppShell>
+              <AdminOfferDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.investor.opportunities}
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorOpportunitiesPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/investor/offers/:id"
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorOfferDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.investor.investments}
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorInvestmentsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.investor.account}
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorAccountPage />
             </AppShell>
           </ProtectedRoute>
         }

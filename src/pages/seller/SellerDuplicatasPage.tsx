@@ -66,8 +66,8 @@ export function SellerDuplicatasPage() {
       setOperacaoDuplicata(null);
       toast.success("Operação aprovada", {
         description: valorReceber
-          ? `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada. Você receberá ${formatCurrencyBRL(valorReceber)}. A operação pode demorar até 2h para ser finalizada.`
-          : `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada. A operação pode demorar até 2h para ser finalizada.`,
+          ? `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada (${formatCurrencyBRL(valorReceber)}). Em breve a operação poderá ser listada para captação com investidores.`
+          : `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada. Em breve a operação poderá ser listada para captação com investidores.`,
       });
     } finally {
       setOperacaoSubmitting(false);

@@ -116,7 +116,14 @@ export function MockLoginForm() {
           </Button>
         </form>
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Acesso demonstrativo para o protótipo
+          Demo: qualquer senha. Investidor:{" "}
+          <button
+            type="button"
+            className="underline underline-offset-2 hover:text-foreground"
+            onClick={() => setEmail("investor@dupply.com.br")}
+          >
+            investor@dupply.com.br
+          </button>
         </p>
       </CardContent>
     </Card>

@@ -106,8 +106,11 @@ export async function setDuplicataDecisaoCedente(
   duplicatas = duplicatas.map((d) => {
     if (d.id !== id) return d;
     const next: DuplicataTitulo = { ...d, analiseAnalista: decision };
-    delete next.descontoAntecipacaoPercent;
-    delete next.valorLiquidoAntecipacao;
+    // Keep discount on accept so admin can structure an investment offer.
+    if (decision === "reprovado") {
+      delete next.descontoAntecipacaoPercent;
+      delete next.valorLiquidoAntecipacao;
+    }
     return next;
   });
 }

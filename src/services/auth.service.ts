@@ -82,12 +82,23 @@ async function mockLoginImpl(email: string, _password: string): Promise<LoginRes
     };
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const platformRole = normalizedEmail.startsWith("investor@")
+    ? "investor"
+    : normalizedEmail.startsWith("admin@")
+      ? "admin"
+      : normalizedEmail.startsWith("risk@") || normalizedEmail.startsWith("analyst@")
+        ? "risk_analyst"
+        : "seller";
+
   const session: AuthSession = {
     user: {
+      // Single mock user id so portfolio seeds show for demo@ (profile switch)
+      // and investor@ login alike.
       id: "user-demo",
       email: email.trim(),
       name: email.trim().split("@")[0] ?? email.trim(),
-      platformRole: "seller",
+      platformRole,
     },
   };
 
