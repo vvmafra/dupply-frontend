@@ -50,6 +50,7 @@ const adminNav: NavItem[] = [
 ];
 
 const investorNav: NavItem[] = [
+  { label: "Home", href: ROUTES.investor.home, icon: LayoutDashboard },
   { label: "Oportunidades", href: ROUTES.investor.opportunities, icon: TrendingUp },
   { label: "Meus investimentos", href: ROUTES.investor.investments, icon: Briefcase },
   { label: "Meus dados", href: ROUTES.investor.account, icon: UserRound },

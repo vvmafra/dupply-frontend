@@ -27,6 +27,7 @@ import { InvestorOpportunitiesPage } from "@/pages/investor/InvestorOpportunitie
 import { InvestorOfferDetailPage } from "@/pages/investor/InvestorOfferDetailPage";
 import { InvestorInvestmentsPage } from "@/pages/investor/InvestorInvestmentsPage";
 import { InvestorAccountPage } from "@/pages/investor/InvestorAccountPage";
+import { InvestorHomePage } from "@/pages/investor/InvestorHomePage";
 
 import { AnalystDashboardPage } from "@/pages/analyst/AnalystDashboardPage";
 import { AnalystSellersPage } from "@/pages/analyst/AnalystSellersPage";
@@ -278,6 +279,16 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path={ROUTES.investor.home}
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorHomePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path={ROUTES.investor.opportunities}
         element={

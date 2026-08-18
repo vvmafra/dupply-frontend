@@ -20,16 +20,119 @@ import type {
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 import { INITIAL_INVESTMENTS, INITIAL_OFFERS } from "@/data/offers.mock";
 import { fetchAllDuplicatas, fetchDuplicataById } from "@/services/duplicata.service";
+import { resolveApiMode } from "@/lib/env";
+import { apiRequest } from "@/lib/api-client";
 
 let offers: Offer[] = INITIAL_OFFERS.map((o) => ({ ...o }));
 let investments: Investment[] = INITIAL_INVESTMENTS.map((i) => ({ ...i }));
+
+function mapReceivableToOffer(r: any): Offer {
+  const quotaPrice = 100; // Standard 100 BRL quota size
+  const targetAmount = r.targetFunding > 0 ? r.targetFunding : r.value;
+  const raisedAmount = r.funded;
+  const quotaCount = Math.max(1, Math.floor(targetAmount / quotaPrice));
+  const quotasSold = Math.floor(raisedAmount / quotaPrice);
+
+  let status: OfferStatus = "fundraising";
+  if (
+    r.status === "funded" ||
+    r.status === "processing" ||
+    r.status === "completed" ||
+    r.status === "payer_settled"
+  ) {
+    status = "disbursed";
+  } else if (
+    r.status === "failed" ||
+    r.status === "rejected" ||
+    r.status === "reproved"
+  ) {
+    status = "failed";
+  }
+
+  let deadline = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  if (r.receivableMetaData) {
+    try {
+      const meta = typeof r.receivableMetaData === "string" 
+        ? JSON.parse(r.receivableMetaData) 
+        : r.receivableMetaData;
+      if (meta.dueDate) {
+        deadline = new Date(meta.dueDate).toISOString();
+      }
+    } catch (e) {
+      // Ignore parse issues
+    }
+  }
+
+  return {
+    id: r.id,
+    duplicataId: r.id,
+    faceValue: r.value,
+    analystDiscountPercent: r.yieldRateAnnual * 100,
+    platformSpreadPercent: 2.0, // Default mock spread %
+    estimatedInvestorReturnPercent: r.yieldRateAnnual * 100,
+    riskLevel: "medium",
+    scoreDuplicataSnapshot: 75,
+    targetAmount,
+    minAmount: targetAmount,
+    quotaPrice,
+    quotaCount,
+    quotasSold,
+    raisedAmount,
+    deadline,
+    status,
+    backfillSource: "fidc",
+    fidcBackfillAmount: 0,
+    createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+  };
+}
+
+function mapBackendInvestmentToFrontend(inv: any): Investment {
+  const quotaPrice = 100;
+  const quotaCount = Math.floor(inv.amount / quotaPrice);
+
+  let status: InvestmentStatus = "active";
+  if (inv.status === "refunded") {
+    status = "refunded";
+  } else if (
+    inv.status === "settled" ||
+    inv.receivable?.status === "completed" ||
+    inv.receivable?.status === "payer_settled"
+  ) {
+    status = "settled";
+  }
+
+  return {
+    id: inv.id,
+    offerId: inv.receivableId,
+    investorUserId: "user-demo",
+    quotaCount,
+    amount: inv.amount,
+    status,
+    createdAt: inv.createdAt ? new Date(inv.createdAt).toISOString() : new Date().toISOString(),
+    receivable: inv.receivable ? {
+      status: inv.receivable.status,
+      targetFunding: inv.receivable.targetFunding,
+      funded: inv.receivable.funded,
+      yieldRateAnnual: inv.receivable.yieldRateAnnual,
+    } : undefined,
+  };
+}
 
 function cloneOffer(offer: Offer): Offer {
   return { ...offer };
 }
 
 function cloneInvestment(investment: Investment): Investment {
-  return { ...investment };
+  const offer = offers.find((o) => o.id === investment.offerId);
+  return {
+    ...investment,
+    receivable: offer ? {
+      status: offer.status,
+      targetFunding: offer.targetAmount,
+      funded: offer.raisedAmount,
+      yieldRateAnnual: offer.estimatedInvestorReturnPercent / 100,
+    } : undefined,
+  };
 }
 
 function applyCloseToOffer(offer: Offer): Offer {
@@ -87,6 +190,19 @@ export async function listOffers(filters?: {
   status?: OfferStatus | OfferStatus[];
   riskLevel?: RiskLevel;
 }): Promise<Offer[]> {
+  if (resolveApiMode() === "http") {
+    const data = await apiRequest<{ receivables: any[] }>("/v1/receivables");
+    let result = data.receivables.map(mapReceivableToOffer);
+    if (filters?.status) {
+      const statuses = Array.isArray(filters.status) ? filters.status : [filters.status];
+      result = result.filter((o) => statuses.includes(o.status));
+    }
+    if (filters?.riskLevel) {
+      result = result.filter((o) => o.riskLevel === filters.riskLevel);
+    }
+    return result;
+  }
+
   await sleep(250);
   let result = offers.map(cloneOffer);
   if (filters?.status) {
@@ -107,6 +223,15 @@ export async function listFundraisingOffers(filters?: {
 }
 
 export async function getOfferById(id: string): Promise<Offer | null> {
+  if (resolveApiMode() === "http") {
+    try {
+      const data = await apiRequest<{ receivable: any }>(`/v1/receivables/${id}`);
+      return mapReceivableToOffer(data.receivable);
+    } catch (e) {
+      return null;
+    }
+  }
+
   await sleep(180);
   const offer = offers.find((o) => o.id === id);
   return offer ? cloneOffer(offer) : null;
@@ -195,6 +320,23 @@ export async function createOffer(input: CreateOfferInput): Promise<Offer> {
 }
 
 export async function investInOffer(input: InvestInOfferInput): Promise<Investment> {
+  if (resolveApiMode() === "http") {
+    const quotaPrice = 100;
+    const amount = input.quotaCount * quotaPrice;
+    const idempotencyKey = `idemp-invest-${input.offerId}-${Date.now()}`;
+
+    const data = await apiRequest<any>("/v1/investors/invest", {
+      method: "POST",
+      body: {
+        receivableId: input.offerId,
+        amount,
+        idempotencyKey,
+      },
+    });
+
+    return mapBackendInvestmentToFrontend(data);
+  }
+
   await sleep(350);
 
   const index = offers.findIndex((o) => o.id === input.offerId);
@@ -264,6 +406,15 @@ export async function listInvestmentsByInvestor(
   investorUserId: string,
   filters?: { status?: InvestmentStatus }
 ): Promise<Investment[]> {
+  if (resolveApiMode() === "http") {
+    const data = await apiRequest<any[]>("/v1/investors/investments");
+    let result = data.map(mapBackendInvestmentToFrontend);
+    if (filters?.status) {
+      result = result.filter((i) => i.status === filters.status);
+    }
+    return result;
+  }
+
   await sleep(220);
   let result = investments
     .filter((i) => matchesInvestor(i.investorUserId, investorUserId))
@@ -315,6 +466,9 @@ export async function closeOffer(offerId: string): Promise<Offer> {
 }
 
 export async function closeExpiredOffers(now: Date = new Date()): Promise<Offer[]> {
+  if (resolveApiMode() === "http") {
+    return [];
+  }
   await sleep(120);
   const closed: Offer[] = [];
   const nowMs = now.getTime();

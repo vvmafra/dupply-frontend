@@ -18,7 +18,7 @@ type InvestQuotaFormProps = {
 
 export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuotaFormProps) {
   const remaining = calcRemainingQuotas(offer.quotaCount, offer.quotasSold);
-  const [quotaCount, setQuotaCount] = useState(Math.min(1, remaining));
+  const [quotaCount, setQuotaCount] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +26,8 @@ export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuot
     e.preventDefault();
     setError(null);
 
-    const parsed = investQuotaSchema.safeParse({ quotaCount });
+    const countVal = quotaCount === "" ? 0 : quotaCount;
+    const parsed = investQuotaSchema.safeParse({ quotaCount: countVal });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dados inválidos");
       return;
@@ -63,6 +64,8 @@ export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuot
     );
   }
 
+  const totalAmount = (quotaCount === "" ? 0 : quotaCount) * offer.quotaPrice;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
@@ -72,8 +75,13 @@ export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuot
           type="number"
           min={1}
           max={remaining}
+          placeholder="Digite a quantidade de cotas"
           value={quotaCount}
-          onChange={(e) => setQuotaCount(Number(e.target.value))}
+          onChange={(e) => {
+            const val = e.target.value;
+            setQuotaCount(val === "" ? "" : Number(val));
+          }}
+          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <p className="text-xs text-muted-foreground">
           Até {remaining} cotas · {formatCurrencyBRL(offer.quotaPrice)} cada
@@ -87,7 +95,7 @@ export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuot
             Confirmando...
           </>
         ) : (
-          `Investir ${formatCurrencyBRL(Math.max(0, quotaCount) * offer.quotaPrice)}`
+          `Investir ${formatCurrencyBRL(totalAmount)}`
         )}
       </Button>
     </form>

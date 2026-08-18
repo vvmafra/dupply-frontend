@@ -24,7 +24,7 @@ export function SelectProfilePage() {
   const profiles = useMemo(() => {
     if (!user) return [];
     return resolveApiMode() === "mock"
-      ? MOCK_DEMO_PROFILES
+      ? (user.email === "demo@dupply.com.br" ? MOCK_DEMO_PROFILES : getAvailableProfiles(user.platformRole))
       : getAvailableProfiles(user.platformRole);
   }, [user]);
 

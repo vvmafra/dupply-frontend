@@ -110,15 +110,28 @@ export function InvestorInvestmentsPage() {
                   <TableCell>
                     <Link
                       to={ROUTES.investor.offerDetail(item.offerId)}
-                      className="font-medium text-primary hover:underline"
+                      className="font-semibold text-primary hover:underline"
                     >
-                      {item.offerId}
+                      Oferta {item.offerId.slice(-6)}
                     </Link>
                   </TableCell>
                   <TableCell className="text-right">{item.quotaCount}</TableCell>
                   <TableCell className="text-right">{formatCurrencyBRL(item.amount)}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{INVESTMENT_STATUS_LABELS[item.status]}</Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="secondary" className="w-fit">{INVESTMENT_STATUS_LABELS[item.status]}</Badge>
+                      {item.receivable && (
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          Duplicata: {
+                            (item.receivable.status === "funding" || item.receivable.status === "fundraising")
+                              ? "Captando"
+                              : (item.receivable.status === "funded" || item.receivable.status === "processing" || item.receivable.status === "disbursed")
+                              ? "Em Andamento"
+                              : "Liquidada"
+                          }
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDateTime(item.createdAt)}

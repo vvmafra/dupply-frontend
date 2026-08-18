@@ -38,6 +38,12 @@ export interface Investment {
   amount: number;
   status: InvestmentStatus;
   createdAt: string;
+  receivable?: {
+    status: string;
+    targetFunding: number;
+    funded: number;
+    yieldRateAnnual: number;
+  };
 }
 
 export interface CreateOfferInput {

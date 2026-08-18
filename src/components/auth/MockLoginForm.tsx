@@ -50,7 +50,7 @@ export function MockLoginForm() {
 
     const profiles =
       resolveApiMode() === "mock"
-        ? MOCK_DEMO_PROFILES
+        ? (result.session.user.email === "demo@dupply.com.br" ? MOCK_DEMO_PROFILES : getAvailableProfiles(result.session.user.platformRole))
         : getAvailableProfiles(result.session.user.platformRole);
     const autoProfile = shouldAutoSelectProfile(profiles);
 
@@ -115,16 +115,72 @@ export function MockLoginForm() {
             <Link to={ROUTES.sellerRegistration}>Criar conta de cedente</Link>
           </Button>
         </form>
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          Demo: qualquer senha. Investidor:{" "}
+        <div className="mt-6 pt-4 border-t border-muted/50 space-y-3">
+          <p className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Contas de Teste (Clique para preencher)
+          </p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("investor@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              💼 <strong>Investidor</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">investor@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("seller@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              🏬 <strong>Cedente</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">seller@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("analyst@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              🔍 <strong>Analista</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">analyst@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("admin@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              ⚙️ <strong>Admin</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">admin@dupply.com.br</span>
+            </button>
+          </div>
           <button
             type="button"
-            className="underline underline-offset-2 hover:text-foreground"
-            onClick={() => setEmail("investor@dupply.com.br")}
+            className="w-full py-1.5 rounded bg-primary/10 hover:bg-primary/20 text-center transition-colors text-xs font-medium text-primary"
+            onClick={() => {
+              setEmail("demo@dupply.com.br");
+              setPassword("Dupply@Demo2026!");
+            }}
           >
-            investor@dupply.com.br
+            🌟 <strong>Superuser Demo</strong> (Todos os perfis)
           </button>
-        </p>
+          <div className="text-[10px] text-center text-muted-foreground/80 mt-1">
+            Para testar com a API real (local), use: <br/>
+            <span className="font-mono text-[9px] bg-muted/50 px-1 py-0.5 rounded">seller@dupply.dev.local</span> ou <span className="font-mono text-[9px] bg-muted/50 px-1 py-0.5 rounded">investor@dupply.dev.local</span><br/>
+            (Senha: <span className="font-mono text-[9px]">dev-password-change-me</span>)
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

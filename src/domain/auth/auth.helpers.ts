@@ -26,7 +26,7 @@ export function getProfileRedirect(profile: UserProfile): string {
     seller: ROUTES.seller.dashboard,
     admin: ROUTES.admin.dashboard,
     riskAnalyst: ROUTES.analyst.dashboard,
-    investor: ROUTES.investor.opportunities,
+    investor: ROUTES.investor.home,
   };
   return redirects[profile];
 }

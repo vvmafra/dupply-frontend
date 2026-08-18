@@ -45,6 +45,7 @@ export const ROUTES = {
   },
 
   investor: {
+    home: "/investor",
     opportunities: "/investor/opportunities",
     offerDetail: (id: string) => `/investor/offers/${id}`,
     investments: "/investor/investments",

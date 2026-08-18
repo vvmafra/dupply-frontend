@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Bot, ShieldCheck, FileText, CheckCircle2, Building2 } from "lucide-react";
 import { InvestQuotaForm } from "@/components/investor/InvestQuotaForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import type { InvestorProfile } from "@/domain/investor/investor.types";
 import { OFFER_STATUS_LABELS, RISK_LEVEL_LABELS } from "@/domain/offer/offer.constants";
@@ -77,90 +84,205 @@ export function InvestorOfferDetailPage() {
   const minMarker = calcMinProgress(offer.minAmount, offer.targetAmount);
   const remaining = calcRemainingQuotas(offer.quotaCount, offer.quotasSold);
 
+  const score = offer.scoreDuplicataSnapshot ?? 75;
+  const rating = score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B+" : "B";
+
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Oferta {offer.id.slice(-6)}</h1>
-          <p className="text-sm text-muted-foreground">
-            Detalhes da oportunidade · sem nomes de cedente ou sacado
-          </p>
-        </div>
-        <Badge variant="secondary">{OFFER_STATUS_LABELS[offer.status]}</Badge>
+    <div className="mx-auto p-6 space-y-6 max-w-6xl">
+      {/* Voltar button top */}
+      <div className="flex items-center justify-between gap-4">
+        <Button asChild variant="outline" size="sm">
+          <Link to={ROUTES.investor.opportunities}>← Voltar</Link>
+        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Resumo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Nível de risco</span>
-            <span>{RISK_LEVEL_LABELS[offer.riskLevel]}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Retorno estimado</span>
-            <span className="font-medium">{formatPercent(offer.estimatedInvestorReturnPercent)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Preço da cota</span>
-            <span>{formatCurrencyBRL(offer.quotaPrice)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Alvo / mínimo</span>
-            <span>
-              {formatCurrencyBRL(offer.targetAmount)} / {formatCurrencyBRL(offer.minAmount)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Captado</span>
-            <span>
-              {formatCurrencyBRL(offer.raisedAmount)} · {remaining} cotas restantes
-            </span>
-          </div>
-          <div className="space-y-1.5 pt-1">
-            <div className="relative">
-              <Progress value={progress} />
-              <div
-                className="pointer-events-none absolute top-0 bottom-0 w-px bg-foreground/50"
-                style={{ left: `${minMarker}%` }}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-white">Oferta {offer.id.slice(-6)}</h1>
+          <p className="text-sm text-muted-foreground">
+            Oportunidade auditada por inteligência artificial para proteção e rentabilidade.
+          </p>
+        </div>
+        <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+          {OFFER_STATUS_LABELS[offer.status]}
+        </Badge>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Side: Summary and Invest Form */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Resumo da Oferta</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Nível de risco</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="font-semibold text-red-500 cursor-help border-b border-dashed border-red-500/40">
+                        Baixo
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="w-64 text-center">
+                      Meramente ilustrativo, trata-se de uma análise da Dupply.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Retorno estimado</span>
+                <span className="font-medium text-emerald-400">{formatPercent(offer.estimatedInvestorReturnPercent)} a.a.</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Preço da cota</span>
+                <span className="text-white">{formatCurrencyBRL(offer.quotaPrice)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Alvo / mínimo</span>
+                <span className="text-white">
+                  {formatCurrencyBRL(offer.targetAmount)} / {formatCurrencyBRL(offer.minAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Captado</span>
+                <span className="text-white">
+                  {formatCurrencyBRL(offer.raisedAmount)} · {remaining} cotas restantes
+                </span>
+              </div>
+              <div className="space-y-1.5 pt-1">
+                <div className="relative">
+                  <Progress value={progress} className="h-2" />
+                  <div
+                    className="pointer-events-none absolute top-0 bottom-0 w-px bg-white/50"
+                    style={{ left: `${minMarker}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Prazo final</span>
+                <span className="text-white">{formatDateTime(offer.deadline)}</span>
+              </div>
+              {offer.status === "disbursed" && offer.fidcBackfillAmount > 0 && (
+                <div className="rounded-md bg-muted/40 p-3 space-y-1 border border-border/60">
+                  <p className="font-medium text-white">Captação híbrida realizada</p>
+                  <p className="text-muted-foreground">
+                    Investidores: {formatCurrencyBRL(offer.raisedAmount)} · FIDC:{" "}
+                    {formatCurrencyBRL(offer.fidcBackfillAmount)}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Investir</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InvestSection
+                userId={user?.id}
+                profileLoading={profileLoading}
+                kycApproved={isInvestorKycApproved(investorProfile)}
+                offer={offer}
+                onInvestSuccess={() => void refresh()}
               />
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Prazo</span>
-            <span>{formatDateTime(offer.deadline)}</span>
-          </div>
-          {offer.status === "disbursed" && offer.fidcBackfillAmount > 0 && (
-            <div className="rounded-md bg-muted p-3 space-y-1">
-              <p className="font-medium">Captação híbrida</p>
-              <p className="text-muted-foreground">
-                Investidores: {formatCurrencyBRL(offer.raisedAmount)} · FIDC:{" "}
-                {formatCurrencyBRL(offer.fidcBackfillAmount)}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Investir</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <InvestSection
-            userId={user?.id}
-            profileLoading={profileLoading}
-            kycApproved={isInvestorKycApproved(investorProfile)}
-            offer={offer}
-            onInvestSuccess={() => void refresh()}
-          />
-        </CardContent>
-      </Card>
+        {/* Right Side: AI Agent Audit & Title Info */}
+        <div className="space-y-6">
+          {/* AI Risk Agent Analysis */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-white">
+                <Bot className="size-5 text-primary shrink-0 animate-pulse" />
+                Análise do Agente de Risco
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              {/* Score Indicator */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Score do Recebível</p>
+                  <p className="text-2xl font-black text-white">{score} <span className="text-xs text-muted-foreground">/ 100</span></p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center font-bold text-primary text-base">
+                  {rating}
+                </div>
+              </div>
 
-      <Button asChild variant="outline">
-        <Link to={ROUTES.investor.opportunities}>Voltar</Link>
-      </Button>
+              {/* Checklist */}
+              <div className="space-y-2">
+                <p className="font-semibold text-white/90">Validações Executadas:</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                    <span>XML da NF-e registrado na SEFAZ</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                    <span>Comprovante de entrega validado (OCR)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                    <span>Aceite digital do sacado verificado</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                    <span>Histórico de pontualidade do sacado</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI comment */}
+              <div className="p-2 rounded bg-zinc-900/30 text-[10px] text-muted-foreground/60 leading-normal italic border border-border/20 text-center">
+                Classificação: Nível de Risco Baixo. Meramente ilustrativo, trata-se de uma análise da Dupply.
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Masked Invoice Data */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-white">
+                <FileText className="size-5 text-primary shrink-0" />
+                Dados do Título Auditado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-xs">
+              <div className="flex justify-between border-b border-border/40 pb-2">
+                <span className="text-muted-foreground">Tipo de Título</span>
+                <span className="text-white font-medium">Duplicata Mercantil (DM)</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2">
+                <span className="text-muted-foreground">NF-e Chave</span>
+                <span className="text-white font-mono">3526••••••••••••••••0894</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2">
+                <span className="text-muted-foreground">Setor Cedente</span>
+                <div className="flex items-center gap-1 text-white">
+                  <Building2 className="size-3 text-muted-foreground" />
+                  <span>Logística e Distribuição</span>
+                </div>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2">
+                <span className="text-muted-foreground">Setor Sacado</span>
+                <div className="flex items-center gap-1 text-white">
+                  <Building2 className="size-3 text-muted-foreground" />
+                  <span>Varejo Alimentício</span>
+                </div>
+              </div>
+              <div className="flex justify-between pb-1">
+                <span className="text-muted-foreground">UF de Origem/Destino</span>
+                <span className="text-white font-medium">Campinas/SP → São Paulo/SP</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
