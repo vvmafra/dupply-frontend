@@ -59,6 +59,22 @@ export function InvestQuotaForm({ offer, investorUserId, onSuccess }: InvestQuot
   }
 
   if (offer.status !== "fundraising" || remaining <= 0) {
+    const gap = offer.targetAmount - offer.raisedAmount;
+    if (gap > 0 && offer.status === "fundraising") {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Todas as cotas disponíveis para investidores individuais foram vendidas.
+          </p>
+          <div className="rounded-md bg-primary/10 border border-primary/20 p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-white">Co-investimento do FIDC</p>
+            <p>
+              O resíduo de <strong>{formatCurrencyBRL(gap)}</strong> (não divisível em cotas inteiras de {formatCurrencyBRL(offer.quotaPrice)}) será aportado pelo próprio FIDC para liquidar a operação.
+            </p>
+          </div>
+        </div>
+      );
+    }
     return (
       <p className="text-sm text-muted-foreground">Esta oferta não está aberta para novos investimentos.</p>
     );

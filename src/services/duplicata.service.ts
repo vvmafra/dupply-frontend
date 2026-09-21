@@ -51,6 +51,15 @@ function mapBackendReceivableToDuplicata(r: any): DuplicataTitulo {
     descontoPercent = Math.round((1 - (proposedValue / value)) * 100);
   }
 
+  let aiReport = null;
+  if (r.aiReport) {
+    try {
+      aiReport = typeof r.aiReport === "string" ? JSON.parse(r.aiReport) : r.aiReport;
+    } catch (e) {
+      console.error("Failed to parse aiReport", e);
+    }
+  }
+
   return {
     id: r.id,
     sellerId: r.sellerId,
@@ -73,7 +82,11 @@ function mapBackendReceivableToDuplicata(r: any): DuplicataTitulo {
       ? "aceite" 
       : "entrega",
     comprovanteAnexado: meta.proofType ? true : false,
-    statusAceiteSacado: meta.payerAcceptanceStatus ?? "pendente",
+    statusAceiteSacado: (meta.payerAcceptanceStatus === "accepted" || (meta.payerAcceptanceStatus as string) === "aceito")
+      ? "aceito"
+      : (meta.payerAcceptanceStatus === "refused" || (meta.payerAcceptanceStatus as string) === "recusado")
+      ? "recusado"
+      : "pendente",
     valorDesejadoAntecipacao: meta.desiredAnticipationValue ?? value,
     declaracoesAntifraudeAceitas: meta.antifraudDeclarationsAccepted ?? false,
     enviadoEm: r.createdAt ?? new Date().toISOString(),
@@ -82,13 +95,29 @@ function mapBackendReceivableToDuplicata(r: any): DuplicataTitulo {
     valorLiquidoAntecipacao: proposedValue ?? undefined,
     scoreUsuario: 85,
     scoreDuplicata: 90,
+    statusHistory: r.statusHistory || undefined,
+    statusRecebivel: r.status,
+    aiReport,
+    aiReportPdfUrl: r.aiReportPdfUrl,
   };
 }
 
 export async function fetchAllDuplicatas(): Promise<DuplicataTitulo[]> {
   if (resolveApiMode() === "http") {
-    const data = await apiRequest<{ receivables: any[] }>("/v1/receivables");
-    return data.receivables.map(mapBackendReceivableToDuplicata);
+    const [data, sellersList] = await Promise.all([
+      apiRequest<{ receivables: any[] }>("/v1/receivables"),
+      apiRequest<any[]>("/v1/sellers").catch(() => []),
+    ]);
+    return data.receivables.map((r) => {
+      const dup = mapBackendReceivableToDuplicata(r);
+      const seller = sellersList.find((s) => s.id === r.sellerId);
+      if (seller) {
+        dup.sellerName = seller.companyMetaData?.legalName || seller.name || "Sem Nome";
+      } else {
+        dup.sellerName = r.sellerId;
+      }
+      return dup;
+    });
   }
 
   await sleep(300);
@@ -97,8 +126,21 @@ export async function fetchAllDuplicatas(): Promise<DuplicataTitulo[]> {
 
 export async function fetchDuplicatasBySeller(sellerId: string): Promise<DuplicataTitulo[]> {
   if (resolveApiMode() === "http") {
-    const data = await apiRequest<{ receivables: any[] }>("/v1/receivables");
-    return data.receivables.map(mapBackendReceivableToDuplicata);
+    const [data, seller] = await Promise.all([
+      apiRequest<{ receivables: any[] }>("/v1/receivables"),
+      apiRequest<any>(`/v1/sellers/${sellerId}`).catch(() => null),
+    ]);
+    return data.receivables
+      .filter((r) => r.sellerId === sellerId)
+      .map((r) => {
+        const dup = mapBackendReceivableToDuplicata(r);
+        if (seller) {
+          dup.sellerName = seller.companyMetaData?.legalName || seller.name || "Sem Nome";
+        } else {
+          dup.sellerName = r.sellerId;
+        }
+        return dup;
+      });
   }
 
   await sleep(280);
@@ -109,7 +151,14 @@ export async function fetchDuplicataById(id: string): Promise<DuplicataTitulo | 
   if (resolveApiMode() === "http") {
     try {
       const data = await apiRequest<{ receivable: any }>(`/v1/receivables/${id}`);
-      return mapBackendReceivableToDuplicata(data.receivable);
+      const dup = mapBackendReceivableToDuplicata(data.receivable);
+      try {
+        const seller = await apiRequest<any>(`/v1/sellers/${dup.sellerId}`);
+        dup.sellerName = seller.companyMetaData?.legalName || seller.name || "Sem Nome";
+      } catch {
+        dup.sellerName = dup.sellerId;
+      }
+      return dup;
     } catch (e) {
       return null;
     }
@@ -152,7 +201,11 @@ export async function createDuplicata(
           : payload.comprovanteTipo === "aceite" 
           ? "acceptance" 
           : "delivery",
-        payerAcceptanceStatus: payload.statusAceiteSacado,
+        payerAcceptanceStatus: payload.statusAceiteSacado === "aceito" 
+          ? "accepted" 
+          : payload.statusAceiteSacado === "recusado" 
+          ? "refused" 
+          : "pending",
         desiredAnticipationValue: payload.valorDesejadoAntecipacao,
         antifraudDeclarationsAccepted: payload.declaracoesAntifraudeAceitas,
       }
@@ -200,8 +253,18 @@ export async function setDuplicataAnaliseAnalista(
   id: string,
   status: DuplicataAnaliseAnalista
 ): Promise<void> {
-  // Primarily used for analyst actions. If we need to connect to HTTP, we would do so here.
-  // Currently, the analyst flow is not fully wired to endpoints or uses mock, but let's keep the mock fallback.
+  if (resolveApiMode() === "http") {
+    if (status === "reprovado") {
+      await apiRequest<any>(`/v1/receivables/${id}/risk-decision`, {
+        method: "POST",
+        body: {
+          decision: "reprove",
+        },
+      });
+      return;
+    }
+  }
+
   await sleep(350);
   duplicatas = duplicatas.map((d) => {
     if (d.id !== id) return d;
@@ -218,6 +281,20 @@ export async function setDuplicataOfertaAntecipacao(
   id: string,
   descontoPercent: number
 ): Promise<void> {
+  if (resolveApiMode() === "http") {
+    const d = await fetchDuplicataById(id);
+    if (!d) throw new Error("Duplicata não encontrada");
+    const proposedValue = calcValorLiquidoCedente(d.valor, descontoPercent);
+    await apiRequest<any>(`/v1/receivables/${id}/risk-decision`, {
+      method: "POST",
+      body: {
+        decision: "offer",
+        proposedValue,
+      },
+    });
+    return;
+  }
+
   await sleep(350);
   const valorLiquido = calcValorLiquidoCedente(
     duplicatas.find((d) => d.id === id)?.valor ?? 0,

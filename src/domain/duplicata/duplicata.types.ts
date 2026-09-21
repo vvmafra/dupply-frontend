@@ -8,6 +8,45 @@ export type DuplicataFiscalTipo = "nfe" | "nfce" | "nfse" | "outro";
 
 export type DuplicataAnaliseAnalista = "pendente" | "for_approval" | "aprovado" | "reprovado";
 
+export interface DuplicataAiShareholder {
+  name: string;
+  percentage: number;
+  role: string;
+}
+
+export interface DuplicataAiEntityPercentage {
+  name: string;
+  cnpj: string | null;
+  percentage: number;
+}
+
+export interface DuplicataAiSwot {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+}
+
+export interface DuplicataAiFinancialMetrics {
+  netRevenue: number;
+  netResult: number;
+  totalAssets: number;
+  totalLiabilities: number;
+  equity: number;
+  bankDebt: number;
+}
+
+export interface DuplicataAiReport {
+  companyDescription: string;
+  foundationYear: number;
+  shareholders: DuplicataAiShareholder[];
+  customerPortfolio: DuplicataAiEntityPercentage[];
+  suppliers: DuplicataAiEntityPercentage[];
+  swot: DuplicataAiSwot;
+  financialAnalysis: string;
+  financialMetrics: DuplicataAiFinancialMetrics;
+}
+
 export interface DuplicataTitulo {
   id: string;
   sellerId: string;
@@ -39,6 +78,12 @@ export interface DuplicataTitulo {
   scoreUsuario: number;
   /** Score simulado da duplicata (0–100). */
   scoreDuplicata: number;
+  /** Histórico de timestamps dos status da duplicata. */
+  statusHistory?: Record<string, string>;
+  /** Status cru do recebível no backend. */
+  statusRecebivel?: string;
+  aiReport?: DuplicataAiReport | null;
+  aiReportPdfUrl?: string | null;
 }
 
 export interface NovaDuplicataPayload {

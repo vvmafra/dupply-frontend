@@ -1,7 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import { SellerDuplicataOperacaoWizardDialog } from "@/components/seller/SellerDuplicataOperacaoWizardDialog";
+import { Link, useNavigate } from "react-router-dom";
 import { SellerDuplicatasListTableSkeleton } from "@/components/seller/SellerPageCardsSkeleton";
 import { Button } from "@/components/ui/button";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
@@ -14,25 +12,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  fetchDuplicatasBySeller,
-  setDuplicataDecisaoCedente,
-} from "@/services/duplicata.service";
+import { fetchDuplicatasBySeller } from "@/services/duplicata.service";
 import { fetchCurrentSeller } from "@/services/seller.service";
 import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
 import { ROUTES } from "@/lib/routes";
 import type { SellerCompany } from "@/domain/seller/seller.types";
 import { formatCurrencyBRL } from "@/lib/formatters";
-import { cn } from "@/lib/utils";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 
 export function SellerDuplicatasPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<DuplicataTitulo[]>([]);
   const [seller, setSeller] = useState<SellerCompany | null>(null);
   const [loading, setLoading] = useState(true);
-  const [operacaoDuplicata, setOperacaoDuplicata] = useState<DuplicataTitulo | null>(null);
-  const [operacaoWizardOpen, setOperacaoWizardOpen] = useState(false);
-  const [operacaoSubmitting, setOperacaoSubmitting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -44,51 +36,6 @@ export function SellerDuplicatasPage() {
     }
     load();
   }, []);
-
-  function openOperacaoWizard(duplicata: DuplicataTitulo) {
-    setOperacaoDuplicata(duplicata);
-    setOperacaoWizardOpen(true);
-  }
-
-  async function refreshItems(sellerId: string) {
-    const data = await fetchDuplicatasBySeller(sellerId);
-    setItems(data);
-  }
-
-  async function handleOperacaoApprove() {
-    if (!operacaoDuplicata || !seller) return;
-    const valorReceber = operacaoDuplicata.valorLiquidoAntecipacao;
-    setOperacaoSubmitting(true);
-    try {
-      await setDuplicataDecisaoCedente(operacaoDuplicata.id, "aprovado");
-      await refreshItems(seller.id);
-      setOperacaoWizardOpen(false);
-      setOperacaoDuplicata(null);
-      toast.success("Operação aprovada", {
-        description: valorReceber
-          ? `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada (${formatCurrencyBRL(valorReceber)}). Em breve a operação poderá ser listada para captação com investidores.`
-          : `A antecipação de ${operacaoDuplicata.numeroDuplicata} foi confirmada. Em breve a operação poderá ser listada para captação com investidores.`,
-      });
-    } finally {
-      setOperacaoSubmitting(false);
-    }
-  }
-
-  async function handleOperacaoReject() {
-    if (!operacaoDuplicata || !seller) return;
-    setOperacaoSubmitting(true);
-    try {
-      await setDuplicataDecisaoCedente(operacaoDuplicata.id, "reprovado");
-      await refreshItems(seller.id);
-      setOperacaoWizardOpen(false);
-      setOperacaoDuplicata(null);
-      toast.error("Operação reprovada", {
-        description: `Você recusou a antecipação de ${operacaoDuplicata.numeroDuplicata}.`,
-      });
-    } finally {
-      setOperacaoSubmitting(false);
-    }
-  }
 
   let headerAction: ReactNode;
   if (loading) {
@@ -164,28 +111,23 @@ export function SellerDuplicatasPage() {
                 return (
                   <TableRow
                     key={d.id}
-                    className={cn(
-                      aguardandoAprovacao &&
-                        "cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                    )}
-                    tabIndex={aguardandoAprovacao ? 0 : undefined}
-                    role={aguardandoAprovacao ? "button" : undefined}
+                    className="cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                    tabIndex={0}
+                    role="button"
                     aria-label={
                       aguardandoAprovacao
                         ? `Revisar proposta de antecipação da duplicata ${d.numeroDuplicata}`
-                        : undefined
+                        : `Visualizar detalhes da duplicata ${d.numeroDuplicata}`
                     }
-                    onClick={aguardandoAprovacao ? () => openOperacaoWizard(d) : undefined}
-                    onKeyDown={
-                      aguardandoAprovacao
-                        ? (e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              openOperacaoWizard(d);
-                            }
-                          }
-                        : undefined
-                    }
+                    onClick={() => {
+                      navigate(ROUTES.seller.duplicatas.detail(d.id));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(ROUTES.seller.duplicatas.detail(d.id));
+                      }
+                    }}
                   >
                     <TableCell className="font-mono text-sm">{d.numeroDuplicata}</TableCell>
                     <TableCell>{d.sacadoRazaoSocial}</TableCell>
@@ -204,19 +146,6 @@ export function SellerDuplicatasPage() {
           </TableBody>
         </Table>
       </div>
-
-      <SellerDuplicataOperacaoWizardDialog
-        open={operacaoWizardOpen}
-        onOpenChange={(open) => {
-          if (!open && operacaoSubmitting) return;
-          setOperacaoWizardOpen(open);
-          if (!open) setOperacaoDuplicata(null);
-        }}
-        duplicata={operacaoDuplicata}
-        submitting={operacaoSubmitting}
-        onApprove={handleOperacaoApprove}
-        onReject={handleOperacaoReject}
-      />
     </div>
   );
 }

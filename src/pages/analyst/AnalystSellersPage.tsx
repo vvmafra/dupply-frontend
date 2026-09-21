@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AnalystSellersTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { getSellerCadastralReviewDisplayStatus } from "@/domain/risk-analyst/seller-cadastral-review.helpers";
@@ -18,6 +18,7 @@ import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.ty
 export function AnalystSellersPage() {
   const [rows, setRows] = useState<SellerReviewSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchSellerReviews().then((data) => {
@@ -47,11 +48,16 @@ export function AnalystSellersPage() {
             </TableHeader>
             <TableBody>
               {rows.map((r) => (
-                <TableRow key={r.sellerId}>
+                <TableRow 
+                  key={r.sellerId}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate(ROUTES.analyst.sellers.detail(r.sellerId))}
+                >
                   <TableCell>
                     <Link
                       to={ROUTES.analyst.sellers.detail(r.sellerId)}
                       className="font-medium text-primary hover:underline"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {r.legalName}
                     </Link>

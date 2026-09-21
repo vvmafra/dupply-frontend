@@ -1,8 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, ShieldCheck, ListChecks, Database, ChevronRight, Users, Receipt, TrendingUp, Briefcase, CircleDollarSign, UserRound } from "lucide-react";
+import { LayoutDashboard, FileCheck as FileCheck2, FilePlus, ShieldCheck, ListChecks, Database, ChevronRight, Users, Receipt, TrendingUp, Briefcase, CircleDollarSign, UserRound, PanelLeft, LogOut, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/contexts/AuthContext";
+import { getProfileLabel } from "@/domain/auth/auth.helpers";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   SidebarProvider,
   Sidebar as ShadcnSidebar,
@@ -17,6 +20,7 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 interface NavItem {
@@ -63,8 +67,26 @@ const profileConfig = {
   investor: { nav: investorNav, label: "Investidor", color: "text-chart-1" },
 };
 
+function SidebarToggleItem() {
+  const { state, toggleSidebar } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        onClick={toggleSidebar}
+        tooltip={isCollapsed ? "Expandir menu" : "Recolher menu"}
+        className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+      >
+        <PanelLeft className="size-4 shrink-0" />
+        <span className="truncate">{isCollapsed ? "Expandir" : "Recolher menu"}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
 export function AppSidebar() {
-  const { selectedProfile } = useAuth();
+  const { user, selectedProfile, logout } = useAuth();
   const profile = selectedProfile ?? "seller";
   const config = profileConfig[profile];
 
@@ -76,6 +98,7 @@ export function AppSidebar() {
           <span className="font-bold text-sidebar-foreground text-base truncate">Dupply</span>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={cn(config.color)}>
@@ -83,6 +106,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarToggleItem />
               {config.nav.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild tooltip={item.label}>
@@ -108,11 +132,42 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter>
-        <div className="px-2 py-1 text-xs text-sidebar-foreground/40 truncate">
+        <div className="flex flex-col gap-2 p-2 border-t border-sidebar-border/40">
+          <div className="flex items-center justify-between gap-2 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="size-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
+                <UserIcon className="size-4 opacity-80" />
+              </div>
+              <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+                <span className="text-xs font-semibold text-sidebar-foreground truncate">{user?.name || "Usuário"}</span>
+                {selectedProfile && (
+                  <Badge
+                    variant="secondary"
+                    className="w-fit text-[10px] py-0 px-1.5 h-4 border-white/15 bg-white/10 text-white font-normal truncate"
+                  >
+                    {getProfileLabel(selectedProfile)}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-7 shrink-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:hidden"
+              onClick={() => logout({ reason: "manual" })}
+              title="Sair"
+            >
+              <LogOut className="size-4 shrink-0" />
+            </Button>
+          </div>
+        </div>
+        <div className="px-2 py-0.5 text-[10px] text-sidebar-foreground/40 truncate group-data-[collapsible=icon]:hidden">
           Dupply MVP
         </div>
       </SidebarFooter>
+
       <SidebarRail />
     </ShadcnSidebar>
   );

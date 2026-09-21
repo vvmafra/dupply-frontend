@@ -10,7 +10,8 @@ interface RegistrationUploadFieldProps {
   description?: string;
   required?: boolean;
   value: boolean;
-  onChange: (uploaded: boolean) => void;
+  filename?: string;
+  onChange: (uploaded: boolean, filename?: string) => void;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ export function RegistrationUploadField({
   description,
   required,
   value,
+  filename,
   onChange,
   className,
 }: RegistrationUploadFieldProps) {
@@ -27,7 +29,7 @@ export function RegistrationUploadField({
   async function handleUpload() {
     setUploading(true);
     await sleep(800);
-    onChange(true);
+    onChange(true, "documento_anexado.pdf");
     setUploading(false);
   }
 
@@ -64,13 +66,15 @@ export function RegistrationUploadField({
         {value && !uploading && (
           <>
             <CheckCircle2 className="size-4 text-success shrink-0" />
-            <span className="flex-1 text-xs text-success">Arquivo anexado com sucesso</span>
+            <span className="flex-1 text-xs text-success truncate">
+              {filename || "Arquivo anexado com sucesso"}
+            </span>
             <Button
               type="button"
               size="xs"
               variant="ghost"
               className="text-xs text-muted-foreground"
-              onClick={() => onChange(false)}
+              onClick={() => onChange(false, "")}
             >
               Remover
             </Button>

@@ -81,7 +81,7 @@ function mapReceivableToOffer(r: any): Offer {
     deadline,
     status,
     backfillSource: "fidc",
-    fidcBackfillAmount: 0,
+    fidcBackfillAmount: status === "disbursed" ? Math.max(0, targetAmount - raisedAmount) : 0,
     createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
   };
 }

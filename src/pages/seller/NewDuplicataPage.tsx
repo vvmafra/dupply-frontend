@@ -12,6 +12,7 @@ import type { SellerCompany } from "@/domain/seller/seller.types";
 export function NewDuplicataPage() {
   const [seller, setSeller] = useState<SellerCompany | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     fetchCurrentSeller()
@@ -79,9 +80,9 @@ export function NewDuplicataPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {headingForm}
-      <NewDuplicataForm sellerId={seller.id} />
+    <div className="p-6 space-y-6 max-w-6xl mx-auto w-full">
+      {!isSuccess && headingForm}
+      <NewDuplicataForm sellerId={seller.id} onSuccess={() => setIsSuccess(true)} />
     </div>
   );
 }

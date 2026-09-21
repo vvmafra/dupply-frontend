@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AnalystDuplicatasTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import {
@@ -23,6 +23,7 @@ const tipoLabel: Record<DuplicataTitulo["tipo"], string> = {
 export function AnalystDuplicatasPage() {
   const [items, setItems] = useState<DuplicataTitulo[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllDuplicatas().then((data) => {
@@ -53,11 +54,16 @@ export function AnalystDuplicatasPage() {
             </TableHeader>
             <TableBody>
               {items.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow 
+                  key={d.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate(ROUTES.analyst.duplicatas.detail(d.id))}
+                >
                   <TableCell>
                     <Link
                       to={ROUTES.analyst.duplicatas.detail(d.id)}
-                      className="font-mono text-sm text-primary hover:underline"
+                      className="font-mono text-sm text-primary hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {d.numeroDuplicata}
                     </Link>

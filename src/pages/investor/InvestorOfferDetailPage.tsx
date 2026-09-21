@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Bot, ShieldCheck, FileText, CheckCircle2, Building2 } from "lucide-react";
+import { Bot, ShieldCheck, FileText, Building2 } from "lucide-react";
 import { InvestQuotaForm } from "@/components/investor/InvestQuotaForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
   calcMinProgress,
   calcRemainingQuotas,
 } from "@/domain/offer/offer-economics.helpers";
-import type { Offer } from "@/domain/offer/offer.types";
+import type { Offer, RiskLevel } from "@/domain/offer/offer.types";
 import { formatCurrencyBRL, formatDateTime, formatPercent } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import {
@@ -28,11 +28,55 @@ import {
   isInvestorKycApproved,
 } from "@/services/investor.service";
 import { closeExpiredOffers, getOfferById } from "@/services/offer.service";
+import { fetchDuplicataById } from "@/services/duplicata.service";
+import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
+import { cn } from "@/lib/utils";
+
+const RISK_LEVEL_COLORS: Record<RiskLevel, string> = {
+  low: "text-emerald-400 border-emerald-400/40",
+  medium: "text-amber-400 border-amber-400/40",
+  high: "text-red-500 border-red-500/40",
+};
+
+function formatMaskedKey(key?: string) {
+  if (!key) return "—";
+  if (key.length <= 8) return key;
+  return `${key.slice(0, 4)}••••••••••••••••${key.slice(-4)}`;
+}
+
+function getSectorByName(name?: string, defaultSector = "Serviços Gerais"): string {
+  if (!name) return defaultSector;
+  const upper = name.toUpperCase();
+  if (upper.includes("DIGITAL") || upper.includes("SOFTWARE") || upper.includes("TECNOLOGIA") || upper.includes("TECH")) {
+    return "Tecnologia e Serviços";
+  }
+  if (upper.includes("ALIMENT") || upper.includes("SUPERMERCADO") || upper.includes("VAREJO") || upper.includes("DISTRIB")) {
+    return "Varejo e Consumo";
+  }
+  if (upper.includes("TRANSPORT") || upper.includes("LOGISTICA") || upper.includes("CARGO")) {
+    return "Transporte e Logística";
+  }
+  return defaultSector;
+}
+
+function getUFFromKey(key?: string): { origin: string; dest: string } {
+  if (!key || key.length < 2) return { origin: "SP", dest: "SP" };
+  const code = key.slice(0, 2);
+  let state = "SP";
+  if (code === "33") state = "RJ";
+  else if (code === "31") state = "MG";
+  else if (code === "41") state = "PR";
+  else if (code === "43") state = "RS";
+  else if (code === "29") state = "BA";
+  
+  return { origin: "SP", dest: state };
+}
 
 export function InvestorOfferDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [offer, setOffer] = useState<Offer | null>(null);
+  const [duplicata, setDuplicata] = useState<DuplicataTitulo | null>(null);
   const [investorProfile, setInvestorProfile] = useState<InvestorProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -44,6 +88,10 @@ export function InvestorOfferDetailPage() {
       await closeExpiredOffers();
       const data = await getOfferById(id);
       setOffer(data);
+      if (data) {
+        const dupData = await fetchDuplicataById(data.duplicataId);
+        setDuplicata(dupData);
+      }
     } finally {
       setLoading(false);
     }
@@ -121,8 +169,11 @@ export function InvestorOfferDetailPage() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="font-semibold text-red-500 cursor-help border-b border-dashed border-red-500/40">
-                        Baixo
+                      <span className={cn(
+                        "font-semibold cursor-help border-b border-dashed",
+                        RISK_LEVEL_COLORS[offer.riskLevel]
+                      )}>
+                        {RISK_LEVEL_LABELS[offer.riskLevel]}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="w-64 text-center">
@@ -239,7 +290,7 @@ export function InvestorOfferDetailPage() {
 
               {/* AI comment */}
               <div className="p-2 rounded bg-zinc-900/30 text-[10px] text-muted-foreground/60 leading-normal italic border border-border/20 text-center">
-                Classificação: Nível de Risco Baixo. Meramente ilustrativo, trata-se de uma análise da Dupply.
+                Classificação: Nível de Risco {RISK_LEVEL_LABELS[offer.riskLevel]}. Meramente ilustrativo, trata-se de uma análise da Dupply.
               </div>
             </CardContent>
           </Card>
@@ -255,29 +306,49 @@ export function InvestorOfferDetailPage() {
             <CardContent className="space-y-3 text-xs">
               <div className="flex justify-between border-b border-border/40 pb-2">
                 <span className="text-muted-foreground">Tipo de Título</span>
-                <span className="text-white font-medium">Duplicata Mercantil (DM)</span>
+                <span className="text-white font-medium">
+                  {duplicata
+                    ? duplicata.tipo === "servico"
+                      ? "Duplicata de Serviço (DS)"
+                      : "Duplicata Mercantil (DM)"
+                    : "Duplicata Mercantil (DM)"}
+                </span>
               </div>
               <div className="flex justify-between border-b border-border/40 pb-2">
-                <span className="text-muted-foreground">NF-e Chave</span>
-                <span className="text-white font-mono">3526••••••••••••••••0894</span>
+                <span className="text-muted-foreground">
+                  {duplicata?.tipo === "servico" ? "NFSe Chave" : "NF-e Chave"}
+                </span>
+                <span className="text-white font-mono">
+                  {formatMaskedKey(duplicata?.documentoFiscalChave)}
+                </span>
               </div>
               <div className="flex justify-between border-b border-border/40 pb-2">
                 <span className="text-muted-foreground">Setor Cedente</span>
                 <div className="flex items-center gap-1 text-white">
                   <Building2 className="size-3 text-muted-foreground" />
-                  <span>Logística e Distribuição</span>
+                  <span>{getSectorByName(duplicata?.sellerName, "Logística e Distribuição")}</span>
                 </div>
               </div>
               <div className="flex justify-between border-b border-border/40 pb-2">
                 <span className="text-muted-foreground">Setor Sacado</span>
                 <div className="flex items-center gap-1 text-white">
                   <Building2 className="size-3 text-muted-foreground" />
-                  <span>Varejo Alimentício</span>
+                  <span>{getSectorByName(duplicata?.sacadoRazaoSocial, "Varejo Alimentício")}</span>
                 </div>
               </div>
               <div className="flex justify-between pb-1">
                 <span className="text-muted-foreground">UF de Origem/Destino</span>
-                <span className="text-white font-medium">Campinas/SP → São Paulo/SP</span>
+                <span className="text-white font-medium">
+                  {duplicata
+                    ? `${duplicata.tipo === "servico" ? "São Paulo/SP" : "Campinas/SP"} → ${
+                        getUFFromKey(duplicata.documentoFiscalChave).dest === "RJ"
+                          ? "Rio de Janeiro/RJ"
+                          : getUFFromKey(duplicata.documentoFiscalChave).dest === "MG"
+                          ? "Belo Horizonte/MG"
+                          : "São Paulo/SP"
+                      }`
+                    : "Campinas/SP → São Paulo/SP"}
+                </span>
               </div>
             </CardContent>
           </Card>
