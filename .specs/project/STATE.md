@@ -78,6 +78,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 ## Handoff (última sessão)
 
 **Feito (2026-09-28):** gaps de demo — loop logout→login entre personas (`resolvePostLoginPath`), mocks persistidos em `localStorage` (`src/lib/mock-store.ts` + reset no login), detalhe do analista recarrega status real (`for_approval`) após decisão. Smoke Playwright 10/10 no build.  
+**Feito (2026-09-28, refactor):** `useAsyncData` em todas as páginas; `NewDuplicataForm` em react-hook-form + Zod (`duplicata.schema.ts`) com parser XML e seções extraídas; cards de duplicata compartilhados; skeletons genéricos em `PageSkeleton.tsx`; `npm run typecheck` corrigido (era no-op). Smoke completo 45/45: todas as rotas das 4 personas + fluxo cedente→analista→cedente→admin→investidor.  
 **Em andamento:** `investor-marketplace` mock implementado (typecheck+build)  
 **Próximo passo:** smoke manual do fluxo admin→investor; botões do analista ainda ativos em qualquer status; painel de IA vazio em mock  
 **Docs:** `@.specs/features/investor-marketplace/`  

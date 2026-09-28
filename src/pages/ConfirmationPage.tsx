@@ -1,29 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CircleCheck as CheckCircle2, ArrowLeft, Loader as Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicShell } from "@/components/layout/PublicShell";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchReceivableById, confirmDebtorAwareness } from "@/services/receivables.service";
 import { ReceivableStatusBadge } from "@/components/receivables/ReceivableStatusBadge";
 import { formatCurrencyBRL, formatDate } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
-import type { Receivable } from "@/domain/receivables/receivable.types";
 
 export function ConfirmationPage() {
   const { id } = useParams<{ id: string }>();
-  const [receivable, setReceivable] = useState<Receivable | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: receivable, loading } = useAsyncData(() => fetchReceivableById(id!), [id], {
+    enabled: Boolean(id),
+  });
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    fetchReceivableById(id).then((data) => {
-      setReceivable(data ?? null);
-      setLoading(false);
-    });
-  }, [id]);
 
   async function handleConfirm() {
     if (!id) return;

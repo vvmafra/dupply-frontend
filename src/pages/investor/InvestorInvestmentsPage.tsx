@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,23 +24,18 @@ const STATUS_OPTIONS = (
 
 export function InvestorInvestmentsPage() {
   const { user } = useAuth();
-  const [items, setItems] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(LIST_FILTER_ALL);
 
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    listInvestmentsByInvestor(
-      user.id,
-      statusFilter === LIST_FILTER_ALL
-        ? undefined
-        : { status: statusFilter as InvestmentStatus }
-    ).then((data) => {
-      setItems(data);
-      setLoading(false);
-    });
-  }, [user, statusFilter]);
+  const { data, loading } = useAsyncData<Investment[]>(
+    () =>
+      listInvestmentsByInvestor(
+        user!.id,
+        statusFilter === LIST_FILTER_ALL ? undefined : { status: statusFilter as InvestmentStatus },
+      ),
+    [user, statusFilter],
+    { enabled: Boolean(user) },
+  );
+  const items = data ?? [];
 
   const emptyMessage = useMemo(() => {
     if (statusFilter === LIST_FILTER_ALL) {

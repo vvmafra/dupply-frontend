@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SellerDuplicatasListTableSkeleton } from "@/components/seller/SellerPageCardsSkeleton";
+import { TableSkeleton } from "@/components/shared/PageSkeleton";
 import { Button } from "@/components/ui/button";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,26 +17,25 @@ import { fetchDuplicatasBySeller } from "@/services/duplicata.service";
 import { fetchCurrentSeller } from "@/services/seller.service";
 import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
 import { ROUTES } from "@/lib/routes";
-import type { SellerCompany } from "@/domain/seller/seller.types";
 import { formatCurrencyBRL } from "@/lib/formatters";
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
+
+const TABLE_COLUMNS = [
+  "Número",
+  "Sacado",
+  { label: "Valor", align: "right" as const },
+  "Vencimento",
+  { label: "Análise", kind: "pill" as const },
+];
 
 export function SellerDuplicatasPage() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<DuplicataTitulo[]>([]);
-  const [seller, setSeller] = useState<SellerCompany | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const s = await fetchCurrentSeller();
-      const data = await fetchDuplicatasBySeller(s.id);
-      setSeller(s);
-      setItems(data);
-      setLoading(false);
-    }
-    load();
+  const { data, loading } = useAsyncData(async () => {
+    const seller = await fetchCurrentSeller();
+    const items = await fetchDuplicatasBySeller(seller.id);
+    return { seller, items };
   }, []);
+  const seller = data?.seller ?? null;
+  const items = data?.items ?? [];
 
   let headerAction: ReactNode;
   if (loading) {
@@ -70,7 +70,7 @@ export function SellerDuplicatasPage() {
     return (
       <div className="p-6 space-y-6">
         {header}
-        <SellerDuplicatasListTableSkeleton />
+        <TableSkeleton columns={TABLE_COLUMNS} rows={8} />
       </div>
     );
   }

@@ -16,13 +16,15 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 - **Impact:** Duplicação de paths; risco de drift entre `ROUTES` e router; refactors exigem editar dois lugares
 - **Fix approach:** Importar `ROUTES` em `App.tsx` e usar `path={ROUTES.login}` etc.; extrair `ProtectedRoute` para arquivo dedicado se crescer
 
-### Validação de duplicata fora do domínio
+### Validação de duplicata fora do domínio (resolvido em 2026-09-28)
 
 - **Regra:** `30-auth-forms-onboarding` — "Validação deve ficar no domínio (`schema`) e não espalhada na UI"
-- **Código:** `NewDuplicataForm.tsx` implementa `validate()` inline (linhas 79-98) com ~15 regras manuais
-- **Contraste:** Cadastro cedente segue a regra corretamente via `seller-registration.schema.ts` + react-hook-form
-- **Impact:** Regras de negócio difíceis de reutilizar/testar; inconsistência entre formulários
-- **Fix approach:** Criar `domain/duplicata/duplicata.schema.ts` (Zod) e migrar `NewDuplicataForm` para react-hook-form
+- **Status:** `NewDuplicataForm` migrado para react-hook-form + `domain/duplicata/duplicata.schema.ts` (Zod). Parser de XML em `domain/duplicata/nfe-xml.parser.ts`, simulador em `duplicata-simulacao.helpers.ts`, seções em `components/forms/new-duplicata/`. O form caiu de 770 para ~140 linhas.
+
+### `npm run typecheck` era um no-op (resolvido em 2026-09-28)
+
+- **Código:** o script rodava `tsc --noEmit` na raiz, mas `tsconfig.json` tem `files: []` + `references`, então nada era checado — só `npm run build` (`tsc -b`) validava tipos.
+- **Status:** script trocado para `tsc -b`. Todos os gates documentados em `.cursor/rules` passam a valer de fato.
 
 ### Export default em `App.tsx`
 
@@ -96,6 +98,13 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 - Recommendations: Remover ou isolar atrás de flag `import.meta.env.DEV` antes de produção
 
 ---
+
+**Padrão `loading + useEffect + fetch` repetido (resolvido em 2026-09-28):**
+
+- Issue: 26 páginas repetiam o mesmo bloco de carregamento, várias sem `.catch` (loading travado em erro HTTP)
+- Status: `src/hooks/use-async-data.ts` (`useAsyncData(loader, deps, { enabled })` → `{ data, loading, error, reload, setData }`) aplicado em todas; respostas fora de ordem são descartadas e erros não travam a página
+- Skeletons por página (`SellerPageCardsSkeleton`, `AdminPagesSkeleton`, `AnalystListTablesSkeleton`) substituídos por primitivos em `components/shared/PageSkeleton.tsx` (`TableSkeleton`, `MetricCardsSkeleton`, `CardSkeleton`, `FormSkeleton`, `TimelineSkeleton`, `ChartCardSkeleton`)
+- Cards de detalhe de duplicata compartilhados entre cedente e analista em `components/duplicata/DuplicataInfoCards.tsx`; labels em `domain/duplicata/duplicata-labels.constants.ts`
 
 ## Fragile Areas
 

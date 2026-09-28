@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,30 +14,23 @@ import { approveAnalystDuplicatasAccess } from "@/services/seller.service";
 import { getValidationStatusLabel } from "@/domain/seller/seller.validation";
 import { getAnalystDuplicatasAccessLabel } from "@/domain/seller/seller-duplicata-access";
 import { ROUTES } from "@/lib/routes";
-import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
 
 export function SellerReviewDetailPage() {
   const { sellerId } = useParams<{ sellerId: string }>();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin/sellers");
   const { user } = useAuth();
-  const [row, setRow] = useState<SellerReviewSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: row, loading, setData: setRow } = useAsyncData(
+    () => fetchSellerReviewById(sellerId!),
+    [sellerId],
+    { enabled: Boolean(sellerId) },
+  );
   const [reviewWizardOpen, setReviewWizardOpen] = useState(false);
-
-  useEffect(() => {
-    if (!sellerId) return;
-    fetchSellerReviewById(sellerId).then((data) => {
-      setRow(data);
-      setLoading(false);
-    });
-  }, [sellerId]);
 
   const refreshRow = useCallback(async () => {
     if (!sellerId) return;
-    const updated = await fetchSellerReviewById(sellerId);
-    setRow(updated);
-  }, [sellerId]);
+    setRow(await fetchSellerReviewById(sellerId));
+  }, [sellerId, setRow]);
 
   async function handleLiberarDuplicatas() {
     if (!sellerId) return;

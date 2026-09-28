@@ -1,16 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SellerDashboardSummary } from "@/components/seller/SellerDashboardSummary";
-import {
-  SellerDashboardSummarySkeleton,
-  SellerDuplicatasPreviewCardSkeleton,
-  SellerValidationProgressCardSkeleton,
-} from "@/components/seller/SellerPageCardsSkeleton";
 import { SellerDuplicatasPreview } from "@/components/seller/SellerDuplicatasPreview";
+import { CardSkeleton, MetricCardsSkeleton, TableSkeleton } from "@/components/shared/PageSkeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchCurrentSeller } from "@/services/seller.service";
 import { fetchDuplicatasBySeller } from "@/services/duplicata.service";
 import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
-import type { SellerCompany } from "@/domain/seller/seller.types";
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
 import { Wallet, Eye, EyeOff, Clock, TrendingUp, ArrowUpRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,10 +22,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+const DUPLICATAS_COLUMNS = [
+  "Número",
+  "Sacado",
+  { label: "Valor", align: "right" as const },
+  "Vencimento",
+  { label: "Análise", kind: "pill" as const },
+];
+
 export function SellerDashboardPage() {
-  const [seller, setSeller] = useState<SellerCompany | null>(null);
-  const [duplicatas, setDuplicatas] = useState<DuplicataTitulo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useAsyncData(async () => {
+    const seller = await fetchCurrentSeller();
+    const duplicatas = await fetchDuplicatasBySeller(seller.id);
+    return { seller, duplicatas };
+  }, []);
+  const seller = data?.seller ?? null;
+  const duplicatas = data?.duplicatas ?? [];
   const [showBalance, setShowBalance] = useState(true);
 
   // Transfer states
@@ -40,17 +47,6 @@ export function SellerDashboardPage() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [transferSuccess, setTransferSuccess] = useState(false);
   const [simulatedTransfersTotal, setSimulatedTransfersTotal] = useState(0);
-
-  useEffect(() => {
-    async function load() {
-      const s = await fetchCurrentSeller();
-      const d = await fetchDuplicatasBySeller(s.id);
-      setSeller(s);
-      setDuplicatas(d);
-      setLoading(false);
-    }
-    load();
-  }, []);
 
   const saldoDisponivel = Math.max(
     0,
@@ -113,9 +109,9 @@ export function SellerDashboardPage() {
 
       {loading ? (
         <>
-          <SellerValidationProgressCardSkeleton />
-          <SellerDashboardSummarySkeleton />
-          <SellerDuplicatasPreviewCardSkeleton />
+          <CardSkeleton progress lines={3} action />
+          <MetricCardsSkeleton count={4} className="grid gap-3 grid-cols-2 lg:grid-cols-4" />
+          <TableSkeleton card columns={DUPLICATAS_COLUMNS} rows={5} />
         </>
       ) : (
         <>

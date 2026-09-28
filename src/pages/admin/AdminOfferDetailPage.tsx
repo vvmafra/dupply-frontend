@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -36,30 +37,22 @@ import {
 
 export function AdminOfferDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [offer, setOffer] = useState<Offer | null>(null);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
 
-  const refresh = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
+  const { data, loading, reload: refresh } = useAsyncData<{
+    offer: Offer | null;
+    investments: Investment[];
+  }>(
+    async () => {
       await closeExpiredOffers();
-      const [nextOffer, nextInvestments] = await Promise.all([
-        getOfferById(id),
-        listInvestmentsByOffer(id),
-      ]);
-      setOffer(nextOffer);
-      setInvestments(nextInvestments);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+      const [offer, investments] = await Promise.all([getOfferById(id!), listInvestmentsByOffer(id!)]);
+      return { offer, investments };
+    },
+    [id],
+    { enabled: Boolean(id) },
+  );
+  const offer = data?.offer ?? null;
+  const investments = data?.investments ?? [];
 
   async function handleClose() {
     if (!offer) return;

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,23 +22,15 @@ const STATUS_OPTIONS = (
 ).map(([value, label]) => ({ value, label }));
 
 export function AdminOffersPage() {
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(LIST_FILTER_ALL);
 
-  useEffect(() => {
-    setLoading(true);
-    (async () => {
-      await closeExpiredOffers();
-      const data = await listOffers(
-        statusFilter === LIST_FILTER_ALL
-          ? undefined
-          : { status: statusFilter as OfferStatus }
-      );
-      setOffers(data);
-      setLoading(false);
-    })();
+  const { data, loading } = useAsyncData<Offer[]>(async () => {
+    await closeExpiredOffers();
+    return listOffers(
+      statusFilter === LIST_FILTER_ALL ? undefined : { status: statusFilter as OfferStatus },
+    );
   }, [statusFilter]);
+  const offers = data ?? [];
 
   const emptyMessage = useMemo(() => {
     if (statusFilter === LIST_FILTER_ALL) return "Nenhuma oferta criada";

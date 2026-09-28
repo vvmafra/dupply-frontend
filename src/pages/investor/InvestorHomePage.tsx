@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Briefcase, CircleDollarSign, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -54,26 +55,19 @@ function getReceivableStatusBadge(status?: string) {
 
 export function InvestorHomePage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<InvestorProfile | null>(null);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-
-    Promise.all([
-      fetchInvestorProfile(user.id, { email: user.email, name: user.name }),
-      listInvestmentsByInvestor(user.id),
-    ])
-      .then(([profData, invsData]) => {
-        setProfile(profData);
-        setInvestments(invsData);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [user]);
+  const { data, loading } = useAsyncData<{ profile: InvestorProfile; investments: Investment[] }>(
+    async () => {
+      const [profile, investments] = await Promise.all([
+        fetchInvestorProfile(user!.id, { email: user!.email, name: user!.name }),
+        listInvestmentsByInvestor(user!.id),
+      ]);
+      return { profile, investments };
+    },
+    [user],
+    { enabled: Boolean(user) },
+  );
+  const profile = data?.profile ?? null;
+  const investments = data?.investments ?? [];
 
   const stats = useMemo(() => {
     const saldoLivre = profile?.balance ?? 0;

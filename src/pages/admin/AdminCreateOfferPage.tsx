@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { DEFAULT_PLATFORM_SPREAD_PERCENT } from "@/domain/offer/offer.constants";
 import {
   calcDefaultTargetAmount,
@@ -29,8 +29,6 @@ function defaultDeadlineIso(): string {
 export function AdminCreateOfferPage() {
   const { duplicataId } = useParams<{ duplicataId: string }>();
   const navigate = useNavigate();
-  const [duplicata, setDuplicata] = useState<DuplicataTitulo | null>(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -42,18 +40,19 @@ export function AdminCreateOfferPage() {
   const [targetAmount, setTargetAmount] = useState(0);
   const [deadline, setDeadline] = useState(defaultDeadlineIso);
 
+  const { data: duplicata, loading } = useAsyncData(
+    () => fetchDuplicataById(duplicataId!),
+    [duplicataId],
+    { enabled: Boolean(duplicataId) },
+  );
+
+  // Pre-fill target / minimum from the analyst discount once the duplicata arrives.
   useEffect(() => {
-    if (!duplicataId) return;
-    fetchDuplicataById(duplicataId).then((data) => {
-      setDuplicata(data);
-      if (data?.descontoAntecipacaoPercent != null) {
-        const target = calcDefaultTargetAmount(data.valor, data.descontoAntecipacaoPercent);
-        setTargetAmount(Math.round(target * 100) / 100);
-        setMinAmount(Math.round(target * 0.6 * 100) / 100);
-      }
-      setLoading(false);
-    });
-  }, [duplicataId]);
+    if (duplicata?.descontoAntecipacaoPercent == null) return;
+    const target = calcDefaultTargetAmount(duplicata.valor, duplicata.descontoAntecipacaoPercent);
+    setTargetAmount(Math.round(target * 100) / 100);
+    setMinAmount(Math.round(target * 0.6 * 100) / 100);
+  }, [duplicata]);
 
   const analystDiscount = duplicata?.descontoAntecipacaoPercent ?? 0;
   const estimatedReturn = useMemo(

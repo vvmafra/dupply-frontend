@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,35 +17,27 @@ import { ROUTES } from "@/lib/routes";
 import { listDuplicatasReadyForOffer } from "@/services/offer.service";
 
 export function AdminOffersReadyPage() {
-  const [rows, setRows] = useState<DuplicataTitulo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sellerFilter, setSellerFilter] = useState(LIST_FILTER_ALL);
-  const [sellerOptions, setSellerOptions] = useState<{ value: string; label: string }[]>([]);
 
-  useEffect(() => {
-    setLoading(true);
-    listDuplicatasReadyForOffer(
-      sellerFilter === LIST_FILTER_ALL ? undefined : { sellerId: sellerFilter }
-    ).then((data) => {
-      setRows(data);
-      setLoading(false);
-    });
-  }, [sellerFilter]);
+  const { data, loading } = useAsyncData<DuplicataTitulo[]>(
+    () =>
+      listDuplicatasReadyForOffer(
+        sellerFilter === LIST_FILTER_ALL ? undefined : { sellerId: sellerFilter },
+      ),
+    [sellerFilter],
+  );
+  const rows = data ?? [];
 
-  // Load full queue once to populate seller options (independent of current filter)
-  useEffect(() => {
-    listDuplicatasReadyForOffer().then((data) => {
-      const bySeller = new Map<string, string>();
-      for (const row of data) {
-        bySeller.set(row.sellerId, row.sellerName);
-      }
-      setSellerOptions(
-        [...bySeller.entries()]
-          .map(([value, label]) => ({ value, label }))
-          .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"))
-      );
-    });
+  // Full queue loaded once to populate seller options (independent of current filter)
+  const { data: sellerOptionsData } = useAsyncData(async () => {
+    const all = await listDuplicatasReadyForOffer();
+    const bySeller = new Map<string, string>();
+    for (const row of all) bySeller.set(row.sellerId, row.sellerName);
+    return [...bySeller.entries()]
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
   }, []);
+  const sellerOptions = sellerOptionsData ?? [];
 
   const emptyMessage = useMemo(() => {
     if (sellerFilter === LIST_FILTER_ALL) {

@@ -1,38 +1,34 @@
-import { useEffect, useState } from "react";
 import { SellerKycCard } from "@/components/seller/SellerKycCard";
-import {
-  SellerKycCardSkeleton,
-  SellerValidationDuplicatasOverviewCardSkeleton,
-  SellerValidationProgressCardSkeleton,
-} from "@/components/seller/SellerPageCardsSkeleton";
 import { SellerValidationProgress } from "@/components/seller/SellerValidationProgress";
 import { SellerValidationDuplicatasOverview } from "@/components/seller/SellerValidationDuplicatasOverview";
+import { CardSkeleton, TableSkeleton } from "@/components/shared/PageSkeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchCurrentSeller, updateSellerValidationStatus } from "@/services/seller.service";
 import { fetchDuplicatasBySeller } from "@/services/duplicata.service";
 import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
-import type { SellerCompany } from "@/domain/seller/seller.types";
-import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
+
+const DUPLICATAS_COLUMNS = [
+  "Número",
+  "Sacado",
+  { label: "Valor", align: "right" as const },
+  "Vencimento",
+  { label: "Análise", kind: "pill" as const },
+];
 
 export function SellerValidationPage() {
-  const [seller, setSeller] = useState<SellerCompany | null>(null);
-  const [duplicatas, setDuplicatas] = useState<DuplicataTitulo[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const s = await fetchCurrentSeller();
-      const d = await fetchDuplicatasBySeller(s.id);
-      setSeller(s);
-      setDuplicatas(d);
-      setLoading(false);
-    }
-    load();
+  const { data, loading, setData } = useAsyncData(async () => {
+    const seller = await fetchCurrentSeller();
+    const duplicatas = await fetchDuplicatasBySeller(seller.id);
+    return { seller, duplicatas };
   }, []);
+  const seller = data?.seller ?? null;
+  const duplicatas = data?.duplicatas ?? [];
 
   async function handleKycApproved() {
     if (!seller) return;
-    await updateSellerValidationStatus(seller.id, { validationStatus: "UNDER_REVIEW", kycStatus: "APPROVED" });
-    setSeller((prev) => (prev ? { ...prev, validationStatus: "UNDER_REVIEW", kycStatus: "APPROVED" } : prev));
+    const updates = { validationStatus: "UNDER_REVIEW", kycStatus: "APPROVED" } as const;
+    await updateSellerValidationStatus(seller.id, updates);
+    setData((prev) => (prev ? { ...prev, seller: { ...prev.seller, ...updates } } : prev));
   }
 
   const titleBlock = (
@@ -49,12 +45,12 @@ export function SellerValidationPage() {
     return (
       <div className="p-6 space-y-6">
         {titleBlock}
-        <SellerValidationProgressCardSkeleton />
+        <CardSkeleton progress lines={3} action />
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <SellerKycCardSkeleton />
+            <CardSkeleton lines={2} action />
           </div>
-          <SellerValidationDuplicatasOverviewCardSkeleton />
+          <TableSkeleton card columns={DUPLICATAS_COLUMNS} className="lg:col-span-2" />
         </div>
       </div>
     );

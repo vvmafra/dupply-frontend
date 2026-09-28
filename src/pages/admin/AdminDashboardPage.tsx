@@ -1,45 +1,48 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Users, FileText, DollarSign, TriangleAlert as AlertTriangle } from "lucide-react";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
-import { AdminDashboardBodySkeleton } from "@/components/admin/AdminPagesSkeleton";
+import { AdminBlockchainEventTimeline } from "@/components/admin/AdminBlockchainEventTimeline";
 import { VolumeChart } from "@/components/dashboard/VolumeChart";
 import { StatusDistributionChart } from "@/components/dashboard/StatusDistributionChart";
 import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionChart";
-import { AdminBlockchainEventTimeline } from "@/components/admin/AdminBlockchainEventTimeline";
+import { ChartCardSkeleton, MetricCardsSkeleton, TimelineSkeleton } from "@/components/shared/PageSkeleton";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
+import { formatCurrencyBRL } from "@/lib/formatters";
+import { ROUTES } from "@/lib/routes";
 import { fetchPlatformMetrics } from "@/services/admin.service";
 import { fetchTransactions } from "@/services/blockchain.service";
-import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/lib/routes";
-import { formatCurrencyBRL } from "@/lib/formatters";
-import { Users, FileText, DollarSign, TriangleAlert as AlertTriangle } from "lucide-react";
-import type { PlatformMetrics } from "@/domain/admin/admin.types";
-import type { BlockchainTransaction } from "@/domain/blockchain/blockchain.types";
+
+function DashboardSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-9 w-56 rounded-md" />
+      <MetricCardsSkeleton />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCardSkeleton />
+        <div className="grid gap-6">
+          <ChartCardSkeleton height="h-40" />
+          <ChartCardSkeleton height="h-40" />
+        </div>
+      </div>
+      <TimelineSkeleton />
+    </>
+  );
+}
 
 export function AdminDashboardPage() {
-  const [metrics, setMetrics] = useState<PlatformMetrics | null>(null);
-  const [transactions, setTransactions] = useState<BlockchainTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const [m, tx] = await Promise.all([fetchPlatformMetrics(), fetchTransactions()]);
-      if (!cancelled) {
-        setMetrics(m);
-        setTransactions(tx);
-        setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
+  const { data, loading } = useAsyncData(async () => {
+    const [metrics, transactions] = await Promise.all([fetchPlatformMetrics(), fetchTransactions()]);
+    return { metrics, transactions };
   }, []);
 
   let body: ReactNode;
   if (loading) {
-    body = <AdminDashboardBodySkeleton />;
-  } else if (metrics) {
+    body = <DashboardSkeleton />;
+  } else if (data?.metrics) {
+    const { metrics, transactions } = data;
     body = (
       <>
         <div className="flex flex-wrap items-center gap-2">

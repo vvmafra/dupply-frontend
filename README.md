@@ -179,7 +179,7 @@ Os serviços localizados em `src/services/` (`duplicata.service.ts`, `auth.servi
 ## 🧪 Scripts Disponíveis
 
 - **`npm run dev`**: Inicia o servidor local de desenvolvimento Vite com Hot Module Replacement (HMR).
-- **`npm run typecheck`**: Executa a checagem rigorosa de tipos com o compilador TypeScript (`tsc --noEmit`).
+- **`npm run typecheck`**: Executa a checagem rigorosa de tipos com o compilador TypeScript (`tsc -b`, nos projetos `tsconfig.app.json` e `tsconfig.node.json`).
 - **`npm run build`**: Gera a compilação otimizada para produção no diretório `dist/`.
 - **`npm run preview`**: Inicia um servidor local para visualizar a build de produção gerada.
 

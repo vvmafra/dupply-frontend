@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import { InvestorKycCard } from "@/components/investor/InvestorKycCard";
 import { InvestorProfileCard } from "@/components/investor/InvestorProfileCard";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { INVESTOR_KYC_STATUS_LABELS } from "@/domain/investor/investor.constants";
-import type { InvestorKycStatus, InvestorProfile } from "@/domain/investor/investor.types";
+import type { InvestorKycStatus } from "@/domain/investor/investor.types";
 import {
   fetchInvestorProfile,
   updateInvestorKycStatus,
@@ -18,17 +18,15 @@ function kycBadgeClass(status: InvestorKycStatus): string | undefined {
 
 export function InvestorAccountPage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<InvestorProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    fetchInvestorProfile(user.id, { email: user.email, name: user.name }).then((data) => {
-      setProfile(data);
-      setLoading(false);
-    });
-  }, [user]);
+  const {
+    data: profile,
+    loading,
+    setData: setProfile,
+  } = useAsyncData(
+    () => fetchInvestorProfile(user!.id, { email: user!.email, name: user!.name }),
+    [user],
+    { enabled: Boolean(user) },
+  );
 
   async function handleKycApproved() {
     if (!user) return;

@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AnalystSellersTableSkeleton } from "@/components/analyst/AnalystListTablesSkeleton";
 import { DuplicataAnaliseBadge } from "@/components/duplicata/DuplicataAnaliseBadge";
+import { TableSkeleton } from "@/components/shared/PageSkeleton";
 import { getSellerCadastralReviewDisplayStatus } from "@/domain/risk-analyst/seller-cadastral-review.helpers";
 import {
   Table,
@@ -11,21 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchSellerReviews } from "@/services/seller-review.service";
 import { ROUTES } from "@/lib/routes";
-import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
+
+const TABLE_COLUMNS = [
+  "Razão social",
+  "CNPJ",
+  { label: "Score (IA)", align: "right" as const },
+  { label: "Status", kind: "pill" as const },
+];
 
 export function AnalystSellersPage() {
-  const [rows, setRows] = useState<SellerReviewSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchSellerReviews().then((data) => {
-      setRows(data);
-      setLoading(false);
-    });
-  }, []);
+  const { data, loading } = useAsyncData(fetchSellerReviews, []);
+  const rows = data ?? [];
 
   return (
     <div className="p-6 space-y-6">
@@ -34,7 +33,7 @@ export function AnalystSellersPage() {
         <p className="text-sm text-muted-foreground">Visão consolidada para análise de risco</p>
       </div>
       {loading ? (
-        <AnalystSellersTableSkeleton />
+        <TableSkeleton columns={TABLE_COLUMNS} />
       ) : (
         <div className="rounded-md border">
           <Table>
@@ -48,7 +47,7 @@ export function AnalystSellersPage() {
             </TableHeader>
             <TableBody>
               {rows.map((r) => (
-                <TableRow 
+                <TableRow
                   key={r.sellerId}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => navigate(ROUTES.analyst.sellers.detail(r.sellerId))}

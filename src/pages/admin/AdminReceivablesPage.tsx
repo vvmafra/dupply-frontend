@@ -1,25 +1,28 @@
-import { useEffect, useState } from "react";
 import { AdminReceivablesTable } from "@/components/admin/AdminReceivablesTable";
-import { AdminReceivablesTableSkeleton } from "@/components/admin/AdminPagesSkeleton";
+import { TableSkeleton } from "@/components/shared/PageSkeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchAllReceivables, adminUpdateReceivableStatus } from "@/services/admin.service";
-import type { Receivable, ReceivableStatus } from "@/domain/receivables/receivable.types";
+import type { ReceivableStatus } from "@/domain/receivables/receivable.types";
+
+const TABLE_COLUMNS = [
+  "Duplicata",
+  "Sacado",
+  { label: "Valor Bruto", align: "right" as const },
+  "Vencimento",
+  "Score",
+  { label: "Risco", kind: "pill" as const },
+  { label: "Status", kind: "pill" as const },
+  { label: "Ação rápida", kind: "action" as const },
+  { label: "", kind: "action" as const },
+];
 
 export function AdminReceivablesPage() {
-  const [receivables, setReceivables] = useState<Receivable[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAllReceivables().then((data) => {
-      setReceivables(data);
-      setLoading(false);
-    });
-  }, []);
+  const { data, loading, setData } = useAsyncData(fetchAllReceivables, []);
+  const receivables = data ?? [];
 
   async function handleStatusChange(id: string, status: ReceivableStatus) {
     await adminUpdateReceivableStatus(id, status);
-    setReceivables((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
-    );
+    setData((prev) => prev?.map((r) => (r.id === id ? { ...r, status } : r)) ?? prev);
   }
 
   return (
@@ -29,7 +32,7 @@ export function AdminReceivablesPage() {
         <p className="text-sm text-muted-foreground">Gerencie e altere o status de todos os recebíveis</p>
       </div>
       {loading ? (
-        <AdminReceivablesTableSkeleton />
+        <TableSkeleton card columns={TABLE_COLUMNS} />
       ) : (
         <AdminReceivablesTable receivables={receivables} onStatusChange={handleStatusChange} />
       )}
