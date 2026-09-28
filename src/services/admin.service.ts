@@ -1,5 +1,6 @@
 import { sleep } from "@/lib/utils";
 import { MOCK_SELLERS } from "@/data/users.mock";
+import { sellersCollection } from "@/services/seller.service";
 import { MOCK_RECEIVABLES } from "@/data/receivables.mock";
 import { PLATFORM_METRICS } from "@/data/dashboard.mock";
 import type { PlatformMetrics } from "@/domain/admin/admin.types";
@@ -12,6 +13,7 @@ export async function fetchPlatformMetrics(): Promise<PlatformMetrics> {
 
 export async function fetchAllSellers() {
   await sleep(300);
+  sellersCollection.hydrate();
   return [...MOCK_SELLERS];
 }
 
@@ -30,6 +32,7 @@ export async function adminUpdateReceivableStatus(id: string, status: Receivable
 
 export async function adminApproveValidation(sellerId: string): Promise<void> {
   await sleep(400);
+  sellersCollection.hydrate();
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   if (seller) {
     seller.validationStatus = "APPROVED";
@@ -38,14 +41,17 @@ export async function adminApproveValidation(sellerId: string): Promise<void> {
     if (seller.analystDuplicatasAccess === "PENDING") {
       seller.analystDuplicatasAccess = "UNDER_REVIEW";
     }
+    sellersCollection.persist();
   }
 }
 
 export async function adminRejectValidation(sellerId: string): Promise<void> {
   await sleep(400);
+  sellersCollection.hydrate();
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   if (seller) {
     seller.validationStatus = "REJECTED";
     seller.analystDuplicatasAccess = "REJECTED";
+    sellersCollection.persist();
   }
 }

@@ -77,7 +77,8 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 ## Handoff (última sessão)
 
+**Feito (2026-09-28):** gaps de demo — loop logout→login entre personas (`resolvePostLoginPath`), mocks persistidos em `localStorage` (`src/lib/mock-store.ts` + reset no login), detalhe do analista recarrega status real (`for_approval`) após decisão. Smoke Playwright 10/10 no build.  
 **Em andamento:** `investor-marketplace` mock implementado (typecheck+build)  
-**Próximo passo:** smoke manual do fluxo admin→investor; commit se pedido  
+**Próximo passo:** smoke manual do fluxo admin→investor; botões do analista ainda ativos em qualquer status; painel de IA vazio em mock  
 **Docs:** `@.specs/features/investor-marketplace/`  
 **Demo:** login mock → perfil Investidor ou `investor@dupply.com.br`; admin → Prontas para oferta

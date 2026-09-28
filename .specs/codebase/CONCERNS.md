@@ -42,13 +42,12 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 
 ## Tech Debt
 
-**Estado mutável global nos serviços:**
+**Estado mutável global nos serviços (mitigado):**
 
-- Issue: Arrays `let` module-level mutados por todas as chamadas de serviço
-- Files: `src/services/duplicata.service.ts:8`, `src/services/seller.service.ts`, outros serviços com mocks importados
-- Why: Simplicidade para hackathon/demo
-- Impact: Impossível resetar estado entre demos sem reload; bloqueia testes paralelos; hot reload pode acumular estado estranho
-- Fix approach: Factory pattern `createDuplicataStore(initial)` ou context provider de dados demo
+- Issue: Arrays `let` module-level mutados por todas as chamadas de serviço — dados criados na demo sumiam no F5 e não apareciam em outra aba
+- Files: `src/lib/mock-store.ts` (store persistido em `localStorage`, chave versionada `dupply_mock:v1:*`); consumido por `duplicata.service.ts`, `offer.service.ts`, `seller-review.service.ts`, `seller.service.ts`, `admin.service.ts`, `investor.service.ts`
+- Status: duplicatas, ofertas, investimentos, revisões cadastrais, sellers e perfis de investidor persistem entre reloads/abas; botão "Reiniciar dados da demo" na tela de login (modo mock) chama `resetAllMockStores()`
+- Pendente: `MOCK_RECEIVABLES` (admin legado) e `MOCK_TRANSACTIONS` continuam só em memória; mudar o shape dos seeds exige bump de `STORAGE_VERSION`
 
 **Auth sem persistência:**
 

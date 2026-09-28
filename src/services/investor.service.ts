@@ -3,12 +3,21 @@ import type { InvestorKycStatus, InvestorProfile } from "@/domain/investor/inves
 import { sleep } from "@/lib/utils";
 import { resolveApiMode } from "@/lib/env";
 import { apiRequest } from "@/lib/api-client";
+import { createMockCollection } from "@/lib/mock-store";
+
+/** Persisted so the KYC approval done during a demo survives F5. */
+const investorProfilesCollection = createMockCollection(
+  "investor-profiles",
+  MOCK_INVESTOR_PROFILES,
+  (p) => p.userId,
+);
 
 function cloneProfile(profile: InvestorProfile): InvestorProfile {
   return { ...profile };
 }
 
 function ensureProfile(userId: string, fallbackEmail?: string, fallbackName?: string): InvestorProfile {
+  investorProfilesCollection.hydrate();
   let profile = MOCK_INVESTOR_PROFILES.find((p) => p.userId === userId);
   if (!profile) {
     profile = {
@@ -24,6 +33,7 @@ function ensureProfile(userId: string, fallbackEmail?: string, fallbackName?: st
       createdAt: new Date().toISOString(),
     };
     MOCK_INVESTOR_PROFILES.push(profile);
+    investorProfilesCollection.persist();
   }
   return profile;
 }
@@ -71,6 +81,7 @@ export async function updateInvestorKycStatus(
   await sleep(400);
   const profile = ensureProfile(userId);
   profile.kycStatus = kycStatus;
+  investorProfilesCollection.persist();
   return cloneProfile(profile);
 }
 

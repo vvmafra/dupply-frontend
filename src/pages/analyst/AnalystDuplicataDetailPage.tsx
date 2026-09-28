@@ -95,11 +95,23 @@ export function AnalystDuplicataDetailPage() {
 
   const [submittingWizard, setSubmittingWizard] = useState(false);
 
+  /**
+   * Re-read the duplicata after a decision so the page shows exactly what the
+   * service persisted (mock or backend), instead of a hand-built local copy.
+   */
+  const reloadDuplicata = async (fallback: DuplicataTitulo) => {
+    const fresh = await fetchDuplicataById(fallback.id).catch(() => null);
+    setD(fresh ?? fallback);
+  };
+
   const setAnalise = async (analise: DuplicataAnaliseAnalista) => {
     if (!d) return;
     try {
       await setDuplicataAnaliseAnalista(d.id, analise);
-      setD((prev) => (prev ? { ...prev, analiseAnalista: analise } : prev));
+      const fallback: DuplicataTitulo = { ...d, analiseAnalista: analise };
+      delete fallback.descontoAntecipacaoPercent;
+      delete fallback.valorLiquidoAntecipacao;
+      await reloadDuplicata(fallback);
       toast.success("Análise atualizada");
     } catch {
       toast.error("Não foi possível atualizar a análise");
@@ -115,19 +127,16 @@ export function AnalystDuplicataDetailPage() {
     setSubmittingWizard(true);
     try {
       await setDuplicataOfertaAntecipacao(d.id, payload.descontoPercent);
-      const valorLiquido = calcValorLiquidoCedente(d.valor, payload.descontoPercent);
-      setD((prev) =>
-        prev
-          ? {
-              ...prev,
-              analiseAnalista: "aprovado",
-              descontoPercent: payload.descontoPercent,
-              valorLiquidoAntecipacao: valorLiquido,
-            }
-          : prev
-      );
+      // The service moves the duplicata to "for_approval" (proposal awaiting the
+      // seller), not "aprovado" — the seller decides next.
+      await reloadDuplicata({
+        ...d,
+        analiseAnalista: "for_approval",
+        descontoAntecipacaoPercent: payload.descontoPercent,
+        valorLiquidoAntecipacao: calcValorLiquidoCedente(d.valor, payload.descontoPercent),
+      });
       setApprovalWizardOpen(false);
-      toast.success("Duplicata aprovada e enviada para o cedente!");
+      toast.success("Proposta de antecipação enviada ao cedente para aprovação");
     } catch {
       toast.error("Não foi possível salvar a aprovação da duplicata");
     } finally {

@@ -5,8 +5,13 @@ import { getRegistrationDocumentFilesForSeller } from "@/data/seller-registratio
 import type { AnalystCadastralReviewDecision, SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
 import { apiRequest } from "@/lib/api-client";
 import { resolveApiMode } from "@/lib/env";
+import { createMockStore } from "@/lib/mock-store";
+import { sellersCollection } from "@/services/seller.service";
 
-let sellerReviews: SellerReviewSummary[] = buildInitialSellerReviews();
+/** Mock store — persisted so analyst decisions survive F5 and are shared across tabs. */
+const sellerReviewsStore = createMockStore<SellerReviewSummary[]>("seller-reviews", () =>
+  buildInitialSellerReviews(),
+);
 
 function mapBackendSellerToReviewSummary(s: any): SellerReviewSummary {
   const comp = s.companyMetaData || {};
@@ -53,7 +58,8 @@ export async function fetchSellerReviews(): Promise<SellerReviewSummary[]> {
   }
 
   await sleep(350);
-  return sellerReviews.map((row) => {
+  sellersCollection.hydrate();
+  return sellerReviewsStore.get().map((row) => {
     const seller = MOCK_SELLERS.find((s) => s.id === row.sellerId);
     return {
       ...row,
@@ -74,7 +80,8 @@ export async function fetchSellerReviewById(sellerId: string): Promise<SellerRev
   }
 
   await sleep(250);
-  const row = sellerReviews.find((r) => r.sellerId === sellerId);
+  sellersCollection.hydrate();
+  const row = sellerReviewsStore.get().find((r) => r.sellerId === sellerId);
   if (!row) return null;
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   return {
@@ -104,21 +111,25 @@ export async function submitAnalystCadastralReview(
   }
 
   await sleep(450);
-  sellerReviews = sellerReviews.map((row) =>
-    row.sellerId === sellerId
-      ? {
-          ...row,
-          reviewedByAnalystId: payload.analystId,
-          reviewedByAnalystName: payload.analystName,
-          reviewedAt: new Date().toISOString(),
-          analystCadastralDecision: payload.decision,
-          analystReviewJustification: payload.justification,
-        }
-      : row
+  sellerReviewsStore.update((current) =>
+    current.map((row) =>
+      row.sellerId === sellerId
+        ? {
+            ...row,
+            reviewedByAnalystId: payload.analystId,
+            reviewedByAnalystName: payload.analystName,
+            reviewedAt: new Date().toISOString(),
+            analystCadastralDecision: payload.decision,
+            analystReviewJustification: payload.justification,
+          }
+        : row,
+    ),
   );
+  sellersCollection.hydrate();
   const seller = MOCK_SELLERS.find((s) => s.id === sellerId);
   if (seller) {
     seller.validationStatus = payload.decision === "APPROVED" ? "APPROVED" : "REJECTED";
+    sellersCollection.persist();
   }
 }
 
@@ -128,5 +139,6 @@ export function getSellerDisplayName(sellerId: string): string {
     // or keep a fallback lookup.
     return sellerId;
   }
+  sellersCollection.hydrate();
   return MOCK_SELLERS.find((s) => s.id === sellerId)?.legalName ?? sellerId;
 }

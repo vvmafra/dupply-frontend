@@ -22,9 +22,15 @@ import { INITIAL_INVESTMENTS, INITIAL_OFFERS } from "@/data/offers.mock";
 import { fetchAllDuplicatas, fetchDuplicataById } from "@/services/duplicata.service";
 import { resolveApiMode } from "@/lib/env";
 import { apiRequest } from "@/lib/api-client";
+import { createMockStore } from "@/lib/mock-store";
 
-let offers: Offer[] = INITIAL_OFFERS.map((o) => ({ ...o }));
-let investments: Investment[] = INITIAL_INVESTMENTS.map((i) => ({ ...i }));
+/** Mock stores — persisted so demo data survives F5 and is shared across tabs. */
+const offersStore = createMockStore<Offer[]>("offers", () =>
+  INITIAL_OFFERS.map((o) => ({ ...o })),
+);
+const investmentsStore = createMockStore<Investment[]>("investments", () =>
+  INITIAL_INVESTMENTS.map((i) => ({ ...i })),
+);
 
 function mapReceivableToOffer(r: any): Offer {
   const quotaPrice = 100; // Standard 100 BRL quota size
@@ -123,7 +129,7 @@ function cloneOffer(offer: Offer): Offer {
 }
 
 function cloneInvestment(investment: Investment): Investment {
-  const offer = offers.find((o) => o.id === investment.offerId);
+  const offer = offersStore.get().find((o) => o.id === investment.offerId);
   return {
     ...investment,
     receivable: offer ? {
@@ -145,11 +151,11 @@ function applyCloseToOffer(offer: Offer): Offer {
   const closedAt = new Date().toISOString();
 
   if (resolution.outcome === "failed") {
-    investments = investments.map((inv) =>
+    investmentsStore.set(investmentsStore.get().map((inv) =>
       inv.offerId === offer.id && inv.status === "active"
         ? { ...inv, status: "refunded" }
         : inv
-    );
+    ));
     return {
       ...offer,
       status: "failed",
@@ -159,11 +165,11 @@ function applyCloseToOffer(offer: Offer): Offer {
   }
 
   if (resolution.outcome === "partial_with_fidc") {
-    investments = investments.map((inv) =>
+    investmentsStore.set(investmentsStore.get().map((inv) =>
       inv.offerId === offer.id && inv.status === "active"
         ? { ...inv, status: "settled" }
         : inv
-    );
+    ));
     return {
       ...offer,
       status: "disbursed",
@@ -172,11 +178,11 @@ function applyCloseToOffer(offer: Offer): Offer {
     };
   }
 
-  investments = investments.map((inv) =>
+  investmentsStore.set(investmentsStore.get().map((inv) =>
     inv.offerId === offer.id && inv.status === "active"
       ? { ...inv, status: "settled" }
       : inv
-  );
+  ));
 
   return {
     ...offer,
@@ -204,7 +210,7 @@ export async function listOffers(filters?: {
   }
 
   await sleep(250);
-  let result = offers.map(cloneOffer);
+  let result = offersStore.get().map(cloneOffer);
   if (filters?.status) {
     const statuses = Array.isArray(filters.status) ? filters.status : [filters.status];
     result = result.filter((o) => statuses.includes(o.status));
@@ -233,13 +239,13 @@ export async function getOfferById(id: string): Promise<Offer | null> {
   }
 
   await sleep(180);
-  const offer = offers.find((o) => o.id === id);
+  const offer = offersStore.get().find((o) => o.id === id);
   return offer ? cloneOffer(offer) : null;
 }
 
 export async function getOfferByDuplicataId(duplicataId: string): Promise<Offer | null> {
   await sleep(150);
-  const offer = offers.find((o) => o.duplicataId === duplicataId);
+  const offer = offersStore.get().find((o) => o.duplicataId === duplicataId);
   return offer ? cloneOffer(offer) : null;
 }
 
@@ -248,7 +254,7 @@ export async function listDuplicatasReadyForOffer(filters?: {
 }): Promise<DuplicataTitulo[]> {
   await sleep(280);
   const all = await fetchAllDuplicatas();
-  const offeredIds = new Set(offers.map((o) => o.duplicataId));
+  const offeredIds = new Set(offersStore.get().map((o) => o.duplicataId));
   return all.filter(
     (d) =>
       d.analiseAnalista === "aprovado" &&
@@ -261,7 +267,7 @@ export async function listDuplicatasReadyForOffer(filters?: {
 export async function createOffer(input: CreateOfferInput): Promise<Offer> {
   await sleep(400);
 
-  if (offers.some((o) => o.duplicataId === input.duplicataId)) {
+  if (offersStore.get().some((o) => o.duplicataId === input.duplicataId)) {
     throw new Error("Já existe uma oferta para esta duplicata.");
   }
 
@@ -315,7 +321,7 @@ export async function createOffer(input: CreateOfferInput): Promise<Offer> {
     createdAt: new Date().toISOString(),
   };
 
-  offers = [offer, ...offers];
+  offersStore.set([offer, ...offersStore.get()]);
   return cloneOffer(offer);
 }
 
@@ -339,19 +345,19 @@ export async function investInOffer(input: InvestInOfferInput): Promise<Investme
 
   await sleep(350);
 
-  const index = offers.findIndex((o) => o.id === input.offerId);
+  const index = offersStore.get().findIndex((o) => o.id === input.offerId);
   if (index < 0) {
     throw new Error("Oferta não encontrada.");
   }
 
-  let offer = offers[index]!;
+  let offer = offersStore.get()[index]!;
   if (offer.status !== "fundraising") {
     throw new Error("Esta oferta não está aberta para investimentos.");
   }
 
   if (new Date(offer.deadline).getTime() <= Date.now()) {
     offer = applyCloseToOffer(offer);
-    offers = offers.map((o) => (o.id === offer.id ? offer : o));
+    offersStore.set(offersStore.get().map((o) => (o.id === offer.id ? offer : o)));
     throw new Error("O prazo desta oferta encerrou.");
   }
 
@@ -374,7 +380,7 @@ export async function investInOffer(input: InvestInOfferInput): Promise<Investme
   };
 
   // Persist investment before close so applyCloseToOffer can settle it.
-  investments = [investment, ...investments];
+  investmentsStore.set([investment, ...investmentsStore.get()]);
 
   const quotasSold = offer.quotasSold + input.quotaCount;
   const raisedAmount = calcRaisedAmount(offer.quotaPrice, quotasSold);
@@ -388,9 +394,9 @@ export async function investInOffer(input: InvestInOfferInput): Promise<Investme
     nextOffer = applyCloseToOffer(nextOffer);
   }
 
-  offers = offers.map((o) => (o.id === nextOffer.id ? nextOffer : o));
+  offersStore.set(offersStore.get().map((o) => (o.id === nextOffer.id ? nextOffer : o)));
 
-  const stored = investments.find((i) => i.id === investment.id);
+  const stored = investmentsStore.get().find((i) => i.id === investment.id);
   return cloneInvestment(stored ?? investment);
 }
 
@@ -416,7 +422,8 @@ export async function listInvestmentsByInvestor(
   }
 
   await sleep(220);
-  let result = investments
+  let result = investmentsStore
+    .get()
     .filter((i) => matchesInvestor(i.investorUserId, investorUserId))
     .map(cloneInvestment);
   if (filters?.status) {
@@ -427,7 +434,8 @@ export async function listInvestmentsByInvestor(
 
 export async function listInvestmentsByOffer(offerId: string): Promise<Investment[]> {
   await sleep(200);
-  return investments
+  return investmentsStore
+    .get()
     .filter((i) => i.offerId === offerId)
     .map(cloneInvestment)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -438,7 +446,7 @@ export async function listAllInvestments(filters?: {
   status?: InvestmentStatus;
 }): Promise<Investment[]> {
   await sleep(220);
-  let result = investments.map(cloneInvestment);
+  let result = investmentsStore.get().map(cloneInvestment);
   if (filters?.offerId) {
     result = result.filter((i) => i.offerId === filters.offerId);
   }
@@ -450,18 +458,18 @@ export async function listAllInvestments(filters?: {
 
 export async function closeOffer(offerId: string): Promise<Offer> {
   await sleep(350);
-  const index = offers.findIndex((o) => o.id === offerId);
+  const index = offersStore.get().findIndex((o) => o.id === offerId);
   if (index < 0) {
     throw new Error("Oferta não encontrada.");
   }
 
-  const current = offers[index]!;
+  const current = offersStore.get()[index]!;
   if (current.status !== "fundraising") {
     throw new Error("Oferta já encerrada.");
   }
 
   const closed = applyCloseToOffer(current);
-  offers = offers.map((o) => (o.id === closed.id ? closed : o));
+  offersStore.set(offersStore.get().map((o) => (o.id === closed.id ? closed : o)));
   return cloneOffer(closed);
 }
 
@@ -473,13 +481,13 @@ export async function closeExpiredOffers(now: Date = new Date()): Promise<Offer[
   const closed: Offer[] = [];
   const nowMs = now.getTime();
 
-  offers = offers.map((offer) => {
+  offersStore.set(offersStore.get().map((offer) => {
     if (offer.status !== "fundraising") return offer;
     if (new Date(offer.deadline).getTime() > nowMs) return offer;
     const next = applyCloseToOffer(offer);
     closed.push(cloneOffer(next));
     return next;
-  });
+  }));
 
   return closed;
 }
@@ -487,11 +495,11 @@ export async function closeExpiredOffers(now: Date = new Date()): Promise<Offer[
 /** Demo helper: move deadline to the past then close */
 export async function simulateOfferDeadline(offerId: string): Promise<Offer> {
   await sleep(200);
-  const index = offers.findIndex((o) => o.id === offerId);
+  const index = offersStore.get().findIndex((o) => o.id === offerId);
   if (index < 0) {
     throw new Error("Oferta não encontrada.");
   }
-  const current = offers[index]!;
+  const current = offersStore.get()[index]!;
   if (current.status !== "fundraising") {
     throw new Error("Oferta já encerrada.");
   }
@@ -500,6 +508,6 @@ export async function simulateOfferDeadline(offerId: string): Promise<Offer> {
     ...current,
     deadline: new Date(Date.now() - 60_000).toISOString(),
   };
-  offers = offers.map((o) => (o.id === withPastDeadline.id ? withPastDeadline : o));
+  offersStore.set(offersStore.get().map((o) => (o.id === withPastDeadline.id ? withPastDeadline : o)));
   return closeOffer(offerId);
 }

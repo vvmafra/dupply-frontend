@@ -5,9 +5,13 @@ import { MOCK_SELLERS } from "@/data/users.mock";
 import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
 import { resolveApiMode } from "@/lib/env";
 import { apiRequest } from "@/lib/api-client";
+import { createMockStore } from "@/lib/mock-store";
 import type { DuplicataTitulo, DuplicataAnaliseAnalista, NovaDuplicataPayload } from "@/domain/duplicata/duplicata.types";
 
-let duplicatas: DuplicataTitulo[] = INITIAL_DUPLICATAS.map((d) => ({ ...d }));
+/** Mock store — persisted so demo data survives F5 and is shared across tabs. */
+const duplicatasStore = createMockStore<DuplicataTitulo[]>("duplicatas", () =>
+  INITIAL_DUPLICATAS.map((d) => ({ ...d })),
+);
 
 function mapBackendReceivableToDuplicata(r: any): DuplicataTitulo {
   let meta: any = {};
@@ -121,7 +125,7 @@ export async function fetchAllDuplicatas(): Promise<DuplicataTitulo[]> {
   }
 
   await sleep(300);
-  return duplicatas.map((d) => ({ ...d }));
+  return duplicatasStore.get().map((d) => ({ ...d }));
 }
 
 export async function fetchDuplicatasBySeller(sellerId: string): Promise<DuplicataTitulo[]> {
@@ -144,7 +148,10 @@ export async function fetchDuplicatasBySeller(sellerId: string): Promise<Duplica
   }
 
   await sleep(280);
-  return duplicatas.filter((d) => d.sellerId === sellerId).map((d) => ({ ...d }));
+  return duplicatasStore
+    .get()
+    .filter((d) => d.sellerId === sellerId)
+    .map((d) => ({ ...d }));
 }
 
 export async function fetchDuplicataById(id: string): Promise<DuplicataTitulo | null> {
@@ -165,7 +172,7 @@ export async function fetchDuplicataById(id: string): Promise<DuplicataTitulo | 
   }
 
   await sleep(200);
-  const d = duplicatas.find((x) => x.id === id);
+  const d = duplicatasStore.get().find((x) => x.id === id);
   return d ? { ...d } : null;
 }
 
@@ -245,7 +252,7 @@ export async function createDuplicata(
     scoreUsuario: DUPLICATA_DEMO.scoreUsuario,
     scoreDuplicata: DUPLICATA_DEMO.scoreDuplicata,
   };
-  duplicatas = [novo, ...duplicatas];
+  duplicatasStore.update((current) => [novo, ...current]);
   return { ...novo };
 }
 
@@ -266,15 +273,17 @@ export async function setDuplicataAnaliseAnalista(
   }
 
   await sleep(350);
-  duplicatas = duplicatas.map((d) => {
-    if (d.id !== id) return d;
-    const next: DuplicataTitulo = { ...d, analiseAnalista: status };
-    if (status !== "for_approval") {
-      delete next.descontoAntecipacaoPercent;
-      delete next.valorLiquidoAntecipacao;
-    }
-    return next;
-  });
+  duplicatasStore.update((current) =>
+    current.map((d) => {
+      if (d.id !== id) return d;
+      const next: DuplicataTitulo = { ...d, analiseAnalista: status };
+      if (status !== "for_approval") {
+        delete next.descontoAntecipacaoPercent;
+        delete next.valorLiquidoAntecipacao;
+      }
+      return next;
+    }),
+  );
 }
 
 export async function setDuplicataOfertaAntecipacao(
@@ -296,19 +305,17 @@ export async function setDuplicataOfertaAntecipacao(
   }
 
   await sleep(350);
-  const valorLiquido = calcValorLiquidoCedente(
-    duplicatas.find((d) => d.id === id)?.valor ?? 0,
-    descontoPercent
-  );
-  duplicatas = duplicatas.map((d) =>
-    d.id === id
-      ? {
-          ...d,
-          analiseAnalista: "for_approval",
-          descontoAntecipacaoPercent: descontoPercent,
-          valorLiquidoAntecipacao: valorLiquido,
-        }
-      : d
+  duplicatasStore.update((current) =>
+    current.map((d) =>
+      d.id === id
+        ? {
+            ...d,
+            analiseAnalista: "for_approval",
+            descontoAntecipacaoPercent: descontoPercent,
+            valorLiquidoAntecipacao: calcValorLiquidoCedente(d.valor, descontoPercent),
+          }
+        : d,
+    ),
   );
 }
 
@@ -327,13 +334,15 @@ export async function setDuplicataDecisaoCedente(
   }
 
   await sleep(400);
-  duplicatas = duplicatas.map((d) => {
-    if (d.id !== id) return d;
-    const next: DuplicataTitulo = { ...d, analiseAnalista: decision };
-    if (decision === "reprovado") {
-      delete next.descontoAntecipacaoPercent;
-      delete next.valorLiquidoAntecipacao;
-    }
-    return next;
-  });
+  duplicatasStore.update((current) =>
+    current.map((d) => {
+      if (d.id !== id) return d;
+      const next: DuplicataTitulo = { ...d, analiseAnalista: decision };
+      if (decision === "reprovado") {
+        delete next.descontoAntecipacaoPercent;
+        delete next.valorLiquidoAntecipacao;
+      }
+      return next;
+    }),
+  );
 }
