@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AnalystDuplicataApprovalWizardDialog } from "@/components/analyst/AnalystDuplicataApprovalWizardDialog";
+import {
+  AnalystDuplicataApprovalWizardDialog,
+  type AnalystApprovalPayload,
+} from "@/components/analyst/AnalystDuplicataApprovalWizardDialog";
 import { AnalystAiReport } from "@/components/analyst/AnalystAiReport";
 import {
   DuplicataDocumentosCard,
@@ -18,6 +21,7 @@ import { useAsyncData } from "@/hooks/use-async-data";
 import { DUPLICATA_TIPO_LABELS } from "@/domain/duplicata/duplicata-labels.constants";
 import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
 import type { DuplicataAnaliseAnalista, DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
+import { resolveApiMode } from "@/lib/env";
 import { ROUTES } from "@/lib/routes";
 import {
   fetchDuplicataById,
@@ -81,17 +85,17 @@ export function AnalystDuplicataDetailPage() {
       delete fallback.valorLiquidoAntecipacao;
       await reloadDuplicata(fallback);
       toast.success("Análise atualizada");
-    } catch {
-      toast.error("Não foi possível atualizar a análise");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível atualizar a análise");
     }
   }
 
-  async function handleConfirmApprovalWizard(payload: { observacoes: string; descontoPercent: number }) {
+  async function handleConfirmApprovalWizard(payload: AnalystApprovalPayload) {
     if (!d) return;
 
     setSubmittingWizard(true);
     try {
-      await setDuplicataOfertaAntecipacao(d.id, payload.descontoPercent);
+      await setDuplicataOfertaAntecipacao(d.id, payload);
       // The service moves the duplicata to "for_approval" (proposal awaiting the
       // seller), not "aprovado" — the seller decides next.
       await reloadDuplicata({
@@ -99,11 +103,13 @@ export function AnalystDuplicataDetailPage() {
         analiseAnalista: "for_approval",
         descontoAntecipacaoPercent: payload.descontoPercent,
         valorLiquidoAntecipacao: calcValorLiquidoCedente(d.valor, payload.descontoPercent),
+        yieldRateMonthly: payload.yieldRateMonthly,
+        minInvestment: payload.minInvestment,
       });
       setApprovalWizardOpen(false);
       toast.success("Proposta de antecipação enviada ao cedente para aprovação");
-    } catch {
-      toast.error("Não foi possível salvar a aprovação da duplicata");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível salvar a aprovação da duplicata");
     } finally {
       setSubmittingWizard(false);
     }
@@ -155,9 +161,11 @@ export function AnalystDuplicataDetailPage() {
               <Button type="button" variant="destructive" onClick={() => setAnalise("reprovado")}>
                 Reprovar duplicata
               </Button>
-              <Button type="button" variant="outline" onClick={() => setAnalise("pendente")}>
-                Marcar como pendente
-              </Button>
+              {resolveApiMode() === "mock" && (
+                <Button type="button" variant="outline" onClick={() => setAnalise("pendente")}>
+                  Marcar como pendente
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -284,6 +284,16 @@ export async function restoreSession(): Promise<RestoredSession | null> {
   return restorePromise;
 }
 
+/**
+ * Profile id (seller id / investor id) carried in the JWT — HTTP mode only.
+ * Used by services that need `/v1/sellers/:id` for the logged-in seller.
+ */
+export function getCurrentProfileId(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  return decodeJwtPayload(token)?.profileId ?? null;
+}
+
 export async function persistSelectedProfile(profile: UserProfile): Promise<void> {
   const snapshot = getAuthSnapshot();
   if (!snapshot) return;

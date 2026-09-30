@@ -13,6 +13,16 @@ export class ApiError extends Error {
   }
 }
 
+/** `error` code from a backend error body (`{ error: "investment_below_minimum" }`), if any. */
+export function getApiErrorCode(bodyOrError: unknown): string | undefined {
+  const body = bodyOrError instanceof ApiError ? bodyOrError.body : bodyOrError;
+  if (typeof body === "object" && body !== null && "error" in body) {
+    const code = (body as { error: unknown }).error;
+    return typeof code === "string" ? code : undefined;
+  }
+  return undefined;
+}
+
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export type ApiRequestOptions = {
@@ -79,10 +89,11 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     }
 
     if (!response.ok) {
+      // Backend errors are `{ error: "<code>" }`; a few carry `message` too.
       const message =
         typeof parsed === "object" && parsed !== null && "message" in parsed
           ? String((parsed as { message: unknown }).message)
-          : response.statusText;
+          : getApiErrorCode(parsed) ?? response.statusText;
       throw new ApiError(message || `HTTP ${response.status}`, response.status, parsed);
     }
 

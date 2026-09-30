@@ -10,7 +10,7 @@ import {
   calcRemainingQuotas,
 } from "@/domain/offer/offer-economics.helpers";
 import type { Offer } from "@/domain/offer/offer.types";
-import { formatCurrencyBRL, formatDateTime, formatPercent } from "@/lib/formatters";
+import { formatCurrencyBRL, formatDateTime, formatMonthlyRate, formatPercent } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 
 type OpportunityOfferCardProps = {
@@ -30,8 +30,8 @@ export function OpportunityOfferCard({ offer }: OpportunityOfferCardProps) {
           <Badge variant="secondary">Risco {RISK_LEVEL_LABELS[offer.riskLevel]}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Retorno estimado {formatPercent(offer.estimatedInvestorReturnPercent)} · Cota{" "}
-          {formatCurrencyBRL(offer.quotaPrice)}
+          Rentabilidade {formatMonthlyRate(offer.yieldRateMonthly)} · Cota {formatCurrencyBRL(offer.quotaPrice)}
+          {offer.minInvestment > 0 && ` · Ticket mínimo ${formatCurrencyBRL(offer.minInvestment)}`}
         </p>
       </CardHeader>
       <CardContent className="space-y-3 flex-1">

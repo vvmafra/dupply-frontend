@@ -19,6 +19,15 @@ type LocationState = {
   from?: { pathname: string };
 };
 
+/** Accounts created by the backend's `npm run seed:dev` (HTTP mode). */
+const DEV_ACCOUNTS = [
+  "seller@dupply.dev.local",
+  "seller.review@dupply.dev.local",
+  "analyst@dupply.dev.local",
+  "admin@dupply.dev.local",
+  "investor@dupply.dev.local",
+] as const;
+
 export function MockLoginForm() {
   const [email, setEmail] = useState("demo@dupply.com.br");
   const [password, setPassword] = useState("Dupply@Demo2026!");
@@ -188,11 +197,29 @@ export function MockLoginForm() {
               ↺ Reiniciar dados da demo (duplicatas, ofertas, investimentos)
             </button>
           )}
-          <div className="text-[10px] text-center text-muted-foreground/80 mt-1">
-            Para testar com a API real (local), use: <br/>
-            <span className="font-mono text-[9px] bg-muted/50 px-1 py-0.5 rounded">seller@dupply.dev.local</span> ou <span className="font-mono text-[9px] bg-muted/50 px-1 py-0.5 rounded">investor@dupply.dev.local</span><br/>
-            (Senha: <span className="font-mono text-[9px]">dev-password-change-me</span>)
-          </div>
+          {!isMockMode && (
+            <div className="text-[10px] text-center text-muted-foreground/80 mt-1 space-y-1">
+              <p>
+                Contas do <span className="font-mono">npm run seed:dev</span> do backend (senha{" "}
+                <span className="font-mono text-[9px]">dev-password-change-me</span>):
+              </p>
+              <div className="flex flex-wrap justify-center gap-1">
+                {DEV_ACCOUNTS.map((account) => (
+                  <button
+                    key={account}
+                    type="button"
+                    className="font-mono text-[9px] bg-muted/50 hover:bg-muted px-1 py-0.5 rounded"
+                    onClick={() => {
+                      setEmail(account);
+                      setPassword("dev-password-change-me");
+                    }}
+                  >
+                    {account}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -11,9 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { OFFER_STATUS_LABELS } from "@/domain/offer/offer.constants";
+import { OFFER_STATUS_LABELS, RECEIVABLE_STAGE_LABELS } from "@/domain/offer/offer.constants";
 import type { Offer, OfferStatus } from "@/domain/offer/offer.types";
-import { formatCurrencyBRL, formatPercent } from "@/lib/formatters";
+import { formatCurrencyBRL, formatMonthlyRate } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import { closeExpiredOffers, listOffers } from "@/services/offer.service";
 
@@ -72,8 +72,8 @@ export function AdminOffersPage() {
                 <TableHead>Oferta</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Captado / Alvo</TableHead>
-                <TableHead className="text-right">Retorno est.</TableHead>
-                <TableHead className="text-right">FIDC</TableHead>
+                <TableHead className="text-right">Rentabilidade</TableHead>
+                <TableHead className="text-right">Ticket mín.</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -88,19 +88,20 @@ export function AdminOffersPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{OFFER_STATUS_LABELS[offer.status]}</Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant="secondary">{OFFER_STATUS_LABELS[offer.status]}</Badge>
+                      {offer.receivableStage && (
+                        <Badge variant="outline">{RECEIVABLE_STAGE_LABELS[offer.receivableStage]}</Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     {formatCurrencyBRL(offer.raisedAmount)} /{" "}
                     {formatCurrencyBRL(offer.targetAmount)}
                   </TableCell>
+                  <TableCell className="text-right">{formatMonthlyRate(offer.yieldRateMonthly)}</TableCell>
                   <TableCell className="text-right">
-                    {formatPercent(offer.estimatedInvestorReturnPercent)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {offer.fidcBackfillAmount > 0
-                      ? formatCurrencyBRL(offer.fidcBackfillAmount)
-                      : "—"}
+                    {offer.minInvestment > 0 ? formatCurrencyBRL(offer.minInvestment) : "—"}
                   </TableCell>
                 </TableRow>
               ))}

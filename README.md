@@ -170,9 +170,23 @@ A aplicação estará acessível em: `http://localhost:5173`.
 
 ## 🔗 Integração com a API Backend
 
-O aplicativo realiza requisições HTTP para a API Fastify configurada no backend (por padrão em `http://localhost:8080`).
+O frontend roda em **modo mock** por padrão (`VITE_USE_MOCKS=true`), com dados em memória persistidos em `localStorage`. Para usar a API Fastify do `dupply-backend` (branch `feat/demo-local`):
 
-Os serviços localizados em `src/services/` (`duplicata.service.ts`, `auth.service.ts`, `seller-review.service.ts`) utilizam o cliente HTTP unificado (`src/lib/api-client.ts`), com tratamento automático de erros e envio do token JWT via cabeçalho `Authorization: Bearer`.
+```bash
+# backend
+JWT_SECRET=<min 16 chars> DATABASE_URL=file:./data/dupply.db npm run seed:dev
+npm run start:local            # http://localhost:8080
+
+# frontend — .env.local
+VITE_USE_MOCKS=false
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+Contas do seed (senha `dev-password-change-me`): `seller@`, `seller.review@`, `analyst@`, `admin@` e `investor@dupply.dev.local`. A tela de login lista essas contas quando o modo HTTP está ativo.
+
+Os serviços em `src/services/` fazem o switch mock/HTTP por função (`resolveApiMode()`), usam o cliente unificado `src/lib/api-client.ts` (JWT via `Authorization: Bearer`, timeout, 401 → logout) e traduzem os códigos de erro do backend em `src/lib/api-errors.ts`. Os mappers do contrato ficam em `src/services/mappers/`.
+
+Roteiro ponta a ponta suportado em HTTP: cedente submete → analista envia proposta com deságio, taxa mensal ao investidor (`yieldRateMonthly`) e ticket mínimo (`minInvestment`) → cedente aceita → admin **abre a captação** (`open-funding`, podendo sobrescrever os termos) → investidor aporta em reais (ticket mínimo respeitado, exceto para fechar o restante) → admin **avança a etapa** três vezes (`funded → processing → completed → payer_settled`) → o investidor vê principal + juros no saldo.
 
 ---
 

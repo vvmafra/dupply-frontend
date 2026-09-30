@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { RISK_LEVEL_LABELS } from "@/domain/offer/offer.constants";
+import { RECEIVABLE_STAGE_LABELS, RISK_LEVEL_LABELS } from "@/domain/offer/offer.constants";
 import {
   calcFundingProgress,
   calcMinProgress,
   calcRemainingQuotas,
 } from "@/domain/offer/offer-economics.helpers";
 import type { Offer, RiskLevel } from "@/domain/offer/offer.types";
-import { formatCurrencyBRL, formatDateTime, formatPercent } from "@/lib/formatters";
+import { formatCurrencyBRL, formatDateTime, formatMonthlyRate } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 const RISK_LEVEL_COLORS: Record<RiskLevel, string> = {
@@ -49,15 +49,25 @@ export function OfferSummaryCard({ offer }: Readonly<{ offer: Offer }>) {
           </TooltipProvider>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Retorno estimado</span>
-          <span className="font-medium text-emerald-400">
-            {formatPercent(offer.estimatedInvestorReturnPercent)} a.a.
-          </span>
+          <span className="text-muted-foreground">Rentabilidade</span>
+          <span className="font-medium text-emerald-400">{formatMonthlyRate(offer.yieldRateMonthly)}</span>
         </div>
+        {offer.receivableStage && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Etapa</span>
+            <span className="text-white">{RECEIVABLE_STAGE_LABELS[offer.receivableStage]}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Preço da cota</span>
           <span className="text-white">{formatCurrencyBRL(offer.quotaPrice)}</span>
         </div>
+        {offer.minInvestment > 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Ticket mínimo</span>
+            <span className="text-white">{formatCurrencyBRL(offer.minInvestment)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Alvo / mínimo</span>
           <span className="text-white">

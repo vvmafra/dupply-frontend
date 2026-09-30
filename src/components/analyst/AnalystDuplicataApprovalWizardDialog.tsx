@@ -13,22 +13,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScoreBadge } from "@/components/receivables/ScoreBadge";
 import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
+import {
+  createOfertaAntecipacaoFormSchema,
+  DEFAULT_YIELD_RATE_MONTHLY_PERCENT,
+  DESCONTO_MAX_PERCENT,
+  DESCONTO_MIN_PERCENT,
+  toOfertaAntecipacaoTerms,
+} from "@/domain/duplicata/oferta-antecipacao.schema";
+import type { OfertaAntecipacaoTerms } from "@/domain/duplicata/duplicata.types";
+import { MAX_YIELD_RATE_MONTHLY } from "@/domain/offer/offer.constants";
 import { formatCurrencyBRL } from "@/lib/formatters";
 
-const DESCONTO_MIN = 2;
-const DESCONTO_MAX = 3.5;
+export type AnalystApprovalPayload = OfertaAntecipacaoTerms & { observacoes: string };
 
-function parseDescontoPercent(value: string): number | null {
-  const normalized = value.trim().replace(",", ".");
-  if (!normalized) return null;
-  const parsed = Number.parseFloat(normalized);
-  if (!Number.isFinite(parsed)) return null;
-  return parsed;
-}
-
-function isDescontoValid(percent: number | null): percent is number {
-  return percent !== null && percent >= DESCONTO_MIN && percent <= DESCONTO_MAX;
-}
+type FieldErrors = Partial<Record<"descontoPercent" | "yieldRateMonthlyPercent" | "minInvestment", string>>;
 
 export function AnalystDuplicataApprovalWizardDialog({
   open,
@@ -47,31 +45,51 @@ export function AnalystDuplicataApprovalWizardDialog({
   scoreUsuario: number;
   scoreDuplicata: number;
   submitting: boolean;
-  onConfirm: (payload: { observacoes: string; descontoPercent: number }) => void | Promise<void>;
+  onConfirm: (payload: AnalystApprovalPayload) => void | Promise<void>;
 }>) {
-  const [observacoes, setObservacoes] = useState("");
   const [descontoInput, setDescontoInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [taxaInput, setTaxaInput] = useState(String(DEFAULT_YIELD_RATE_MONTHLY_PERCENT));
+  const [ticketInput, setTicketInput] = useState("");
+  const [observacoes, setObservacoes] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!open) {
-      setObservacoes("");
       setDescontoInput("");
-      setError(null);
+      setTaxaInput(String(DEFAULT_YIELD_RATE_MONTHLY_PERCENT));
+      setTicketInput("");
+      setObservacoes("");
+      setErrors({});
     }
   }, [open]);
 
-  const descontoPercent = useMemo(() => parseDescontoPercent(descontoInput), [descontoInput]);
-  const descontoValido = isDescontoValid(descontoPercent);
-  const valorLiquidoCedente = descontoValido ? calcValorLiquidoCedente(valorNota, descontoPercent) : null;
+  const schema = useMemo(() => createOfertaAntecipacaoFormSchema(valorNota), [valorNota]);
+  const parsed = useMemo(
+    () =>
+      schema.safeParse({
+        descontoPercent: descontoInput,
+        yieldRateMonthlyPercent: taxaInput,
+        minInvestment: ticketInput,
+        observacoes,
+      }),
+    [schema, descontoInput, taxaInput, ticketInput, observacoes],
+  );
+  const valorLiquidoCedente = parsed.success
+    ? calcValorLiquidoCedente(valorNota, parsed.data.descontoPercent)
+    : null;
 
   function handleConfirm() {
-    if (!isDescontoValid(descontoPercent)) {
-      setError(`Informe um desconto entre ${DESCONTO_MIN}% e ${DESCONTO_MAX}%.`);
+    if (!parsed.success) {
+      const next: FieldErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0]) as keyof FieldErrors;
+        if (!next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
       return;
     }
-    setError(null);
-    void onConfirm({ observacoes: observacoes.trim(), descontoPercent });
+    setErrors({});
+    void onConfirm({ ...toOfertaAntecipacaoTerms(parsed.data), observacoes: parsed.data.observacoes.trim() });
   }
 
   return (
@@ -82,12 +100,12 @@ export function AnalystDuplicataApprovalWizardDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-h-[min(90vh,640px)] overflow-y-auto sm:max-w-lg" showCloseButton={!submitting}>
+      <DialogContent className="max-h-[min(90vh,720px)] overflow-y-auto sm:max-w-lg" showCloseButton={!submitting}>
         <DialogHeader>
           <DialogTitle>Aprovar duplicata</DialogTitle>
           <DialogDescription>
             Duplicata <span className="font-mono font-medium text-foreground">{numeroDuplicata}</span>. Defina o
-            desconto e confirme a aprovação.
+            desconto ao cedente e os termos da captação para os investidores.
           </DialogDescription>
         </DialogHeader>
 
@@ -112,46 +130,92 @@ export function AnalystDuplicataApprovalWizardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duplicata-approval-desconto">Desconto (%)</Label>
+            <Label htmlFor="duplicata-approval-desconto">Desconto ao cedente (%)</Label>
             <Input
               id="duplicata-approval-desconto"
               type="number"
               inputMode="decimal"
-              min={DESCONTO_MIN}
-              max={DESCONTO_MAX}
+              min={DESCONTO_MIN_PERCENT}
+              max={DESCONTO_MAX_PERCENT}
               step={0.1}
-              placeholder={`${DESCONTO_MIN} a ${DESCONTO_MAX}`}
+              placeholder={`${DESCONTO_MIN_PERCENT} a ${DESCONTO_MAX_PERCENT}`}
               value={descontoInput}
               onChange={(e) => {
                 setDescontoInput(e.target.value);
-                if (error) setError(null);
+                if (errors.descontoPercent) setErrors((prev) => ({ ...prev, descontoPercent: undefined }));
               }}
               disabled={submitting}
-              aria-invalid={descontoInput.length > 0 && !descontoValido}
+              aria-invalid={Boolean(errors.descontoPercent)}
             />
             <p className="text-xs text-muted-foreground">
-              Percentual de desconto aplicado sobre o valor da nota (entre {DESCONTO_MIN}% e {DESCONTO_MAX}%).
+              Percentual de desconto sobre o valor da nota (entre {DESCONTO_MIN_PERCENT}% e {DESCONTO_MAX_PERCENT}%).
             </p>
+            {errors.descontoPercent && <p className="text-sm text-destructive">{errors.descontoPercent}</p>}
           </div>
 
           <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
             <p className="text-xs font-medium text-muted-foreground">Valor que o cedente receberia</p>
             <p
               className={
-                descontoValido
+                valorLiquidoCedente !== null
                   ? "mt-1 text-lg font-semibold tabular-nums"
                   : "mt-1 text-lg font-semibold tabular-nums text-muted-foreground"
               }
             >
-              {descontoValido && valorLiquidoCedente !== null
-                ? formatCurrencyBRL(valorLiquidoCedente)
-                : "—"}
+              {valorLiquidoCedente !== null ? formatCurrencyBRL(valorLiquidoCedente) : "—"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {descontoValido
-                ? `${formatCurrencyBRL(valorNota)} com desconto de ${descontoPercent}%`
+              {valorLiquidoCedente !== null
+                ? `${formatCurrencyBRL(valorNota)} com desconto de ${descontoInput.replace(".", ",")}%`
                 : "Informe o desconto para calcular o valor líquido"}
             </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="duplicata-approval-taxa">Taxa ao investidor (% a.m.)</Label>
+              <Input
+                id="duplicata-approval-taxa"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={MAX_YIELD_RATE_MONTHLY * 100}
+                step="any"
+                value={taxaInput}
+                onChange={(e) => {
+                  setTaxaInput(e.target.value);
+                  if (errors.yieldRateMonthlyPercent) {
+                    setErrors((prev) => ({ ...prev, yieldRateMonthlyPercent: undefined }));
+                  }
+                }}
+                disabled={submitting}
+                aria-invalid={Boolean(errors.yieldRateMonthlyPercent)}
+              />
+              <p className="text-xs text-muted-foreground">Juros simples, base 30 dias. Vazio = sem rendimento.</p>
+              {errors.yieldRateMonthlyPercent && (
+                <p className="text-sm text-destructive">{errors.yieldRateMonthlyPercent}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duplicata-approval-ticket">Ticket mínimo por aporte (R$)</Label>
+              <Input
+                id="duplicata-approval-ticket"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="any"
+                placeholder="Opcional"
+                value={ticketInput}
+                onChange={(e) => {
+                  setTicketInput(e.target.value);
+                  if (errors.minInvestment) setErrors((prev) => ({ ...prev, minInvestment: undefined }));
+                }}
+                disabled={submitting}
+                aria-invalid={Boolean(errors.minInvestment)}
+              />
+              <p className="text-xs text-muted-foreground">Vazio ou 0 = sem mínimo. O admin pode ajustar ao abrir a captação.</p>
+              {errors.minInvestment && <p className="text-sm text-destructive">{errors.minInvestment}</p>}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -161,20 +225,18 @@ export function AnalystDuplicataApprovalWizardDialog({
               placeholder="Registre observações sobre a aprovação..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              rows={4}
-              className="min-h-[96px] resize-y"
+              rows={3}
+              className="min-h-[80px] resize-y"
               disabled={submitting}
             />
           </div>
-
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
 
         <DialogFooter className="gap-2 sm:justify-end">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancelar
           </Button>
-          <Button type="button" variant="default" onClick={handleConfirm} disabled={submitting || !descontoValido}>
+          <Button type="button" variant="default" onClick={handleConfirm} disabled={submitting || !parsed.success}>
             {submitting ? "Confirmando..." : "Confirmar"}
           </Button>
         </DialogFooter>

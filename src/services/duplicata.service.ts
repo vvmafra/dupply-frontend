@@ -5,111 +5,28 @@ import { MOCK_SELLERS } from "@/data/users.mock";
 import { calcValorLiquidoCedente } from "@/domain/duplicata/duplicata-antecipacao.helpers";
 import { resolveApiMode } from "@/lib/env";
 import { apiRequest } from "@/lib/api-client";
+import { describeApiError } from "@/lib/api-errors";
 import { createMockStore } from "@/lib/mock-store";
-import type { DuplicataTitulo, DuplicataAnaliseAnalista, NovaDuplicataPayload } from "@/domain/duplicata/duplicata.types";
+import {
+  mapBackendReceivableToDuplicata,
+  type BackendReceivable,
+} from "@/services/mappers/backend-receivable.mapper";
+import type {
+  DuplicataTitulo,
+  DuplicataAnaliseAnalista,
+  NovaDuplicataPayload,
+  OfertaAntecipacaoTerms,
+} from "@/domain/duplicata/duplicata.types";
 
 /** Mock store — persisted so demo data survives F5 and is shared across tabs. */
 const duplicatasStore = createMockStore<DuplicataTitulo[]>("duplicatas", () =>
   INITIAL_DUPLICATAS.map((d) => ({ ...d })),
 );
 
-function mapBackendReceivableToDuplicata(r: any): DuplicataTitulo {
-  let meta: any = {};
-  if (r.receivableMetaData) {
-    try {
-      meta = typeof r.receivableMetaData === "string" 
-        ? JSON.parse(r.receivableMetaData) 
-        : r.receivableMetaData;
-    } catch (e) {
-      console.error("Failed to parse receivableMetaData", e);
-    }
-  }
-
-  // Map status:
-  // created, under_review -> pendente
-  // offer -> for_approval
-  // confirmed, funding, funded, processing, completed, payer_settled -> aprovado
-  // reproved, rejected -> reprovado
-  let analiseAnalista: DuplicataAnaliseAnalista = "pendente";
-  if (r.status === "created" || r.status === "under_review") {
-    analiseAnalista = "pendente";
-  } else if (r.status === "offer") {
-    analiseAnalista = "for_approval";
-  } else if (
-    r.status === "confirmed" || 
-    r.status === "funding" || 
-    r.status === "funded" || 
-    r.status === "processing" || 
-    r.status === "completed" || 
-    r.status === "payer_settled"
-  ) {
-    analiseAnalista = "aprovado";
-  } else if (r.status === "reproved" || r.status === "rejected") {
-    analiseAnalista = "reprovado";
-  }
-
-  const value = r.value ?? 0;
-  const proposedValue = r.proposedValue;
-  let descontoPercent: number | undefined = undefined;
-  if (proposedValue != null && value > 0) {
-    descontoPercent = Math.round((1 - (proposedValue / value)) * 100);
-  }
-
-  let aiReport = null;
-  if (r.aiReport) {
-    try {
-      aiReport = typeof r.aiReport === "string" ? JSON.parse(r.aiReport) : r.aiReport;
-    } catch (e) {
-      console.error("Failed to parse aiReport", e);
-    }
-  }
-
-  return {
-    id: r.id,
-    sellerId: r.sellerId,
-    sellerName: "Sua Empresa",
-    tipo: meta.type === "service" ? "servico" : "mercantil",
-    numeroDuplicata: meta.billNumber ?? "",
-    numeroFatura: meta.invoiceNumber ?? "",
-    valor: value,
-    dataEmissao: meta.issuedAt ? meta.issuedAt.split("T")[0] : "",
-    dataVencimento: meta.dueDate ? meta.dueDate.split("T")[0] : "",
-    sacadoCnpj: meta.payerCnpj ?? "",
-    sacadoRazaoSocial: meta.payerLegalName ?? "",
-    sacadoEmailFinanceiro: meta.payerFinancialEmail ?? "",
-    documentoFiscalTipo: meta.fiscalDocumentType ?? "nfe",
-    documentoFiscalChave: meta.fiscalDocumentKey ?? "",
-    documentoFiscalAnexado: meta.fiscalDocumentType ? true : false,
-    comprovanteTipo: meta.proofType === "service_provision" 
-      ? "prestacao_servico" 
-      : meta.proofType === "acceptance" 
-      ? "aceite" 
-      : "entrega",
-    comprovanteAnexado: meta.proofType ? true : false,
-    statusAceiteSacado: (meta.payerAcceptanceStatus === "accepted" || (meta.payerAcceptanceStatus as string) === "aceito")
-      ? "aceito"
-      : (meta.payerAcceptanceStatus === "refused" || (meta.payerAcceptanceStatus as string) === "recusado")
-      ? "recusado"
-      : "pendente",
-    valorDesejadoAntecipacao: meta.desiredAnticipationValue ?? value,
-    declaracoesAntifraudeAceitas: meta.antifraudDeclarationsAccepted ?? false,
-    enviadoEm: r.createdAt ?? new Date().toISOString(),
-    analiseAnalista,
-    descontoAntecipacaoPercent: descontoPercent,
-    valorLiquidoAntecipacao: proposedValue ?? undefined,
-    scoreUsuario: 85,
-    scoreDuplicata: 90,
-    statusHistory: r.statusHistory || undefined,
-    statusRecebivel: r.status,
-    aiReport,
-    aiReportPdfUrl: r.aiReportPdfUrl,
-  };
-}
-
 export async function fetchAllDuplicatas(): Promise<DuplicataTitulo[]> {
   if (resolveApiMode() === "http") {
     const [data, sellersList] = await Promise.all([
-      apiRequest<{ receivables: any[] }>("/v1/receivables"),
+      apiRequest<{ receivables: BackendReceivable[] }>("/v1/receivables"),
       apiRequest<any[]>("/v1/sellers").catch(() => []),
     ]);
     return data.receivables.map((r) => {
@@ -131,7 +48,7 @@ export async function fetchAllDuplicatas(): Promise<DuplicataTitulo[]> {
 export async function fetchDuplicatasBySeller(sellerId: string): Promise<DuplicataTitulo[]> {
   if (resolveApiMode() === "http") {
     const [data, seller] = await Promise.all([
-      apiRequest<{ receivables: any[] }>("/v1/receivables"),
+      apiRequest<{ receivables: BackendReceivable[] }>("/v1/receivables"),
       apiRequest<any>(`/v1/sellers/${sellerId}`).catch(() => null),
     ]);
     return data.receivables
@@ -157,7 +74,7 @@ export async function fetchDuplicatasBySeller(sellerId: string): Promise<Duplica
 export async function fetchDuplicataById(id: string): Promise<DuplicataTitulo | null> {
   if (resolveApiMode() === "http") {
     try {
-      const data = await apiRequest<{ receivable: any }>(`/v1/receivables/${id}`);
+      const data = await apiRequest<{ receivable: BackendReceivable }>(`/v1/receivables/${id}`);
       const dup = mapBackendReceivableToDuplicata(data.receivable);
       try {
         const seller = await apiRequest<any>(`/v1/sellers/${dup.sellerId}`);
@@ -217,11 +134,15 @@ export async function createDuplicata(
         antifraudDeclarationsAccepted: payload.declaracoesAntifraudeAceitas,
       }
     };
-    const created = await apiRequest<any>("/v1/receivables/submit", {
-      method: "POST",
-      body,
-    });
-    return mapBackendReceivableToDuplicata(created);
+    try {
+      const created = await apiRequest<BackendReceivable>("/v1/receivables/submit", {
+        method: "POST",
+        body,
+      });
+      return mapBackendReceivableToDuplicata(created);
+    } catch (err) {
+      throw new Error(describeApiError(err, "Não foi possível registrar a duplicata."));
+    }
   }
 
   await sleep(600);
@@ -262,14 +183,18 @@ export async function setDuplicataAnaliseAnalista(
 ): Promise<void> {
   if (resolveApiMode() === "http") {
     if (status === "reprovado") {
-      await apiRequest<any>(`/v1/receivables/${id}/risk-decision`, {
-        method: "POST",
-        body: {
-          decision: "reprove",
-        },
-      });
+      try {
+        await apiRequest(`/v1/receivables/${id}/risk-decision`, {
+          method: "POST",
+          body: { decision: "reprove" },
+        });
+      } catch (err) {
+        throw new Error(describeApiError(err, "Não foi possível reprovar a duplicata."));
+      }
       return;
     }
+    // "pendente" has no backend counterpart (under_review is the resting state).
+    throw new Error("Com o backend, uma duplicata em análise já está pendente; use Aprovar ou Reprovar.");
   }
 
   await sleep(350);
@@ -286,21 +211,33 @@ export async function setDuplicataAnaliseAnalista(
   );
 }
 
+/** Money in reais with 2 decimals (the backend requires `multipleOf(0.01)`). */
+function toReais2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * Analyst proposal: deságio → `proposedValue`, plus the optional funding terms
+ * (`yieldRateMonthly`, `minInvestment`) the backend accepts only with `decision: "offer"`.
+ */
 export async function setDuplicataOfertaAntecipacao(
   id: string,
-  descontoPercent: number
+  terms: OfertaAntecipacaoTerms,
 ): Promise<void> {
+  const { descontoPercent, yieldRateMonthly, minInvestment } = terms;
+
   if (resolveApiMode() === "http") {
     const d = await fetchDuplicataById(id);
     if (!d) throw new Error("Duplicata não encontrada");
-    const proposedValue = calcValorLiquidoCedente(d.valor, descontoPercent);
-    await apiRequest<any>(`/v1/receivables/${id}/risk-decision`, {
-      method: "POST",
-      body: {
-        decision: "offer",
-        proposedValue,
-      },
-    });
+    const proposedValue = toReais2(calcValorLiquidoCedente(d.valor, descontoPercent));
+    const body: Record<string, unknown> = { decision: "offer", proposedValue };
+    if (yieldRateMonthly !== undefined) body.yieldRateMonthly = yieldRateMonthly;
+    if (minInvestment !== undefined && minInvestment > 0) body.minInvestment = toReais2(minInvestment);
+    try {
+      await apiRequest(`/v1/receivables/${id}/risk-decision`, { method: "POST", body });
+    } catch (err) {
+      throw new Error(describeApiError(err, "Não foi possível enviar a proposta."));
+    }
     return;
   }
 
@@ -313,6 +250,8 @@ export async function setDuplicataOfertaAntecipacao(
             analiseAnalista: "for_approval",
             descontoAntecipacaoPercent: descontoPercent,
             valorLiquidoAntecipacao: calcValorLiquidoCedente(d.valor, descontoPercent),
+            yieldRateMonthly,
+            minInvestment: minInvestment && minInvestment > 0 ? minInvestment : undefined,
           }
         : d,
     ),
@@ -324,12 +263,14 @@ export async function setDuplicataDecisaoCedente(
   decision: Extract<DuplicataAnaliseAnalista, "aprovado" | "reprovado">
 ): Promise<void> {
   if (resolveApiMode() === "http") {
-    await apiRequest<any>(`/v1/receivables/${id}/seller-decision`, {
-      method: "POST",
-      body: {
-        decision: decision === "aprovado" ? "accept" : "reject",
-      },
-    });
+    try {
+      await apiRequest(`/v1/receivables/${id}/seller-decision`, {
+        method: "POST",
+        body: { decision: decision === "aprovado" ? "accept" : "reject" },
+      });
+    } catch (err) {
+      throw new Error(describeApiError(err, "Não foi possível registrar a decisão."));
+    }
     return;
   }
 

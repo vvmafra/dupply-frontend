@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
-import { formatCurrencyBRL } from "@/lib/formatters";
+import { formatCurrencyBRL, formatMonthlyRate } from "@/lib/formatters";
 
 /** Shown to the seller while the analyst's proposal awaits their decision. */
 export function SellerDuplicataProposalCard({
@@ -30,6 +30,12 @@ export function SellerDuplicataProposalCard({
               {d.valorLiquidoAntecipacao != null ? formatCurrencyBRL(d.valorLiquidoAntecipacao) : "—"}
             </span>
           </div>
+          {d.yieldRateMonthly != null && (
+            <p className="pt-2 text-xs text-muted-foreground">
+              Captação junto a investidores a {formatMonthlyRate(d.yieldRateMonthly)}
+              {d.minInvestment ? ` · ticket mínimo ${formatCurrencyBRL(d.minInvestment)}` : ""}
+            </p>
+          )}
         </div>
         <Button className="w-full" onClick={onReview}>
           Analisar & Decidir

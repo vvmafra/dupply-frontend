@@ -12,11 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
-import { formatCurrencyBRL, formatPercent } from "@/lib/formatters";
+import { resolveApiMode } from "@/lib/env";
+import { formatCurrencyBRL, formatMonthlyRate, formatPercent } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import { listDuplicatasReadyForOffer } from "@/services/offer.service";
 
 export function AdminOffersReadyPage() {
+  const isHttp = resolveApiMode() === "http";
   const [sellerFilter, setSellerFilter] = useState(LIST_FILTER_ALL);
 
   const { data, loading } = useAsyncData<DuplicataTitulo[]>(
@@ -90,6 +92,7 @@ export function AdminOffersReadyPage() {
                 <TableHead>Cedente</TableHead>
                 <TableHead className="text-right">Valor face</TableHead>
                 <TableHead className="text-right">Deságio</TableHead>
+                <TableHead className="text-right">Taxa / ticket</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -104,9 +107,13 @@ export function AdminOffersReadyPage() {
                       ? formatPercent(row.descontoAntecipacaoPercent)
                       : "—"}
                   </TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground">
+                    {row.yieldRateMonthly != null ? formatMonthlyRate(row.yieldRateMonthly) : "—"}
+                    {row.minInvestment ? ` · ${formatCurrencyBRL(row.minInvestment)}` : ""}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button asChild size="sm">
-                      <Link to={ROUTES.admin.offers.create(row.id)}>Criar oferta</Link>
+                      <Link to={ROUTES.admin.offers.create(row.id)}>{isHttp ? "Abrir captação" : "Criar oferta"}</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

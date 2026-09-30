@@ -3,6 +3,8 @@ import type { AuthSession } from "./auth-session.types";
 export type JwtPayload = {
   sub: string;
   role: string;
+  /** Role-specific profile id (seller id, investor id, ...) set by the backend. */
+  profileId?: string;
   principalKind?: string;
   exp?: number;
 };

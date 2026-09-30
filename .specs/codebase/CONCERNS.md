@@ -106,6 +106,16 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 - Skeletons por página (`SellerPageCardsSkeleton`, `AdminPagesSkeleton`, `AnalystListTablesSkeleton`) substituídos por primitivos em `components/shared/PageSkeleton.tsx` (`TableSkeleton`, `MetricCardsSkeleton`, `CardSkeleton`, `FormSkeleton`, `TimelineSkeleton`, `ChartCardSkeleton`)
 - Cards de detalhe de duplicata compartilhados entre cedente e analista em `components/duplicata/DuplicataInfoCards.tsx`; labels em `domain/duplicata/duplicata-labels.constants.ts`
 
+## Modo HTTP — lacunas conhecidas (2026-09-30)
+
+- **Aportes por receivable no admin:** o backend não expõe a lista de investidores de um receivable; `listInvestmentsByOffer` e `listAllInvestments` devolvem `[]` em HTTP e a tela mostra só captado/alvo (`AdminOfferDetailPage`, `AdminInvestmentsPage`).
+- **Cadastro de cedente:** `registerSeller` continua mock (`seller-registration.service.ts`); KYC do cedente e do investidor são simulados na UI (`updateSellerValidationStatus` é no-op em HTTP).
+- **Nome do cedente na fila do analista:** `GET /v1/sellers` para `risk_analyst` só devolve `in_review` e `GET /v1/sellers/:id` de um seller `active` responde 403; `fetchAllDuplicatas` cai para o id como nome.
+- **Métricas do admin:** `fetchPlatformMetrics` em HTTP deriva contagens de `GET /v1/receivables` + `GET /v1/sellers`; os gráficos (`VolumeChart`, `StatusDistributionChart`, `RiskDistributionChart`) seguem estáticos.
+- **Transações blockchain:** `blockchain.service` é mock-only em qualquer modo.
+- **Score/risco em HTTP:** `scoreUsuario`/`scoreDuplicata` fixos (85/90) e `scoreDuplicataSnapshot` 75 em `backend-receivable.mapper.ts` — o backend não expõe score.
+- **Cotas × reais:** em HTTP o `Offer` ainda calcula `quotaCount`/`quotasSold` com cota de R$ 100 só para exibição; o aporte real é em reais (`InvestQuotaForm` em `amountMode`).
+
 ## Fragile Areas
 
 **Fluxo auth → perfil → dashboard:**

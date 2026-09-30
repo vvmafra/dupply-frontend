@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCurrencyBRL } from "@/lib/formatters";
+import { formatCurrencyBRL, formatMonthlyRate } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import { fetchInvestorProfile } from "@/services/investor.service";
 import { listInvestmentsByInvestor } from "@/services/offer.service";
@@ -256,7 +256,7 @@ export function InvestorHomePage() {
                           </p>
                           {rec && (
                             <p className="text-[10px] text-emerald-400 font-medium">
-                              {(rec.yieldRateAnnual * 100).toFixed(1)}% a.a.
+                              {formatMonthlyRate(rec.yieldRateMonthly)}
                             </p>
                           )}
                         </div>
