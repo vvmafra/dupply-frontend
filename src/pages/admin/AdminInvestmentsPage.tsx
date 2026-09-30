@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,23 +25,17 @@ const STATUS_OPTIONS = (
 export function AdminInvestmentsPage() {
   const [searchParams] = useSearchParams();
   const offerIdFilter = searchParams.get("offerId") ?? undefined;
-  const [items, setItems] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(LIST_FILTER_ALL);
 
-  useEffect(() => {
-    setLoading(true);
-    listAllInvestments({
-      offerId: offerIdFilter,
-      status:
-        statusFilter === LIST_FILTER_ALL
-          ? undefined
-          : (statusFilter as InvestmentStatus),
-    }).then((data) => {
-      setItems(data);
-      setLoading(false);
-    });
-  }, [offerIdFilter, statusFilter]);
+  const { data, loading } = useAsyncData<Investment[]>(
+    () =>
+      listAllInvestments({
+        offerId: offerIdFilter,
+        status: statusFilter === LIST_FILTER_ALL ? undefined : (statusFilter as InvestmentStatus),
+      }),
+    [offerIdFilter, statusFilter],
+  );
+  const items = data ?? [];
 
   const totalAmount = useMemo(
     () => items.reduce((sum, item) => sum + item.amount, 0),

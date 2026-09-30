@@ -1,28 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { NewDuplicataForm } from "@/components/forms/NewDuplicataForm";
-import { NewDuplicataFormSkeleton } from "@/components/seller/SellerPageCardsSkeleton";
+import { FormSkeleton } from "@/components/shared/PageSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchCurrentSeller } from "@/services/seller.service";
 import { canSellerRegisterDuplicatas } from "@/domain/seller/seller-duplicata-access";
 import { ROUTES } from "@/lib/routes";
-import type { SellerCompany } from "@/domain/seller/seller.types";
 
 export function NewDuplicataPage() {
-  const [seller, setSeller] = useState<SellerCompany | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCurrentSeller()
-      .then((s) => {
-        setSeller(s);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { data: seller, loading } = useAsyncData(fetchCurrentSeller, []);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const headingForm = (
     <div>
@@ -42,7 +31,7 @@ export function NewDuplicataPage() {
     return (
       <div className="p-6 space-y-6">
         {headingForm}
-        <NewDuplicataFormSkeleton />
+        <FormSkeleton sections={6} />
       </div>
     );
   }
@@ -79,9 +68,9 @@ export function NewDuplicataPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {headingForm}
-      <NewDuplicataForm sellerId={seller.id} />
+    <div className="p-6 space-y-6 max-w-6xl mx-auto w-full">
+      {!isSuccess && headingForm}
+      <NewDuplicataForm sellerId={seller.id} onSuccess={() => setIsSuccess(true)} />
     </div>
   );
 }

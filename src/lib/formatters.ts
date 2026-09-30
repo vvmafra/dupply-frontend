@@ -39,6 +39,11 @@ export function formatPercent(value: number, decimals = 2): string {
   return `${value.toFixed(decimals)}%`;
 }
 
+/** Monthly rate stored as a fraction (0.018) → "1,8% a.m." style label ("1.8% a.m."). */
+export function formatMonthlyRate(fraction: number, decimals = 1): string {
+  return `${(fraction * 100).toFixed(decimals)}% a.m.`;
+}
+
 export function formatShortHash(hash: string): string {
   if (hash.length <= 12) return hash;
   return `${hash.slice(0, 6)}...${hash.slice(-6)}`;

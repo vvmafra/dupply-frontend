@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { OpportunityOfferCard } from "@/components/investor/OpportunityOfferCard";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { RISK_LEVEL_LABELS } from "@/domain/offer/offer.constants";
 import type { Offer, RiskLevel } from "@/domain/offer/offer.types";
 import { listFundraisingOffers } from "@/services/offer.service";
@@ -10,27 +11,16 @@ const RISK_OPTIONS = (Object.entries(RISK_LEVEL_LABELS) as [RiskLevel, string][]
 );
 
 export function InvestorOpportunitiesPage() {
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [riskFilter, setRiskFilter] = useState(LIST_FILTER_ALL);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await listFundraisingOffers(
-        riskFilter === LIST_FILTER_ALL
-          ? undefined
-          : { riskLevel: riskFilter as RiskLevel }
-      );
-      setOffers(data);
-    } finally {
-      setLoading(false);
-    }
-  }, [riskFilter]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const { data, loading } = useAsyncData<Offer[]>(
+    () =>
+      listFundraisingOffers(
+        riskFilter === LIST_FILTER_ALL ? undefined : { riskLevel: riskFilter as RiskLevel },
+      ),
+    [riskFilter],
+  );
+  const offers = data ?? [];
 
   const emptyMessage = useMemo(() => {
     if (riskFilter === LIST_FILTER_ALL) {

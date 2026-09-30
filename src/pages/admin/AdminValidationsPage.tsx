@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { AdminValidationTable } from "@/components/admin/AdminValidationTable";
-import { AdminValidationTableSkeleton } from "@/components/admin/AdminPagesSkeleton";
+import { TableSkeleton } from "@/components/shared/PageSkeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchAllSellers, adminApproveValidation, adminRejectValidation } from "@/services/admin.service";
 import type { AdminValidationRow } from "@/domain/admin/admin.types";
 import type { SellerCompany } from "@/domain/seller/seller.types";
@@ -20,29 +20,33 @@ function toRow(s: SellerCompany): AdminValidationRow {
   };
 }
 
-export function AdminValidationsPage() {
-  const [rows, setRows] = useState<AdminValidationRow[]>([]);
-  const [loading, setLoading] = useState(true);
+const TABLE_COLUMNS = [
+  "Empresa",
+  { label: "CNPJ", className: "hidden sm:table-cell" },
+  { label: "Cadastro", className: "hidden md:table-cell" },
+  { label: "Status", kind: "pill" as const },
+  { label: "Ações", align: "right" as const, kind: "action" as const },
+];
 
-  useEffect(() => {
-    fetchAllSellers().then((data) => {
-      setRows(data.map(toRow));
-      setLoading(false);
-    });
-  }, []);
+export function AdminValidationsPage() {
+  const { data, loading, setData } = useAsyncData(
+    async () => (await fetchAllSellers()).map(toRow),
+    [],
+  );
+  const rows = data ?? [];
+
+  function patchRow(sellerId: string, validationStatus: AdminValidationRow["validationStatus"]) {
+    setData((prev) => prev?.map((r) => (r.id === sellerId ? { ...r, validationStatus } : r)) ?? prev);
+  }
 
   async function handleApprove(sellerId: string) {
     await adminApproveValidation(sellerId);
-    setRows((prev) =>
-      prev.map((r) => (r.id === sellerId ? { ...r, validationStatus: "APPROVED" as const } : r))
-    );
+    patchRow(sellerId, "APPROVED");
   }
 
   async function handleReject(sellerId: string) {
     await adminRejectValidation(sellerId);
-    setRows((prev) =>
-      prev.map((r) => (r.id === sellerId ? { ...r, validationStatus: "REJECTED" as const } : r))
-    );
+    patchRow(sellerId, "REJECTED");
   }
 
   return (
@@ -52,7 +56,7 @@ export function AdminValidationsPage() {
         <p className="text-sm text-muted-foreground">Gerencie o cadastro e validação de cedentes</p>
       </div>
       {loading ? (
-        <AdminValidationTableSkeleton />
+        <TableSkeleton card columns={TABLE_COLUMNS} />
       ) : (
         <AdminValidationTable rows={rows} onApprove={handleApprove} onReject={handleReject} />
       )}

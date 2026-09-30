@@ -1,28 +1,24 @@
-import { useEffect, useState } from "react";
-import { AdminTransactionsBodySkeleton } from "@/components/admin/AdminPagesSkeleton";
+import { Activity, CircleCheck as CheckCircle2, X, Clock } from "lucide-react";
 import { AdminTransactionTable } from "@/components/admin/AdminTransactionTable";
 import { AdminBlockchainEventTimeline } from "@/components/admin/AdminBlockchainEventTimeline";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { MetricCardsSkeleton, TableSkeleton, TimelineSkeleton } from "@/components/shared/PageSkeleton";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchTransactions } from "@/services/blockchain.service";
-import { Activity, CircleCheck as CheckCircle2, X, Clock } from "lucide-react";
-import type { BlockchainTransaction } from "@/domain/blockchain/blockchain.types";
+
+const TABLE_COLUMNS = [
+  "Hash",
+  { label: "Tipo", className: "hidden md:table-cell" },
+  { label: "Duplicata", className: "hidden sm:table-cell" },
+  { label: "Ledger", className: "hidden lg:table-cell" },
+  { label: "Data/Hora", className: "hidden lg:table-cell" },
+  { label: "Status", kind: "pill" as const },
+  { label: "", kind: "action" as const },
+];
 
 export function AdminTransactionsPage() {
-  const [transactions, setTransactions] = useState<BlockchainTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchTransactions().then((data) => {
-      if (!cancelled) {
-        setTransactions(data);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { data, loading } = useAsyncData(fetchTransactions, []);
+  const transactions = data ?? [];
 
   const success = transactions.filter((t) => t.status === "SUCCESS").length;
   const failed = transactions.filter((t) => t.status === "FAILED").length;
@@ -38,7 +34,15 @@ export function AdminTransactionsPage() {
       </div>
 
       {loading ? (
-        <AdminTransactionsBodySkeleton />
+        <>
+          <MetricCardsSkeleton />
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <TableSkeleton card columns={TABLE_COLUMNS} />
+            </div>
+            <TimelineSkeleton />
+          </div>
+        </>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { GuestRoute, ProtectedRoute, SemiProtectedRoute } from "@/routes/guards";
 import { ROUTES } from "@/lib/routes";
@@ -27,6 +27,7 @@ import { InvestorOpportunitiesPage } from "@/pages/investor/InvestorOpportunitie
 import { InvestorOfferDetailPage } from "@/pages/investor/InvestorOfferDetailPage";
 import { InvestorInvestmentsPage } from "@/pages/investor/InvestorInvestmentsPage";
 import { InvestorAccountPage } from "@/pages/investor/InvestorAccountPage";
+import { InvestorHomePage } from "@/pages/investor/InvestorHomePage";
 
 import { AnalystDashboardPage } from "@/pages/analyst/AnalystDashboardPage";
 import { AnalystSellersPage } from "@/pages/analyst/AnalystSellersPage";
@@ -36,6 +37,12 @@ import { SellerReviewDetailPage } from "@/pages/SellerReviewDetailPage";
 
 import { SellerDuplicatasPage } from "@/pages/seller/SellerDuplicatasPage";
 import { NewDuplicataPage } from "@/pages/seller/NewDuplicataPage";
+import { SellerDuplicataDetailPage } from "@/pages/seller/SellerDuplicataDetailPage";
+
+function NavigateToSellerDuplicataDetail() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={ROUTES.seller.duplicatas.detail(id ?? "")} replace />;
+}
 
 function AppRoutes() {
   return (
@@ -91,7 +98,7 @@ function AppRoutes() {
       />
       <Route
         path="/seller/receivables/:id"
-        element={<Navigate to={ROUTES.seller.duplicatas.list} replace />}
+        element={<NavigateToSellerDuplicataDetail />}
       />
 
       <Route
@@ -110,6 +117,16 @@ function AppRoutes() {
           <ProtectedRoute profile="seller">
             <AppShell>
               <NewDuplicataPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/duplicatas/:id"
+        element={
+          <ProtectedRoute profile="seller">
+            <AppShell>
+              <SellerDuplicataDetailPage />
             </AppShell>
           </ProtectedRoute>
         }
@@ -278,6 +295,16 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path={ROUTES.investor.home}
+        element={
+          <ProtectedRoute profile="investor">
+            <AppShell>
+              <InvestorHomePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path={ROUTES.investor.opportunities}
         element={

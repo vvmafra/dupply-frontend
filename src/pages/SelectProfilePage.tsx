@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ProfileSelectionCard } from "@/components/auth/ProfileSelectionCard";
 import { PublicShell } from "@/components/layout/PublicShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProfileRedirect } from "@/domain/auth/auth.helpers";
+import { resolvePostLoginPath } from "@/domain/auth/auth.helpers";
 import {
   getAvailableProfiles,
   MOCK_DEMO_PROFILES,
@@ -24,7 +24,7 @@ export function SelectProfilePage() {
   const profiles = useMemo(() => {
     if (!user) return [];
     return resolveApiMode() === "mock"
-      ? MOCK_DEMO_PROFILES
+      ? (user.email === "demo@dupply.com.br" ? MOCK_DEMO_PROFILES : getAvailableProfiles(user.platformRole))
       : getAvailableProfiles(user.platformRole);
   }, [user]);
 
@@ -35,14 +35,12 @@ export function SelectProfilePage() {
     if (!autoProfile) return;
 
     setProfile(autoProfile);
-    const fromPath = locationState?.from?.pathname;
-    navigate(fromPath ?? getProfileRedirect(autoProfile), { replace: true });
+    navigate(resolvePostLoginPath(autoProfile, locationState?.from?.pathname), { replace: true });
   }, [user, selectedProfile, profiles, setProfile, navigate, locationState?.from?.pathname]);
 
   function handleSelect(profile: (typeof profiles)[number]) {
     setProfile(profile);
-    const fromPath = locationState?.from?.pathname;
-    navigate(fromPath ?? getProfileRedirect(profile), { replace: true });
+    navigate(resolvePostLoginPath(profile, locationState?.from?.pathname), { replace: true });
   }
 
   return (

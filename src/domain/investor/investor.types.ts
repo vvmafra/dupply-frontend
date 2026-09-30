@@ -14,5 +14,6 @@ export type InvestorProfile = {
   phone: string;
   kycStatus: InvestorKycStatus;
   suitability: InvestorSuitability;
+  balance: number;
   createdAt: string;
 };

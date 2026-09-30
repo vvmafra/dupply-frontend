@@ -12,6 +12,7 @@ export const MOCK_INVESTOR_PROFILES: InvestorProfile[] = [
     // PENDING so the demo can show KYC gate → approve → invest
     kycStatus: "PENDING",
     suitability: "moderate",
+    balance: 1000000,
     createdAt: "2026-06-01T12:00:00.000Z",
   },
   {
@@ -23,6 +24,7 @@ export const MOCK_INVESTOR_PROFILES: InvestorProfile[] = [
     phone: "1133334444",
     kycStatus: "APPROVED",
     suitability: "aggressive",
+    balance: 250000,
     createdAt: "2026-05-15T09:30:00.000Z",
   },
 ];

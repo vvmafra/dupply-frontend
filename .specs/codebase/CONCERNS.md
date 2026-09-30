@@ -16,13 +16,15 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 - **Impact:** Duplicação de paths; risco de drift entre `ROUTES` e router; refactors exigem editar dois lugares
 - **Fix approach:** Importar `ROUTES` em `App.tsx` e usar `path={ROUTES.login}` etc.; extrair `ProtectedRoute` para arquivo dedicado se crescer
 
-### Validação de duplicata fora do domínio
+### Validação de duplicata fora do domínio (resolvido em 2026-09-28)
 
 - **Regra:** `30-auth-forms-onboarding` — "Validação deve ficar no domínio (`schema`) e não espalhada na UI"
-- **Código:** `NewDuplicataForm.tsx` implementa `validate()` inline (linhas 79-98) com ~15 regras manuais
-- **Contraste:** Cadastro cedente segue a regra corretamente via `seller-registration.schema.ts` + react-hook-form
-- **Impact:** Regras de negócio difíceis de reutilizar/testar; inconsistência entre formulários
-- **Fix approach:** Criar `domain/duplicata/duplicata.schema.ts` (Zod) e migrar `NewDuplicataForm` para react-hook-form
+- **Status:** `NewDuplicataForm` migrado para react-hook-form + `domain/duplicata/duplicata.schema.ts` (Zod). Parser de XML em `domain/duplicata/nfe-xml.parser.ts`, simulador em `duplicata-simulacao.helpers.ts`, seções em `components/forms/new-duplicata/`. O form caiu de 770 para ~140 linhas.
+
+### `npm run typecheck` era um no-op (resolvido em 2026-09-28)
+
+- **Código:** o script rodava `tsc --noEmit` na raiz, mas `tsconfig.json` tem `files: []` + `references`, então nada era checado — só `npm run build` (`tsc -b`) validava tipos.
+- **Status:** script trocado para `tsc -b`. Todos os gates documentados em `.cursor/rules` passam a valer de fato.
 
 ### Export default em `App.tsx`
 
@@ -42,13 +44,12 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 
 ## Tech Debt
 
-**Estado mutável global nos serviços:**
+**Estado mutável global nos serviços (mitigado):**
 
-- Issue: Arrays `let` module-level mutados por todas as chamadas de serviço
-- Files: `src/services/duplicata.service.ts:8`, `src/services/seller.service.ts`, outros serviços com mocks importados
-- Why: Simplicidade para hackathon/demo
-- Impact: Impossível resetar estado entre demos sem reload; bloqueia testes paralelos; hot reload pode acumular estado estranho
-- Fix approach: Factory pattern `createDuplicataStore(initial)` ou context provider de dados demo
+- Issue: Arrays `let` module-level mutados por todas as chamadas de serviço — dados criados na demo sumiam no F5 e não apareciam em outra aba
+- Files: `src/lib/mock-store.ts` (store persistido em `localStorage`, chave versionada `dupply_mock:v1:*`); consumido por `duplicata.service.ts`, `offer.service.ts`, `seller-review.service.ts`, `seller.service.ts`, `admin.service.ts`, `investor.service.ts`
+- Status: duplicatas, ofertas, investimentos, revisões cadastrais, sellers e perfis de investidor persistem entre reloads/abas; botão "Reiniciar dados da demo" na tela de login (modo mock) chama `resetAllMockStores()`
+- Pendente: `MOCK_RECEIVABLES` (admin legado) e `MOCK_TRANSACTIONS` continuam só em memória; mudar o shape dos seeds exige bump de `STORAGE_VERSION`
 
 **Auth sem persistência:**
 
@@ -97,6 +98,23 @@ Documento cruzado com regras em `.cursor/rules/` — divergências com evidênci
 - Recommendations: Remover ou isolar atrás de flag `import.meta.env.DEV` antes de produção
 
 ---
+
+**Padrão `loading + useEffect + fetch` repetido (resolvido em 2026-09-28):**
+
+- Issue: 26 páginas repetiam o mesmo bloco de carregamento, várias sem `.catch` (loading travado em erro HTTP)
+- Status: `src/hooks/use-async-data.ts` (`useAsyncData(loader, deps, { enabled })` → `{ data, loading, error, reload, setData }`) aplicado em todas; respostas fora de ordem são descartadas e erros não travam a página
+- Skeletons por página (`SellerPageCardsSkeleton`, `AdminPagesSkeleton`, `AnalystListTablesSkeleton`) substituídos por primitivos em `components/shared/PageSkeleton.tsx` (`TableSkeleton`, `MetricCardsSkeleton`, `CardSkeleton`, `FormSkeleton`, `TimelineSkeleton`, `ChartCardSkeleton`)
+- Cards de detalhe de duplicata compartilhados entre cedente e analista em `components/duplicata/DuplicataInfoCards.tsx`; labels em `domain/duplicata/duplicata-labels.constants.ts`
+
+## Modo HTTP — lacunas conhecidas (2026-09-30)
+
+- **Aportes por receivable no admin:** o backend não expõe a lista de investidores de um receivable; `listInvestmentsByOffer` e `listAllInvestments` devolvem `[]` em HTTP e a tela mostra só captado/alvo (`AdminOfferDetailPage`, `AdminInvestmentsPage`).
+- **Cadastro de cedente:** `registerSeller` continua mock (`seller-registration.service.ts`); KYC do cedente e do investidor são simulados na UI (`updateSellerValidationStatus` é no-op em HTTP).
+- **Nome do cedente na fila do analista:** `GET /v1/sellers` para `risk_analyst` só devolve `in_review` e `GET /v1/sellers/:id` de um seller `active` responde 403; `fetchAllDuplicatas` cai para o id como nome.
+- **Métricas do admin:** `fetchPlatformMetrics` em HTTP deriva contagens de `GET /v1/receivables` + `GET /v1/sellers`; os gráficos (`VolumeChart`, `StatusDistributionChart`, `RiskDistributionChart`) seguem estáticos.
+- **Transações blockchain:** `blockchain.service` é mock-only em qualquer modo.
+- **Score/risco em HTTP:** `scoreUsuario`/`scoreDuplicata` fixos (85/90) e `scoreDuplicataSnapshot` 75 em `backend-receivable.mapper.ts` — o backend não expõe score.
+- **Cotas × reais:** em HTTP o `Offer` ainda calcula `quotaCount`/`quotasSold` com cota de R$ 100 só para exibição; o aporte real é em reais (`InvestQuotaForm` em `amountMode`).
 
 ## Fragile Areas
 

@@ -11,6 +11,7 @@ export const ROUTES = {
     duplicatas: {
       list: "/seller/duplicatas",
       new: "/seller/duplicatas/new",
+      detail: (id: string) => `/seller/duplicatas/${id}`,
     },
   },
 
@@ -45,6 +46,7 @@ export const ROUTES = {
   },
 
   investor: {
+    home: "/investor",
     opportunities: "/investor/opportunities",
     offerDetail: (id: string) => `/investor/offers/${id}`,
     investments: "/investor/investments",

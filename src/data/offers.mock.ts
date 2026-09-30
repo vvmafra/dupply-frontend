@@ -29,6 +29,10 @@ function buildOffer(input: {
   status?: OfferStatus;
   fidcBackfillAmount?: number;
   closedDaysAgo?: number;
+  /** Fraction (0.018 = 1,8% a.m.); defaults to the period return as a demo approximation. */
+  yieldRateMonthly?: number;
+  /** Reais; 0 = sem ticket mínimo. */
+  minInvestment?: number;
 }): Offer {
   const targetAmount = input.quotaCount * input.quotaPrice;
   const raisedAmount = input.quotasSold * input.quotaPrice;
@@ -50,6 +54,10 @@ function buildOffer(input: {
       input.analystDiscountPercent,
       input.platformSpreadPercent
     ),
+    yieldRateMonthly:
+      input.yieldRateMonthly ??
+      calcEstimatedInvestorReturnPercent(input.analystDiscountPercent, input.platformSpreadPercent) / 100,
+    minInvestment: input.minInvestment ?? 0,
     riskLevel: mapScoreToRiskLevel(input.scoreDuplicata),
     scoreDuplicataSnapshot: input.scoreDuplicata,
     targetAmount,

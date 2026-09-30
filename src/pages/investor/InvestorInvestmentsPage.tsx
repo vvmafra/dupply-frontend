@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,23 +24,18 @@ const STATUS_OPTIONS = (
 
 export function InvestorInvestmentsPage() {
   const { user } = useAuth();
-  const [items, setItems] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(LIST_FILTER_ALL);
 
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    listInvestmentsByInvestor(
-      user.id,
-      statusFilter === LIST_FILTER_ALL
-        ? undefined
-        : { status: statusFilter as InvestmentStatus }
-    ).then((data) => {
-      setItems(data);
-      setLoading(false);
-    });
-  }, [user, statusFilter]);
+  const { data, loading } = useAsyncData<Investment[]>(
+    () =>
+      listInvestmentsByInvestor(
+        user!.id,
+        statusFilter === LIST_FILTER_ALL ? undefined : { status: statusFilter as InvestmentStatus },
+      ),
+    [user, statusFilter],
+    { enabled: Boolean(user) },
+  );
+  const items = data ?? [];
 
   const emptyMessage = useMemo(() => {
     if (statusFilter === LIST_FILTER_ALL) {
@@ -110,15 +106,28 @@ export function InvestorInvestmentsPage() {
                   <TableCell>
                     <Link
                       to={ROUTES.investor.offerDetail(item.offerId)}
-                      className="font-medium text-primary hover:underline"
+                      className="font-semibold text-primary hover:underline"
                     >
-                      {item.offerId}
+                      Oferta {item.offerId.slice(-6)}
                     </Link>
                   </TableCell>
                   <TableCell className="text-right">{item.quotaCount}</TableCell>
                   <TableCell className="text-right">{formatCurrencyBRL(item.amount)}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{INVESTMENT_STATUS_LABELS[item.status]}</Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="secondary" className="w-fit">{INVESTMENT_STATUS_LABELS[item.status]}</Badge>
+                      {item.receivable && (
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          Duplicata: {
+                            (item.receivable.status === "funding" || item.receivable.status === "fundraising")
+                              ? "Captando"
+                              : (item.receivable.status === "funded" || item.receivable.status === "processing" || item.receivable.status === "disbursed")
+                              ? "Em Andamento"
+                              : "Liquidada"
+                          }
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDateTime(item.createdAt)}

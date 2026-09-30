@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AdminSellersTableSkeleton } from "@/components/admin/AdminPagesSkeleton";
+import { TableSkeleton } from "@/components/shared/PageSkeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -10,20 +9,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { fetchSellerReviews } from "@/services/seller-review.service";
 import { ROUTES } from "@/lib/routes";
-import type { SellerReviewSummary } from "@/domain/risk-analyst/seller-review.types";
+
+const TABLE_COLUMNS = [
+  "Cedente",
+  "CNPJ",
+  { label: "Score (IA)", align: "right" as const },
+  { label: "Analista", kind: "pill" as const },
+  "Data revisão",
+];
 
 export function AdminSellersPage() {
-  const [rows, setRows] = useState<SellerReviewSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSellerReviews().then((data) => {
-      setRows(data);
-      setLoading(false);
-    });
-  }, []);
+  const { data, loading } = useAsyncData(fetchSellerReviews, []);
+  const rows = data ?? [];
 
   return (
     <div className="p-6 space-y-6">
@@ -34,7 +34,7 @@ export function AdminSellersPage() {
         </p>
       </div>
       {loading ? (
-        <AdminSellersTableSkeleton />
+        <TableSkeleton columns={TABLE_COLUMNS} />
       ) : (
         <div className="rounded-md border">
           <Table>

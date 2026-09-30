@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { LIST_FILTER_ALL, ListFilterSelect } from "@/components/shared/ListFilterSelect";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,40 +12,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { DuplicataTitulo } from "@/domain/duplicata/duplicata.types";
-import { formatCurrencyBRL, formatPercent } from "@/lib/formatters";
+import { resolveApiMode } from "@/lib/env";
+import { formatCurrencyBRL, formatMonthlyRate, formatPercent } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import { listDuplicatasReadyForOffer } from "@/services/offer.service";
 
 export function AdminOffersReadyPage() {
-  const [rows, setRows] = useState<DuplicataTitulo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isHttp = resolveApiMode() === "http";
   const [sellerFilter, setSellerFilter] = useState(LIST_FILTER_ALL);
-  const [sellerOptions, setSellerOptions] = useState<{ value: string; label: string }[]>([]);
 
-  useEffect(() => {
-    setLoading(true);
-    listDuplicatasReadyForOffer(
-      sellerFilter === LIST_FILTER_ALL ? undefined : { sellerId: sellerFilter }
-    ).then((data) => {
-      setRows(data);
-      setLoading(false);
-    });
-  }, [sellerFilter]);
+  const { data, loading } = useAsyncData<DuplicataTitulo[]>(
+    () =>
+      listDuplicatasReadyForOffer(
+        sellerFilter === LIST_FILTER_ALL ? undefined : { sellerId: sellerFilter },
+      ),
+    [sellerFilter],
+  );
+  const rows = data ?? [];
 
-  // Load full queue once to populate seller options (independent of current filter)
-  useEffect(() => {
-    listDuplicatasReadyForOffer().then((data) => {
-      const bySeller = new Map<string, string>();
-      for (const row of data) {
-        bySeller.set(row.sellerId, row.sellerName);
-      }
-      setSellerOptions(
-        [...bySeller.entries()]
-          .map(([value, label]) => ({ value, label }))
-          .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"))
-      );
-    });
+  // Full queue loaded once to populate seller options (independent of current filter)
+  const { data: sellerOptionsData } = useAsyncData(async () => {
+    const all = await listDuplicatasReadyForOffer();
+    const bySeller = new Map<string, string>();
+    for (const row of all) bySeller.set(row.sellerId, row.sellerName);
+    return [...bySeller.entries()]
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
   }, []);
+  const sellerOptions = sellerOptionsData ?? [];
 
   const emptyMessage = useMemo(() => {
     if (sellerFilter === LIST_FILTER_ALL) {
@@ -97,6 +92,7 @@ export function AdminOffersReadyPage() {
                 <TableHead>Cedente</TableHead>
                 <TableHead className="text-right">Valor face</TableHead>
                 <TableHead className="text-right">Deságio</TableHead>
+                <TableHead className="text-right">Taxa / ticket</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -111,9 +107,13 @@ export function AdminOffersReadyPage() {
                       ? formatPercent(row.descontoAntecipacaoPercent)
                       : "—"}
                   </TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground">
+                    {row.yieldRateMonthly != null ? formatMonthlyRate(row.yieldRateMonthly) : "—"}
+                    {row.minInvestment ? ` · ${formatCurrencyBRL(row.minInvestment)}` : ""}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button asChild size="sm">
-                      <Link to={ROUTES.admin.offers.create(row.id)}>Criar oferta</Link>
+                      <Link to={ROUTES.admin.offers.create(row.id)}>{isHttp ? "Abrir captação" : "Criar oferta"}</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

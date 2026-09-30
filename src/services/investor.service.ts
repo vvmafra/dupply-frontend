@@ -1,12 +1,23 @@
 import { MOCK_INVESTOR_PROFILES } from "@/data/investors.mock";
 import type { InvestorKycStatus, InvestorProfile } from "@/domain/investor/investor.types";
 import { sleep } from "@/lib/utils";
+import { resolveApiMode } from "@/lib/env";
+import { apiRequest } from "@/lib/api-client";
+import { createMockCollection } from "@/lib/mock-store";
+
+/** Persisted so the KYC approval done during a demo survives F5. */
+const investorProfilesCollection = createMockCollection(
+  "investor-profiles",
+  MOCK_INVESTOR_PROFILES,
+  (p) => p.userId,
+);
 
 function cloneProfile(profile: InvestorProfile): InvestorProfile {
   return { ...profile };
 }
 
 function ensureProfile(userId: string, fallbackEmail?: string, fallbackName?: string): InvestorProfile {
+  investorProfilesCollection.hydrate();
   let profile = MOCK_INVESTOR_PROFILES.find((p) => p.userId === userId);
   if (!profile) {
     profile = {
@@ -18,9 +29,11 @@ function ensureProfile(userId: string, fallbackEmail?: string, fallbackName?: st
       phone: "11000000000",
       kycStatus: "PENDING",
       suitability: "moderate",
+      balance: 1000000,
       createdAt: new Date().toISOString(),
     };
     MOCK_INVESTOR_PROFILES.push(profile);
+    investorProfilesCollection.persist();
   }
   return profile;
 }
@@ -29,6 +42,29 @@ export async function fetchInvestorProfile(
   userId: string,
   opts?: { email?: string; name?: string }
 ): Promise<InvestorProfile> {
+  if (resolveApiMode() === "http") {
+    const data = await apiRequest<{
+      id: string;
+      name: string;
+      email: string;
+      balance: number;
+      createdAt: string;
+    }>("/v1/investors/me");
+
+    return {
+      userId: data.id,
+      fullName: data.name,
+      email: data.email,
+      personType: "PF",
+      document: "00000000000",
+      phone: "11000000000",
+      kycStatus: "APPROVED", // Backend does not enforce KYC state for local dev
+      suitability: "moderate",
+      balance: data.balance,
+      createdAt: data.createdAt,
+    };
+  }
+
   await sleep(300);
   const profile = ensureProfile(userId, opts?.email, opts?.name);
   if (opts?.email) profile.email = opts.email;
@@ -45,6 +81,7 @@ export async function updateInvestorKycStatus(
   await sleep(400);
   const profile = ensureProfile(userId);
   profile.kycStatus = kycStatus;
+  investorProfilesCollection.persist();
   return cloneProfile(profile);
 }
 

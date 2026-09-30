@@ -8,15 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { authLoginSchema } from "@/domain/auth/auth-login.schema";
-import { getProfileRedirect } from "@/domain/auth/auth.helpers";
+import { resolvePostLoginPath } from "@/domain/auth/auth.helpers";
 import { getAvailableProfiles, MOCK_DEMO_PROFILES, shouldAutoSelectProfile } from "@/domain/auth/auth-profiles";
 import { resolveApiMode } from "@/lib/env";
+import { resetAllMockStores } from "@/lib/mock-store";
 import { ROUTES } from "@/lib/routes";
 import { login as loginFromService } from "@/services/auth.service";
 
 type LocationState = {
   from?: { pathname: string };
 };
+
+/** Accounts created by the backend's `npm run seed:dev` (HTTP mode). */
+const DEV_ACCOUNTS = [
+  "seller@dupply.dev.local",
+  "seller.review@dupply.dev.local",
+  "analyst@dupply.dev.local",
+  "admin@dupply.dev.local",
+  "investor@dupply.dev.local",
+] as const;
 
 export function MockLoginForm() {
   const [email, setEmail] = useState("demo@dupply.com.br");
@@ -26,6 +36,7 @@ export function MockLoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState | null;
+  const isMockMode = resolveApiMode() === "mock";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,14 +61,13 @@ export function MockLoginForm() {
 
     const profiles =
       resolveApiMode() === "mock"
-        ? MOCK_DEMO_PROFILES
+        ? (result.session.user.email === "demo@dupply.com.br" ? MOCK_DEMO_PROFILES : getAvailableProfiles(result.session.user.platformRole))
         : getAvailableProfiles(result.session.user.platformRole);
     const autoProfile = shouldAutoSelectProfile(profiles);
 
     if (autoProfile) {
       setProfile(autoProfile);
-      const fromPath = locationState?.from?.pathname;
-      navigate(fromPath ?? getProfileRedirect(autoProfile), { replace: true });
+      navigate(resolvePostLoginPath(autoProfile, locationState?.from?.pathname), { replace: true });
     } else {
       navigate(ROUTES.selectProfile, {
         replace: true,
@@ -115,16 +125,102 @@ export function MockLoginForm() {
             <Link to={ROUTES.sellerRegistration}>Criar conta de cedente</Link>
           </Button>
         </form>
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          Demo: qualquer senha. Investidor:{" "}
+        <div className="mt-6 pt-4 border-t border-muted/50 space-y-3">
+          <p className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Contas de Teste (Clique para preencher)
+          </p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("investor@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              💼 <strong>Investidor</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">investor@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("seller@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              🏬 <strong>Cedente</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">seller@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("analyst@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              🔍 <strong>Analista</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">analyst@dupply.com.br</span>
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-left truncate transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setEmail("admin@dupply.com.br");
+                setPassword("Dupply@Demo2026!");
+              }}
+            >
+              ⚙️ <strong>Admin</strong>
+              <span className="block text-[10px] text-muted-foreground truncate">admin@dupply.com.br</span>
+            </button>
+          </div>
           <button
             type="button"
-            className="underline underline-offset-2 hover:text-foreground"
-            onClick={() => setEmail("investor@dupply.com.br")}
+            className="w-full py-1.5 rounded bg-primary/10 hover:bg-primary/20 text-center transition-colors text-xs font-medium text-primary"
+            onClick={() => {
+              setEmail("demo@dupply.com.br");
+              setPassword("Dupply@Demo2026!");
+            }}
           >
-            investor@dupply.com.br
+            🌟 <strong>Superuser Demo</strong> (Todos os perfis)
           </button>
-        </p>
+          {isMockMode && (
+            <button
+              type="button"
+              className="w-full py-1.5 rounded border border-dashed border-muted-foreground/30 hover:bg-muted/40 text-center transition-colors text-[11px] text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                resetAllMockStores();
+                toast.success("Dados da demo reiniciados");
+              }}
+            >
+              ↺ Reiniciar dados da demo (duplicatas, ofertas, investimentos)
+            </button>
+          )}
+          {!isMockMode && (
+            <div className="text-[10px] text-center text-muted-foreground/80 mt-1 space-y-1">
+              <p>
+                Contas do <span className="font-mono">npm run seed:dev</span> do backend (senha{" "}
+                <span className="font-mono text-[9px]">dev-password-change-me</span>):
+              </p>
+              <div className="flex flex-wrap justify-center gap-1">
+                {DEV_ACCOUNTS.map((account) => (
+                  <button
+                    key={account}
+                    type="button"
+                    className="font-mono text-[9px] bg-muted/50 hover:bg-muted px-1 py-0.5 rounded"
+                    onClick={() => {
+                      setEmail(account);
+                      setPassword("dev-password-change-me");
+                    }}
+                  >
+                    {account}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

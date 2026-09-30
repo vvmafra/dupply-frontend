@@ -34,26 +34,3 @@ export const DUPLICATA_DEMO_VALOR_LIQUIDO = calcValorLiquidoCedente(
   DUPLICATA_DEMO.valor,
   DUPLICATA_DEMO.descontoAntecipacaoPercent,
 );
-
-/** Valores em string para o formulário de cadastro (autofill). */
-export function getDuplicataDemoAutofillFormValues() {
-  return {
-    tipo: DUPLICATA_DEMO.tipo,
-    numeroDuplicata: DUPLICATA_DEMO.numeroDuplicata,
-    numeroFatura: DUPLICATA_DEMO.numeroFatura,
-    valor: String(DUPLICATA_DEMO.valor),
-    dataEmissao: DUPLICATA_DEMO.dataEmissao,
-    dataVencimento: DUPLICATA_DEMO.dataVencimento,
-    sacadoCnpj: DUPLICATA_DEMO.sacadoCnpj,
-    sacadoRazaoSocial: DUPLICATA_DEMO.sacadoRazaoSocial,
-    sacadoEmailFinanceiro: DUPLICATA_DEMO.sacadoEmailFinanceiro,
-    documentoFiscalTipo: DUPLICATA_DEMO.documentoFiscalTipo,
-    documentoFiscalChave: DUPLICATA_DEMO.documentoFiscalChave,
-    fiscalUploaded: DUPLICATA_DEMO.documentoFiscalAnexado,
-    comprovanteTipo: DUPLICATA_DEMO.comprovanteTipo,
-    comprovanteUploaded: DUPLICATA_DEMO.comprovanteAnexado,
-    statusAceiteSacado: DUPLICATA_DEMO.statusAceiteSacado,
-    valorDesejadoAntecipacao: String(DUPLICATA_DEMO.valorDesejadoAntecipacao),
-    declaracoes: DUPLICATA_DEMO.declaracoesAntifraudeAceitas,
-  };
-}

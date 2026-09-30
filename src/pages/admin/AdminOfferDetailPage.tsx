@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,19 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAsyncData } from "@/hooks/use-async-data";
 import {
   INVESTMENT_STATUS_LABELS,
+  NEXT_RECEIVABLE_STAGE,
   OFFER_STATUS_LABELS,
+  RECEIVABLE_STAGE_LABELS,
   RISK_LEVEL_LABELS,
 } from "@/domain/offer/offer.constants";
-import {
-  calcFundingProgress,
-  calcMinProgress,
-} from "@/domain/offer/offer-economics.helpers";
+import { calcFundingProgress, calcMinProgress } from "@/domain/offer/offer-economics.helpers";
 import type { Investment, Offer } from "@/domain/offer/offer.types";
-import { formatCurrencyBRL, formatDateTime, formatPercent } from "@/lib/formatters";
+import { resolveApiMode } from "@/lib/env";
+import { formatCurrencyBRL, formatDateTime, formatMonthlyRate, formatPercent } from "@/lib/formatters";
 import { ROUTES } from "@/lib/routes";
 import {
+  advanceOfferStage,
   closeExpiredOffers,
   closeOffer,
   getOfferById,
@@ -36,61 +38,62 @@ import {
 
 export function AdminOfferDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [offer, setOffer] = useState<Offer | null>(null);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isHttp = resolveApiMode() === "http";
   const [acting, setActing] = useState(false);
 
-  const refresh = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
+  const { data, loading, reload: refresh } = useAsyncData<{
+    offer: Offer | null;
+    investments: Investment[];
+  }>(
+    async () => {
       await closeExpiredOffers();
-      const [nextOffer, nextInvestments] = await Promise.all([
-        getOfferById(id),
-        listInvestmentsByOffer(id),
-      ]);
-      setOffer(nextOffer);
-      setInvestments(nextInvestments);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+      const [offer, investments] = await Promise.all([getOfferById(id!), listInvestmentsByOffer(id!)]);
+      return { offer, investments };
+    },
+    [id],
+    { enabled: Boolean(id) },
+  );
+  const offer = data?.offer ?? null;
+  const investments = data?.investments ?? [];
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  async function handleClose() {
-    if (!offer) return;
+  async function runAction(action: () => Promise<void>, fallback: string) {
     setActing(true);
     try {
-      const closed = await closeOffer(offer.id);
-      toast.success("Oferta encerrada", {
-        description: OFFER_STATUS_LABELS[closed.status],
-      });
+      await action();
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Falha ao encerrar.");
+      toast.error(err instanceof Error ? err.message : fallback);
     } finally {
       setActing(false);
     }
   }
 
-  async function handleSimulateDeadline() {
+  function handleClose() {
     if (!offer) return;
-    setActing(true);
-    try {
+    void runAction(async () => {
+      const closed = await closeOffer(offer.id);
+      toast.success("Oferta encerrada", { description: OFFER_STATUS_LABELS[closed.status] });
+    }, "Falha ao encerrar.");
+  }
+
+  function handleSimulateDeadline() {
+    if (!offer) return;
+    void runAction(async () => {
       await simulateOfferDeadline(offer.id);
-      toast.success("Deadline simulado", {
-        description: "Oferta encerrada com as regras híbridas.",
+      toast.success("Deadline simulado", { description: "Oferta encerrada com as regras híbridas." });
+    }, "Falha ao simular.");
+  }
+
+  function handleAdvanceStage() {
+    if (!offer) return;
+    void runAction(async () => {
+      const result = await advanceOfferStage(offer.id);
+      toast.success("Etapa avançada", {
+        description: `${RECEIVABLE_STAGE_LABELS[result.from]} → ${RECEIVABLE_STAGE_LABELS[result.to]}${
+          result.to === "payer_settled" ? " · investidores creditados (principal + juros)" : ""
+        }`,
       });
-      await refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Falha ao simular.");
-    } finally {
-      setActing(false);
-    }
+    }, "Falha ao avançar a etapa.");
   }
 
   if (loading) {
@@ -110,6 +113,8 @@ export function AdminOfferDetailPage() {
 
   const progress = calcFundingProgress(offer.raisedAmount, offer.targetAmount);
   const minMarker = calcMinProgress(offer.minAmount, offer.targetAmount);
+  const stage = offer.receivableStage;
+  const nextStage = stage ? NEXT_RECEIVABLE_STAGE[stage] : undefined;
 
   return (
     <div className="p-6 space-y-6 max-w-4xl">
@@ -120,7 +125,10 @@ export function AdminOfferDetailPage() {
             Duplicata {offer.duplicataId} · risco {RISK_LEVEL_LABELS[offer.riskLevel]}
           </p>
         </div>
-        <Badge variant="secondary">{OFFER_STATUS_LABELS[offer.status]}</Badge>
+        <div className="flex items-center gap-2">
+          {stage && <Badge variant="outline">{RECEIVABLE_STAGE_LABELS[stage]}</Badge>}
+          <Badge variant="secondary">{OFFER_STATUS_LABELS[offer.status]}</Badge>
+        </div>
       </div>
 
       <Card>
@@ -138,19 +146,25 @@ export function AdminOfferDetailPage() {
               {formatCurrencyBRL(offer.targetAmount)}
             </p>
             <p>
-              <span className="text-muted-foreground">Mínimo: </span>
+              <span className="text-muted-foreground">Mínimo de captação: </span>
               {formatCurrencyBRL(offer.minAmount)}
             </p>
             <p>
-              <span className="text-muted-foreground">Retorno investidor: </span>
-              {formatPercent(offer.estimatedInvestorReturnPercent)}
+              <span className="text-muted-foreground">Ticket mínimo: </span>
+              {offer.minInvestment > 0 ? formatCurrencyBRL(offer.minInvestment) : "sem mínimo"}
             </p>
             <p>
-              <span className="text-muted-foreground">Spread plataforma: </span>
-              {formatPercent(offer.platformSpreadPercent)}
+              <span className="text-muted-foreground">Rentabilidade investidor: </span>
+              {formatMonthlyRate(offer.yieldRateMonthly)}
             </p>
+            {!isHttp && (
+              <p>
+                <span className="text-muted-foreground">Spread plataforma: </span>
+                {formatPercent(offer.platformSpreadPercent)}
+              </p>
+            )}
             <p>
-              <span className="text-muted-foreground">Prazo: </span>
+              <span className="text-muted-foreground">{isHttp ? "Vencimento: " : "Prazo: "}</span>
               {formatDateTime(offer.deadline)}
             </p>
           </div>
@@ -163,30 +177,43 @@ export function AdminOfferDetailPage() {
           </div>
           {offer.status === "disbursed" && (
             <div className="rounded-md bg-muted p-3">
-              <p className="font-medium">Fechamento</p>
+              <p className="font-medium">{isHttp ? "Captação concluída" : "Fechamento"}</p>
               <p className="text-muted-foreground">
                 Investidores {formatCurrencyBRL(offer.raisedAmount)}
                 {offer.fidcBackfillAmount > 0
                   ? ` · FIDC ${formatCurrencyBRL(offer.fidcBackfillAmount)}`
-                  : " · sem backfill FIDC"}
+                  : isHttp
+                    ? ""
+                    : " · sem backfill FIDC"}
               </p>
             </div>
           )}
           {offer.status === "failed" && (
-            <p className="text-destructive">
-              Captação abaixo do mínimo — investimentos estornados.
-            </p>
+            <p className="text-destructive">Captação abaixo do mínimo — investimentos estornados.</p>
           )}
         </CardContent>
       </Card>
 
-      {offer.status === "fundraising" && (
+      {isHttp && stage && nextStage && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={handleAdvanceStage} disabled={acting}>
+            {acting ? <Loader2 className="size-4 animate-spin" /> : null}
+            Avançar etapa
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {RECEIVABLE_STAGE_LABELS[stage]} → {RECEIVABLE_STAGE_LABELS[nextStage]}
+            {nextStage === "payer_settled" && " · executa o pagamento aos investidores"}
+          </span>
+        </div>
+      )}
+
+      {!isHttp && offer.status === "fundraising" && (
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => void handleClose()} disabled={acting}>
+          <Button onClick={handleClose} disabled={acting}>
             {acting ? <Loader2 className="size-4 animate-spin" /> : null}
             Encerrar oferta
           </Button>
-          <Button variant="outline" onClick={() => void handleSimulateDeadline()} disabled={acting}>
+          <Button variant="outline" onClick={handleSimulateDeadline} disabled={acting}>
             Simular deadline
           </Button>
         </div>
@@ -203,7 +230,11 @@ export function AdminOfferDetailPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {investments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum investimento ainda.</p>
+            <p className="text-sm text-muted-foreground">
+              {isHttp
+                ? `Captado ${formatCurrencyBRL(offer.raisedAmount)} de ${formatCurrencyBRL(offer.targetAmount)}. A listagem por investidor ainda não é exposta pelo backend.`
+                : "Nenhum investimento ainda."}
+            </p>
           ) : (
             <>
               <Table>

@@ -1,84 +1,204 @@
-# Dupply Frontend
+# 💻 Dupply Frontend — Interface Web de Antecipação de Recebíveis
 
-**Instant liquidity for modern businesses.**
+O **Dupply Frontend** é a aplicação web Single Page Application (SPA) da plataforma **Dupply**, desenvolvida com **React 19**, **Vite 7**, **TailwindCSS v4** e **Shadcn UI / Radix UI**.
 
-Dupply is a digital platform that helps companies turn trade receivables — invoices owed to them by buyers — into working capital faster, with transparency and control at every step.
-
-This repository contains the **web application** that powers the Dupply experience: registration, dashboards, receivable workflows, and internal review tools.
+A plataforma oferece uma experiência de usuário (UX) fluida, responsiva e de alto padrão visual, permitindo que **Cedentes** enviem duplicatas, **Analistas de Risco** tomem decisões fundamentadas por **Agentes de IA**, **Administradores** acompanhem o mercado e **Investidores** financiem títulos líquidos.
 
 ---
 
-## What is Dupply?
+## 📑 Sumário
 
-Many businesses wait weeks or months to get paid on invoices. That gap creates cash-flow pressure and limits growth.
-
-Dupply bridges that gap by:
-
-- **Registering receivables digitally** — turning invoices into traceable, auditable assets on the platform
-- **Running specialized risk analysis** — so funding decisions are fair, fast, and consistent
-- **Connecting sellers to liquidity** — with a clear trail of events and documents from submission to settlement
-
-The result: faster access to capital, lower friction, and full visibility into what happens to each receivable.
-
----
-
-## Who uses the platform?
-
-Dupply serves different roles in the same workflow:
-
-| Role | What they do |
-|------|----------------|
-| **Seller (Cedente)** | Registers on the platform, submits receivables for review, and accepts or rejects funding offers |
-| **Risk Analyst** | Reviews seller registrations and receivables, proposes terms, or declines submissions |
-| **Platform Admin** | Oversees sellers, validations, receivables, and platform activity |
-
-Each role has its own dashboard and guided flows, designed around the lifecycle of a receivable — from draft to review, offer, decision, and settlement.
+- [Visão Geral & Proposta de Valor](#-visão-geral--proposta-de-valor)
+- [Destaques de Arquitetura de UI/UX](#-destaques-de-arquitetura-de-uiux)
+- [Painel de Análise do Agente de IA](#-painel-de-análise-do-agente-de-ia)
+- [Perfis de Acesso & Fluxos de Tela](#-perfis-de-acesso--fluxos-de-tela)
+- [Estrutura de Diretórios](#-estrutura-de-diretórios)
+- [Arquitetura de Estado e Contextos](#-arquitetura-de-estado-e-contextos)
+- [Guia de Instalação e Execução](#-guia-de-instalação-e-execução)
+- [Integração com a API Backend](#-integração-com-a-api-backend)
+- [Scripts Disponíveis](#-scripts-disponíveis)
 
 ---
 
-## How it works (at a glance)
+## 🌐 Visão Geral & Proposta de Valor
 
-1. **Seller onboarding** — A company creates an account, completes registration, and submits documentation for platform review.
-2. **Receivable submission** — Once approved, the seller registers invoices and sends them for risk analysis.
-3. **Risk review** — Analysts evaluate each receivable and either propose funding terms or decline.
-4. **Seller decision** — The seller reviews the offer and decides whether to accept.
-5. **Confirmation & settlement** — After approval, the payer is notified and the platform moves toward payment and settlement.
+O frontend da Dupply foi construído para eliminar a complexidade da análise tradicional de crédito. Em vez de telas administrativas densas e confusas, o sistema oferece:
 
-Every step leaves an audit trail so sellers, analysts, and operators always know where things stand.
+1. **Clareza de Informações**: Visualização rápida de valores, vencimentos, status de aceite do sacado e certidões fiscais.
+2. **Inteligência Assistida por IA**: Exibição dos laudos automatizados do Agente de IA diretamente ao lado dos dados da duplicata.
+3. **Fluxos Operacionais Responsivos**: Layouts otimizados para desktops, notebooks e dispositivos móveis sem perda de contexto ou quebra de componentes.
 
 ---
 
-## What you'll find in this app
+## 🎨 Destaques de Arquitetura de UI/UX
 
-- **Public landing page** — Product overview and entry points for login and registration
-- **Seller area** — Dashboard, registration validation status, receivable list, and new receivable submission
-- **Risk analyst area** — Seller reviews, receivable pipeline, and offer/rejection workflows
-- **Admin area** — Platform-wide visibility into sellers, validations, receivables, and transactions
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│ Topbar Header (HeaderContext): [← Voltar] DUP-2026 [Serviço] Análise: Pend.│
+├──────────────┬─────────────────────────────────────────────────────────────┤
+│ Sidebar      │ Conteúdo da Página                                          │
+│              │                                                             │
+│ [Dupply]     │ ┌─────────────────────────┐ ┌─────────────────────────────┐ │
+│              │ │ Card Valores e Datas    │ │ AnalystAiReport             │ │
+│ [|] Recolher │ ├─────────────────────────┤ │ (Agente de IA)              │ │
+│ Painel       │ │ Card Sacado             │ │                             │ │
+│ Cedentes     │ ├─────────────────────────┤ │ [Visão] [SWOT] [DRE] [PDF]  │ │
+│ Duplicatas   │ │ Card Documentação       │ │                             │ │
+│              │ └─────────────────────────┘ └─────────────────────────────┘ │
+│ [Avatar]     │                                                             │
+│ Analyst      │                                                             │
+└──────────────┴─────────────────────────────────────────────────────────────┘
+```
 
-The interface is built for the Brazilian market (Portuguese copy, local business concepts such as duplicatas and recebíveis).
+### 1. Sidebar Integradora Dinâmica (`AppSidebar`)
+- **Visualização por Perfil**: O menu altera automaticamente as opções exibidas conforme o perfil logado (`seller`, `riskAnalyst`, `admin`, `investor`).
+- **Botão de Alternância Integrado (`[|]`)**: Localizado como a **primeira opção** da lista de navegação (logo acima do "Painel"), permitindo expandir ou recolher o menu lateral com um único clique.
+- **Rodapé do Usuário (`SidebarFooter`)**: Exibe o avatar do usuário, seu nome, badge estilizado do perfil selecionado e um botão de logout seguro.
+
+### 2. Navegação Superior Contextual (`HeaderContext`)
+- **Zero Desperdício Vertical**: As telas podem injetar o cabeçalho dinâmico (ex: botão de retorno `← Voltar`, número da duplicata, tipo fiscal e badges de análise) direto no topbar global.
+- **Transição Suave**: O contexto é limpo e atualizado automaticamente na montagem/desmontagem das rotas via React Context API (`useHeader`).
 
 ---
 
-## Project status
+## 🤖 Painel de Análise do Agente de IA (`AnalystAiReport`)
 
-Dupply is under **active development** as an MVP. Core flows — authentication, seller registration, profile management, and receivable lifecycle — are being integrated with the Dupply backend.
+O componente `AnalystAiReport` é o coração da esteira de análise de risco no frontend. Ele recebe o payload do backend contendo os campos `aiReport` (JSON) e `aiReportPdfUrl` (PDF) e os apresenta em uma interface altamente estilizada:
 
-A separate, developer-focused README with setup instructions, architecture, and API details will be added later.
+- **Aba "Visão Geral"**:
+  - Resumo executivo da empresa emitido pela IA.
+  - Informações de fundação, estrutura societária (sócios e percentuais) e portfólio comercial de clientes e fornecedores.
+- **Aba "Análise SWOT"**:
+  - Matriz visual em 4 quadros: **Forças** (verde), **Fraquezas** (vermelho), **Oportunidades** (azul) e **Ameaças** (amarelo).
+- **Aba "Financeiro & Score"**:
+  - Demonstrativo DRE detalhado (Faturamento bruto, custo operacional, EBITDA, margem líquida).
+  - Indicadores financeiros chave (Liquidez corrente, endividamento, cobertura de juros).
+  - Badges de pontuação e rating de crédito.
+- **Ação "Relatório PDF"**:
+  - Botão com ícone para visualização e download em tempo real do PDF oficial timbrado da Dupply.
 
 ---
 
-## Related
+## 👥 Perfis de Acesso & Fluxos de Tela
 
-This frontend works alongside the **Dupply backend**, which handles authentication, business rules, and receivable lifecycle APIs.
+A aplicação conta com 4 jornadas principais de uso:
+
+### 1. Cedente (`/seller`)
+- **Painel (`SellerDashboardPage`)**: Visão consolidada de recebíveis emitidos, limites de antecipação e saldo disponível.
+- **Minhas Duplicatas (`SellerDuplicatasPage`)**: Tabela interativa com filtros por status de análise e aceite do sacado.
+- **Nova Duplicata (`NewDuplicataPage`)**: Formulário em etapas para cadastro da nota fiscal, dados do sacado e anexos de comprovantes.
+- **Detalhes da Duplicata (`SellerDuplicataDetailPage`)**: Visualização da proposta de antecipação e botão de aceite de taxa pelo cedente.
+
+### 2. Analista de Risco (`/analyst`)
+- **Painel (`AnalystDashboardPage`)**: Métricas de recebíveis pendentes, volume financeiro sob análise e tempo médio de resposta.
+- **Cedentes (`AnalystSellersPage`)**: Lista de empresas cadastradas e acompanhamento da validação cadastral.
+- **Fila de Duplicatas (`AnalystDuplicatasPage`)**: Tabela de títulos aguardando verificação de risco.
+- **Detalhes & Parecer (`AnalystDuplicataDetailPage`)**: Tela dividida com dados fiscais/sacado à esquerda e o **Agente de IA** à direita, integrada ao Wizard de Precificação (`AnalystDuplicataApprovalWizardDialog`).
+
+### 3. Administrador (`/admin`)
+- **Gestão do Ecossistema (`AdminDashboardPage`)**: Monitoramento global de operações e saldo da plataforma.
+- **Ofertas Prontas (`AdminOffersReadyPage`)**: Mapeamento de duplicatas aprovadas pelo risco e prontas para estruturação de oferta.
+- **Investimentos & Transações (`AdminInvestmentsPage`, `AdminTransactionsPage`)**: Auditoria de movimentações e liquidações.
+
+### 4. Investidor (`/investor`)
+- **Vitrine de Oportunidades (`InvestorOpportunitiesPage`)**: Catálogo de recebíveis disponíveis para aporte com rentabilidade (CDI + taxa) e prazo.
+- **Minha Carteira (`InvestorInvestmentsPage`)**: Acompanhamento de cotas adquiridas e histórico de recebimentos.
 
 ---
 
-## Contact
+## 📁 Estrutura de Diretórios
 
-For questions about Dupply or this project, reach out to the team maintaining this repository.
+```text
+dupply-frontend/
+├── src/
+│   ├── components/
+│   │   ├── analyst/                 # Componentes de risco (AnalystAiReport, ApprovalWizard)
+│   │   ├── duplicata/               # Componentes visuais de duplicatas (Badges, Status)
+│   │   ├── forms/                   # Formulários de cadastro e upload de notas
+│   │   ├── investor/                # Componentes de oferta e investimento
+│   │   ├── layout/                  # AppShell, AppSidebar, Header, Topbar
+│   │   └── ui/                      # Biblioteca de componentes base Shadcn UI
+│   ├── contexts/                    # Contextos globais (AuthContext, HeaderContext)
+│   ├── domain/                      # Interfaces TypeScript (duplicata, auth, seller)
+│   ├── lib/                         # Utilitários (formatters, routes, api-client)
+│   ├── pages/                       # Componentes de página divididos por perfil
+│   │   ├── admin/
+│   │   ├── analyst/
+│   │   ├── investor/
+│   │   └── seller/
+│   ├── routes/                      # Route guards (ProtectedRoute, GuestRoute)
+│   ├── services/                    # Integração com as APIs HTTP do backend
+│   ├── App.tsx                      # Configuração de rotas React Router
+│   └── main.tsx                     # Entrypoint do React
+├── public/                          # Ativos estáticos (Logos, PDFs de exemplo)
+├── package.json
+└── README.md
+```
+
+---
+
+## 🧠 Arquitetura de Estado e Contextos
+
+- **`AuthContext`**: Gerencia a sessão ativa do usuário, token JWT, dados do perfil selecionado e métodos de login/logout.
+- **`HeaderContext`**: Permite que páginas filhas registrem dinamicamente elementos React para serem renderizados no `Header` global sem prop-drilling.
+- **`SidebarContext` (Shadcn UI)**: Controla o estado de recolhimento (`expanded` / `collapsed`) e o comportamento responsivo em telas de dispositivos móveis.
+
+---
+
+## 🚦 Guia de Instalação e Execução
+
+### 1. Pré-requisitos
+- **Node.js**: v20.0.0 ou v22.0.0+
+- **npm**: v10.0.0+
+
+### 2. Instalação e Execução
+
+```bash
+# Entrar no diretório do frontend
+cd Repos/Frontend/dupply-frontend
+
+# Instalar todas as dependências
+npm install
+
+# Iniciar o servidor de desenvolvimento Vite
+npm run dev
+```
+
+A aplicação estará acessível em: `http://localhost:5173`.
+
+---
+
+## 🔗 Integração com a API Backend
+
+O frontend roda em **modo mock** por padrão (`VITE_USE_MOCKS=true`), com dados em memória persistidos em `localStorage`. Para usar a API Fastify do `dupply-backend` (branch `feat/demo-local`):
+
+```bash
+# backend
+JWT_SECRET=<min 16 chars> DATABASE_URL=file:./data/dupply.db npm run seed:dev
+npm run start:local            # http://localhost:8080
+
+# frontend — .env.local
+VITE_USE_MOCKS=false
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+Contas do seed (senha `dev-password-change-me`): `seller@`, `seller.review@`, `analyst@`, `admin@` e `investor@dupply.dev.local`. A tela de login lista essas contas quando o modo HTTP está ativo.
+
+Os serviços em `src/services/` fazem o switch mock/HTTP por função (`resolveApiMode()`), usam o cliente unificado `src/lib/api-client.ts` (JWT via `Authorization: Bearer`, timeout, 401 → logout) e traduzem os códigos de erro do backend em `src/lib/api-errors.ts`. Os mappers do contrato ficam em `src/services/mappers/`.
+
+Roteiro ponta a ponta suportado em HTTP: cedente submete → analista envia proposta com deságio, taxa mensal ao investidor (`yieldRateMonthly`) e ticket mínimo (`minInvestment`) → cedente aceita → admin **abre a captação** (`open-funding`, podendo sobrescrever os termos) → investidor aporta em reais (ticket mínimo respeitado, exceto para fechar o restante) → admin **avança a etapa** três vezes (`funded → processing → completed → payer_settled`) → o investidor vê principal + juros no saldo.
+
+---
+
+## 🧪 Scripts Disponíveis
+
+- **`npm run dev`**: Inicia o servidor local de desenvolvimento Vite com Hot Module Replacement (HMR).
+- **`npm run typecheck`**: Executa a checagem rigorosa de tipos com o compilador TypeScript (`tsc -b`, nos projetos `tsconfig.app.json` e `tsconfig.node.json`).
+- **`npm run build`**: Gera a compilação otimizada para produção no diretório `dist/`.
+- **`npm run preview`**: Inicia um servidor local para visualizar a build de produção gerada.
 
 ---
 
 <p align="center">
-  <strong>Dupply</strong> — Liquidity with transparency.
+  <strong>Dupply Frontend</strong> — Experiência fluida para operações de crédito transparentes.
 </p>
