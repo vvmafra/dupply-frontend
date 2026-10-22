@@ -65,7 +65,11 @@ export type StatusBadgeProps<E extends StatusEntity = StatusEntity> = ByEntity<E
  */
 export function StatusBadge<E extends StatusEntity>(props: StatusBadgeProps<E>) {
   const { className, size, dot } = props;
-  const entry = props.entity ? getStatus(props.entity, props.value) : { label: props.children, tone: props.tone };
+  // A união discriminada não estreita por `entity` com genérico; os casts só refletem o que os tipos já garantem.
+  const entry: { label: ReactNode; tone: StatusTone } =
+    props.entity !== undefined
+      ? getStatus(props.entity, props.value as StatusValue<E>)
+      : { label: props.children, tone: props.tone as StatusTone };
   return (
     <Badge
       data-slot="status-badge"
