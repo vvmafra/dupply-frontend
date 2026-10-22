@@ -9,6 +9,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -55,3 +58,20 @@ jobs:
           name: screenshots
           path: screenshots/ci
           retention-days: 14
+
+      - name: Publish screenshots to branch ci-screenshots
+        # Branch órfã com o último conjunto de screenshots; útil para revisar sem baixar artefato.
+        if: always() && github.ref == 'refs/heads/feat/design-system'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          rm -rf /tmp/shots && mkdir -p /tmp/shots/shots
+          cp -r screenshots/ci/* /tmp/shots/shots/ || true
+          cd /tmp/shots
+          printf '# Screenshots do CI\n\ncommit: %s\nrun: %s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > README.md
+          git init -q -b ci-screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "screenshots de $GITHUB_SHA"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:ci-screenshots
