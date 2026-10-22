@@ -41,3 +41,16 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Screenshots (light/dark, desktop/mobile)
+        run: npm run ds:shots -- ci
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/ci
+          retention-days: 14
