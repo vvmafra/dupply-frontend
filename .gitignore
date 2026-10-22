@@ -26,3 +26,4 @@ dist-ssr
 .env
 # Local HTTP-mode build output (VITE_USE_MOCKS=false)
 dist-*
+scripts/brand/out/

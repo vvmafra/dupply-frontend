@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "brand:book": "python3 scripts/brand/build_book.py && node scripts/brand/render.mjs",
+    "brand:icons": "node scripts/brand/icons.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
