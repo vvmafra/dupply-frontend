@@ -2,7 +2,7 @@
 
 Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou pausar trabalho.
 
-**Última atualização:** 2026-07-26
+**Última atualização:** 2026-10-22
 
 ---
 
@@ -10,6 +10,8 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 | Data | Decisão | Contexto |
 |------|---------|----------|
+| 2026-10-21 | **Design system** (`feat/design-system`) | Paleta derivada do logo (azul ação `#0060DE`/`#0192FE`, ciano/menta só marca, violeta = IA, esmeralda/âmbar/coral = status, neutros frios); Inter mantida; brand book gerado de `scripts/brand`; `AGENTS.md` como fonte única (CLAUDE.md = `@AGENTS.md`); estrutura alvo `src/app` + `src/features/<domínio>` (T0.5); CI com typecheck/build/lint:ds/screenshots |
+| 2026-10-21 | `ReceivableStage.offer` vira entidade depois | Mantido no registro de status como `info`; não separar agora |
 | 2026-09-30 | Contrato v2 do backend (`feat/demo-local`) | `yieldRateMonthly` (fração, juros simples/30d) e `minInvestment` (reais) no receivable; admin dispara `open-funding` e `advance-stage`; em HTTP a oferta **é** o receivable (`offer.id === receivable.id`) e o aporte é em reais (fecha só no alvo exato) |
 | 2026-09-30 | `minAmount` ≠ ticket mínimo | `Offer.minAmount` continua sendo o piso de captação do mock (FIDC); o ticket por aporte é `Offer.minInvestment`. Em HTTP `minAmount = targetAmount` (backend não tem fechamento parcial) |
 | 2026-07-26 | Persona **investor** de volta (mock-first) | Marketplace: ofertas de cotas por duplicata; spec `investor-marketplace` |
@@ -31,6 +33,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 | ID | Blocker | Owner | Status |
 |----|---------|-------|--------|
+| B7 | Registry npm inacessível do ambiente do agente (21/10) | Infra | 🟡 validação via CI; `playwright` entra no `package-lock` quando voltar |
 | B1 | `GET /users/me` inexistente no backend | Backend | 🟢 contornado — `profileId` vem no JWT; seller usa `GET /v1/sellers/:profileId`, investor `GET /v1/investors/me` |
 | B2 | Rota `POST /users/me/wallet` (ou equivalente) | Backend | 🔴 pendente — P2 |
 | B4 | Admin não lista aportes por receivable | Backend | 🟡 `listInvestmentsByOffer`/`listAllInvestments` retornam `[]` em HTTP; tela mostra captado/alvo |
@@ -68,7 +71,7 @@ Memória persistente entre sessões. Atualizar ao fechar decisões, blockers ou 
 
 - IA de risco real
 - Migrar admin receivables → duplicatas
-- Vitest + CI
+- Vitest (CI básico já existe: `.github/workflows/ci.yml`)
 - E2E Playwright
 - Pitch deck: extrair métricas para PROJECT.md quando PDF disponível
 
