@@ -1,0 +1,179 @@
+
+> shadcn-ui-template@0.0.1 lint:ds
+> bash scripts/lint-ds.sh
+
+✗ sem hex em .ts/.tsx
+    src/components/layout/dupplyTopbar.styles.ts:6:  "sticky top-0 z-40 border-b border-white/10 bg-[color-mix(in_srgb,var(--dupply-brand-navy)_88%,transparent)] text-[#F4F7FB] backdrop-blur-sm supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--dupply-brand-navy)_72%,transparent)]";
+    src/components/layout/dupplyTopbar.styles.ts:18:  "text-[#F4F7FB] hover:bg-white/10 hover:text-white";
+    src/components/layout/dupplyTopbar.styles.ts:21:  "border-0 bg-[#2F6BFF] text-white shadow-[0_0_20px_rgba(47,107,255,0.35)] hover:bg-[#2F6BFF]/90";
+    src/components/layout/dupplyTopbar.styles.ts:32:  "flex min-h-svh flex-col bg-[var(--dupply-brand-navy)] font-[Inter,system-ui,sans-serif] text-[#F4F7FB] antialiased selection:bg-[#2F6BFF]/40";
+    src/pages/__ds/DesignSystemPage.tsx:149:                <Swatch className="bg-brand-blue" name="brand-blue" note="#0192FE" />
+    src/pages/__ds/DesignSystemPage.tsx:150:                <Swatch className="bg-brand-blue-deep" name="brand-blue-deep" note="#064DCD" />
+    src/pages/__ds/DesignSystemPage.tsx:151:                <Swatch className="bg-brand-cyan" name="brand-cyan" note="#0FCBF4" />
+    src/pages/__ds/DesignSystemPage.tsx:152:                <Swatch className="bg-brand-mint" name="brand-mint" note="#52EDBA" />
+    src/pages/LandingPage.tsx:23:  navy: "#0B1F3B",
+    src/pages/LandingPage.tsx:24:  blue: "#2F6BFF",
+    src/pages/LandingPage.tsx:25:  mint: "#35E6A8",
+    src/pages/LandingPage.tsx:26:  text: "#F4F7FB",
+    src/pages/LandingPage.tsx:27:  muted: "#7C8594",
+    src/pages/LandingPage.tsx:128:        tone === "mint" && "bg-[#35E6A8]/20 text-[#35E6A8]",
+    src/pages/LandingPage.tsx:129:        tone === "blue" && "bg-[#2F6BFF]/25 text-[#7CB4FF]",
+    src/pages/LandingPage.tsx:130:        tone === "muted" && "bg-white/10 text-[#7C8594]",
+    src/pages/LandingPage.tsx:156:          <div className="flex size-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#35E6A8] shadow-lg">
+    src/pages/LandingPage.tsx:162:            <p className="text-sm text-[#35E6A8]">Auditável · Rastreável</p>
+    src/pages/LandingPage.tsx:166:              <CircleDollarSign className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:169:              <Network className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:172:              <Shield className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:183:    <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-[#0f2748] to-[#0B1F3B] p-2 shadow-2xl shadow-black/50">
+    src/pages/LandingPage.tsx:189:      <div className="rounded-lg border border-white/5 bg-[#08162c] p-4">
+    src/pages/LandingPage.tsx:190:        <p className="mb-4 text-[10px] font-medium uppercase tracking-wider text-[#7C8594]">Painel Dupply</p>
+    src/pages/LandingPage.tsx:199:              <p className="text-[9px] text-[#7C8594]">{s.k}</p>
+    src/pages/LandingPage.tsx:204:        <p className="mb-2 text-[10px] font-semibold text-[#F4F7FB]">Recebíveis recentes</p>
+    src/pages/LandingPage.tsx:207:            <thead className="border-b border-white/10 bg-white/[0.04] text-[#7C8594]">
+    src/pages/LandingPage.tsx:217:            <tbody className="text-[#F4F7FB]">
+    src/pages/LandingPage.tsx:220:                  <td className="px-2 py-1.5 font-mono text-[#7CB4FF]">{row.invoice}</td>
+    src/pages/LandingPage.tsx:221:                  <td className="px-2 py-1.5 text-[#7C8594]">{row.buyer}</td>
+    src/pages/LandingPage.tsx:223:                  <td className="px-2 py-1.5 text-[#7C8594]">{row.due}</td>
+    src/pages/LandingPage.tsx:258:                  <span className="bg-gradient-to-r from-[#7CB4FF] to-[#2F6BFF] bg-clip-text text-transparent">
+    src/pages/LandingPage.tsx:263:                <p className="max-w-xl text-balance text-lg leading-relaxed text-[#7C8594]">
+    src/pages/LandingPage.tsx:272:                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-[#F4F7FB]"
+    src/pages/LandingPage.tsx:274:                      <Icon className="size-3.5 shrink-0 text-[#35E6A8]" aria-hidden />
+    src/pages/LandingPage.tsx:283:                    className="border-0 bg-[#2F6BFF] text-white shadow-[0_0_24px_rgba(47,107,255,0.4)] hover:bg-[#2F6BFF]/90"
+    src/pages/LandingPage.tsx:302:                <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#35E6A8]">
+    src/pages/LandingPage.tsx:306:                <ul className="space-y-3 text-sm leading-relaxed text-[#7C8594]">
+    src/pages/LandingPage.tsx:309:                      <ChevronRight className="mt-0.5 size-4 shrink-0 text-[#2F6BFF]" aria-hidden />
+    src/pages/LandingPage.tsx:314:                <div className="mt-6 rounded-xl border border-[#2F6BFF]/30 bg-gradient-to-br from-[#2F6BFF]/15 to-[#35E6A8]/10 p-4 text-sm font-medium leading-snug text-[#F4F7FB]">
+    … e mais 18
+✗ sem cor arbitrária (text-[#…], bg-[#…])
+    src/pages/LandingPage.tsx:128:        tone === "mint" && "bg-[#35E6A8]/20 text-[#35E6A8]",
+    src/pages/LandingPage.tsx:129:        tone === "blue" && "bg-[#2F6BFF]/25 text-[#7CB4FF]",
+    src/pages/LandingPage.tsx:130:        tone === "muted" && "bg-white/10 text-[#7C8594]",
+    src/pages/LandingPage.tsx:156:          <div className="flex size-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#35E6A8] shadow-lg">
+    src/pages/LandingPage.tsx:162:            <p className="text-sm text-[#35E6A8]">Auditável · Rastreável</p>
+    src/pages/LandingPage.tsx:166:              <CircleDollarSign className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:169:              <Network className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:172:              <Shield className="size-5 text-[#35E6A8]" />
+    src/pages/LandingPage.tsx:183:    <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-[#0f2748] to-[#0B1F3B] p-2 shadow-2xl shadow-black/50">
+    src/pages/LandingPage.tsx:189:      <div className="rounded-lg border border-white/5 bg-[#08162c] p-4">
+    src/pages/LandingPage.tsx:190:        <p className="mb-4 text-[10px] font-medium uppercase tracking-wider text-[#7C8594]">Painel Dupply</p>
+    src/pages/LandingPage.tsx:199:              <p className="text-[9px] text-[#7C8594]">{s.k}</p>
+    src/pages/LandingPage.tsx:204:        <p className="mb-2 text-[10px] font-semibold text-[#F4F7FB]">Recebíveis recentes</p>
+    src/pages/LandingPage.tsx:207:            <thead className="border-b border-white/10 bg-white/[0.04] text-[#7C8594]">
+    src/pages/LandingPage.tsx:217:            <tbody className="text-[#F4F7FB]">
+    src/pages/LandingPage.tsx:220:                  <td className="px-2 py-1.5 font-mono text-[#7CB4FF]">{row.invoice}</td>
+    src/pages/LandingPage.tsx:221:                  <td className="px-2 py-1.5 text-[#7C8594]">{row.buyer}</td>
+    src/pages/LandingPage.tsx:223:                  <td className="px-2 py-1.5 text-[#7C8594]">{row.due}</td>
+    src/pages/LandingPage.tsx:258:                  <span className="bg-gradient-to-r from-[#7CB4FF] to-[#2F6BFF] bg-clip-text text-transparent">
+    src/pages/LandingPage.tsx:263:                <p className="max-w-xl text-balance text-lg leading-relaxed text-[#7C8594]">
+    src/pages/LandingPage.tsx:272:                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-[#F4F7FB]"
+    src/pages/LandingPage.tsx:274:                      <Icon className="size-3.5 shrink-0 text-[#35E6A8]" aria-hidden />
+    src/pages/LandingPage.tsx:283:                    className="border-0 bg-[#2F6BFF] text-white shadow-[0_0_24px_rgba(47,107,255,0.4)] hover:bg-[#2F6BFF]/90"
+    src/pages/LandingPage.tsx:302:                <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#35E6A8]">
+    src/pages/LandingPage.tsx:306:                <ul className="space-y-3 text-sm leading-relaxed text-[#7C8594]">
+    src/pages/LandingPage.tsx:309:                      <ChevronRight className="mt-0.5 size-4 shrink-0 text-[#2F6BFF]" aria-hidden />
+    src/pages/LandingPage.tsx:314:                <div className="mt-6 rounded-xl border border-[#2F6BFF]/30 bg-gradient-to-br from-[#2F6BFF]/15 to-[#35E6A8]/10 p-4 text-sm font-medium leading-snug text-[#F4F7FB]">
+    src/pages/LandingPage.tsx:334:                <p className="text-balance leading-relaxed text-[#7C8594]">
+    src/pages/LandingPage.tsx:344:                <h3 className="text-sm font-bold uppercase tracking-wider text-[#35E6A8]">Principais recursos</h3>
+    src/pages/LandingPage.tsx:347:                    <li key={f.title} className="border-l-2 border-[#2F6BFF] pl-4">
+    src/pages/LandingPage.tsx:349:                      <p className="text-sm text-[#7C8594]">{f.description}</p>
+    src/pages/LandingPage.tsx:375:                          <Icon className="size-6 text-[#2F6BFF]" />
+    src/pages/LandingPage.tsx:376:                          <p className="text-xs font-medium leading-snug text-[#F4F7FB]">{label}</p>
+    src/pages/LandingPage.tsx:381:                          className="mx-auto hidden size-6 shrink-0 text-[#35E6A8] sm:mx-0 sm:block"
+    src/pages/LandingPage.tsx:396:                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F6BFF] text-sm font-bold text-white">
+    src/pages/LandingPage.tsx:401:                        <p className="text-sm text-[#7C8594]">{step.description}</p>
+    src/pages/LandingPage.tsx:417:            <p className="mt-2 text-[#7C8594]">
+    src/pages/LandingPage.tsx:423:              className="mt-6 border-0 bg-[#2F6BFF] text-white hover:bg-[#2F6BFF]/90"
+    src/pages/LandingPage.tsx:436:        <p className="text-sm font-medium text-[#F4F7FB]">
+    src/pages/LandingPage.tsx:439:        <p className="mt-3 text-xs text-[#7C8594]">
+    … e mais 5
+✗ sem tamanho de fonte arbitrário
+    src/components/auth/MockLoginForm.tsx:142:              <span className="block text-[10px] text-muted-foreground truncate">investor@dupply.com.br</span>
+    src/components/auth/MockLoginForm.tsx:153:              <span className="block text-[10px] text-muted-foreground truncate">seller@dupply.com.br</span>
+    src/components/auth/MockLoginForm.tsx:164:              <span className="block text-[10px] text-muted-foreground truncate">analyst@dupply.com.br</span>
+    src/components/auth/MockLoginForm.tsx:175:              <span className="block text-[10px] text-muted-foreground truncate">admin@dupply.com.br</span>
+    src/components/auth/MockLoginForm.tsx:191:              className="w-full py-1.5 rounded border border-dashed border-muted-foreground/30 hover:bg-muted/40 text-center transition-colors text-[11px] text-muted-foreground hover:text-foreground"
+    src/components/auth/MockLoginForm.tsx:201:            <div className="text-[10px] text-center text-muted-foreground/80 mt-1 space-y-1">
+    src/components/auth/MockLoginForm.tsx:204:                <span className="font-mono text-[9px]">dev-password-change-me</span>):
+    src/components/auth/MockLoginForm.tsx:211:                    className="font-mono text-[9px] bg-muted/50 hover:bg-muted px-1 py-0.5 rounded"
+    src/components/auth/seller-registration/RegistrationStepIndicator.tsx:28:            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+    src/components/analyst/AnalystSellerRegistrationDocumentsPanel.tsx:110:                      <Badge variant="secondary" className="text-[10px] font-normal">
+    src/components/analyst/AnalystAiReport.tsx:58:            <Badge className="bg-emerald-500 hover:bg-emerald-600 border-none text-white text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
+    src/components/analyst/AnalystAiReport.tsx:129:                <span className="text-[10px] text-slate-300 block uppercase font-medium">
+    src/components/analyst/AnalystAiReport.tsx:135:                <span className="text-[10px] text-slate-300 block uppercase font-medium">
+    src/components/analyst/AnalystAiReport.tsx:140:                    <div key={idx} className="flex justify-between items-center text-[11px]">
+    src/components/analyst/AnalystAiReport.tsx:167:                      <span className="text-[10px] text-slate-300 block font-mono">
+    src/components/analyst/AnalystAiReport.tsx:185:                      <span className="text-[10px] text-slate-300 block font-mono">
+    src/components/analyst/AnalystAiReport.tsx:207:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:222:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:237:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:252:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:277:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/analyst/AnalystAiReport.tsx:291:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/analyst/AnalystAiReport.tsx:305:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/analyst/AnalystAiReport.tsx:315:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/analyst/AnalystAiReport.tsx:329:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/analyst/AnalystAiReport.tsx:343:                <span className="text-[10px] text-slate-300 block uppercase font-semibold tracking-wider">
+    src/components/seller/SellerDuplicataTimeline.tsx:132:                  <p className="text-muted-foreground text-[10px] mt-0.5">{event.description}</p>
+    src/components/investor/OfferRiskAgentCard.tsx:35:            <p className="text-[10px] text-muted-foreground uppercase font-semibold">Score do Recebível</p>
+    src/components/investor/OfferRiskAgentCard.tsx:57:        <div className="p-2 rounded bg-zinc-900/30 text-[10px] text-muted-foreground/60 leading-normal italic border border-border/20 text-center">
+    src/components/duplicata/DuplicataInfoCards.tsx:110:              <span className="font-mono text-[11px] block mt-1 text-muted-foreground break-all max-w-full">
+    src/components/duplicata/DuplicataInfoCards.tsx:120:            <span className="text-[11px] block mt-1 text-muted-foreground">
+    src/components/forms/new-duplicata/AntecipacaoSimulator.tsx:41:                <span className="text-[10px] bg-destructive/10 px-1 py-0.5 rounded text-destructive font-mono">
+    src/components/forms/new-duplicata/AntecipacaoSimulator.tsx:50:                <span className="text-[10px] bg-destructive/10 px-1 py-0.5 rounded text-destructive font-mono">
+    src/components/forms/new-duplicata/AntecipacaoSimulator.tsx:61:            <div className="text-[10px] uppercase font-bold tracking-wider text-primary/70">
+    src/components/forms/new-duplicata/AntecipacaoSimulator.tsx:67:            <div className="text-[10px] text-muted-foreground flex items-center gap-1 pt-1">
+    src/components/forms/new-duplicata/AntecipacaoSimulator.tsx:83:      <div className="rounded-lg bg-muted/40 p-3 text-[11px] text-muted-foreground leading-normal flex items-start gap-2">
+    src/components/layout/Sidebar.tsx:148:                    className="w-fit text-[10px] py-0 px-1.5 h-4 border-white/15 bg-white/10 text-white font-normal truncate"
+    src/components/layout/Sidebar.tsx:166:        <div className="px-2 py-0.5 text-[10px] text-sidebar-foreground/40 truncate group-data-[collapsible=icon]:hidden">
+    src/pages/LandingPage.tsx:127:        "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+    src/pages/LandingPage.tsx:190:        <p className="mb-4 text-[10px] font-medium uppercase tracking-wider text-[#7C8594]">Painel Dupply</p>
+    … e mais 15
+✗ sem radius arbitrário
+    src/pages/LandingPage.tsx:154:        <div className="absolute inset-x-[12%] bottom-[8%] h-[18%] rounded-[100%] bg-black/40 blur-xl" />
+✗ sem famílias de cor desligadas
+    src/components/analyst/AnalystAiReport.tsx:32:          <Sparkles className="size-8 text-slate-300 animate-pulse" />
+    src/components/analyst/AnalystAiReport.tsx:35:        <CardDescription className="max-w-xs text-slate-300">
+    src/components/analyst/AnalystAiReport.tsx:43:    <Card className="border border-indigo-100/20 dark:border-indigo-900/40 bg-slate-900/90 text-white shadow-xl transition-all duration-300">
+    src/components/analyst/AnalystAiReport.tsx:47:            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500 text-white shadow-indigo-500/30 shadow-lg">
+    src/components/analyst/AnalystAiReport.tsx:52:              <CardDescription className="text-xs text-slate-300 dark:text-slate-300">
+    src/components/analyst/AnalystAiReport.tsx:65:                className="h-7 text-xs gap-1 border-indigo-500/40 text-slate-200 hover:bg-indigo-950/60 dark:border-indigo-800"
+    src/components/analyst/AnalystAiReport.tsx:77:        <div className="flex border-b border-indigo-900/40 pb-px">
+    src/components/analyst/AnalystAiReport.tsx:82:                ? "border-indigo-400 text-indigo-300"
+    src/components/analyst/AnalystAiReport.tsx:83:                : "border-transparent text-slate-300 hover:text-white"
+    src/components/analyst/AnalystAiReport.tsx:93:                ? "border-indigo-400 text-indigo-300"
+    src/components/analyst/AnalystAiReport.tsx:94:                : "border-transparent text-slate-300 hover:text-white"
+    src/components/analyst/AnalystAiReport.tsx:104:                ? "border-indigo-400 text-indigo-300"
+    src/components/analyst/AnalystAiReport.tsx:105:                : "border-transparent text-slate-300 hover:text-white"
+    src/components/analyst/AnalystAiReport.tsx:118:              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+    src/components/analyst/AnalystAiReport.tsx:121:              <p className="text-xs text-slate-100 leading-relaxed text-justify">
+    src/components/analyst/AnalystAiReport.tsx:127:            <div className="grid grid-cols-2 gap-4 bg-slate-800/60 p-3 rounded-lg border border-indigo-900/30">
+    src/components/analyst/AnalystAiReport.tsx:129:                <span className="text-[10px] text-slate-300 block uppercase font-medium">
+    src/components/analyst/AnalystAiReport.tsx:135:                <span className="text-[10px] text-slate-300 block uppercase font-medium">
+    src/components/analyst/AnalystAiReport.tsx:141:                      <span className="truncate max-w-[120px] font-medium text-slate-200">{s.name}</span>
+    src/components/analyst/AnalystAiReport.tsx:142:                      <span className="text-indigo-400 font-semibold">
+    src/components/analyst/AnalystAiReport.tsx:153:              <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-800 border border-slate-700">
+    src/components/analyst/AnalystAiReport.tsx:154:                <TabsTrigger value="customers" className="text-xs text-slate-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Portfólio de Clientes</TabsTrigger>
+    src/components/analyst/AnalystAiReport.tsx:155:                <TabsTrigger value="suppliers" className="text-xs text-slate-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Fornecedores</TabsTrigger>
+    src/components/analyst/AnalystAiReport.tsx:159:                  <div key={idx} className="space-y-1 bg-slate-800/80 p-2 rounded border border-slate-700">
+    src/components/analyst/AnalystAiReport.tsx:161:                      <span className="font-medium truncate max-w-[200px] text-slate-100" title={item.name}>
+    src/components/analyst/AnalystAiReport.tsx:164:                      <span className="font-semibold text-indigo-400">{item.percentage}%</span>
+    src/components/analyst/AnalystAiReport.tsx:167:                      <span className="text-[10px] text-slate-300 block font-mono">
+    src/components/analyst/AnalystAiReport.tsx:171:                    <Progress value={item.percentage} className="h-1.5 bg-slate-700" />
+    src/components/analyst/AnalystAiReport.tsx:177:                  <div key={idx} className="space-y-1 bg-slate-800/80 p-2 rounded border border-slate-700">
+    src/components/analyst/AnalystAiReport.tsx:179:                      <span className="font-medium truncate max-w-[200px] text-slate-100" title={item.name}>
+    src/components/analyst/AnalystAiReport.tsx:182:                      <span className="font-semibold text-indigo-400">{item.percentage}%</span>
+    src/components/analyst/AnalystAiReport.tsx:185:                      <span className="text-[10px] text-slate-300 block font-mono">
+    src/components/analyst/AnalystAiReport.tsx:189:                    <Progress value={item.percentage} className="h-1.5 bg-slate-700" />
+    src/components/analyst/AnalystAiReport.tsx:207:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:215:            <div className="p-3 rounded-lg border border-rose-900/40 bg-rose-950/20 flex flex-col gap-2">
+    src/components/analyst/AnalystAiReport.tsx:216:              <div className="flex items-center gap-1.5 text-rose-400">
+    src/components/analyst/AnalystAiReport.tsx:218:                <span className="text-xs font-semibold uppercase tracking-wider text-rose-300">Fraquezas (Weaknesses)</span>
+    src/components/analyst/AnalystAiReport.tsx:222:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:237:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    src/components/analyst/AnalystAiReport.tsx:252:                  <li key={idx} className="text-[11px] text-slate-200 leading-snug">
+    … e mais 30
+✗ sem --dupply-brand-* (deprecated)
+    src/components/layout/dupplyTopbar.styles.ts:3: * Usa `--dupply-brand-navy` definido em `index.css` para alinhar com o fundo global no escuro.
+    src/components/layout/dupplyTopbar.styles.ts:6:  "sticky top-0 z-40 border-b border-white/10 bg-[color-mix(in_srgb,var(--dupply-brand-navy)_88%,transparent)] text-[#F4F7FB] backdrop-blur-sm supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--dupply-brand-navy)_72%,transparent)]";
+    src/components/layout/dupplyTopbar.styles.ts:32:  "flex min-h-svh flex-col bg-[var(--dupply-brand-navy)] font-[Inter,system-ui,sans-serif] text-[#F4F7FB] antialiased selection:bg-[#2F6BFF]/40";
+    src/pages/__ds/DesignSystemPage.tsx:629:                <a href="/brand/dupply-brand-book.pdf" target="_blank" rel="noreferrer" className="text-sm text-primary underline-offset-4 hover:underline">

@@ -1,0 +1,416 @@
+[
+  {
+    "name": "ds-catalog",
+    "route": "/__ds",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "ds-catalog__light__desktop.png",
+    "finalUrl": "/__ds",
+    "errors": []
+  },
+  {
+    "name": "ds-catalog",
+    "route": "/__ds",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "ds-catalog__dark__desktop.png",
+    "finalUrl": "/__ds",
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "route": "/",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "landing__light__desktop.png",
+    "finalUrl": "/",
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "route": "/",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "landing__light__mobile.png",
+    "finalUrl": "/",
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "route": "/",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "landing__dark__desktop.png",
+    "finalUrl": "/",
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "route": "/",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "landing__dark__mobile.png",
+    "finalUrl": "/",
+    "errors": []
+  },
+  {
+    "name": "login",
+    "route": "/login",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "login__light__desktop.png",
+    "finalUrl": "/login",
+    "errors": []
+  },
+  {
+    "name": "login",
+    "route": "/login",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "login__light__mobile.png",
+    "finalUrl": "/login",
+    "errors": []
+  },
+  {
+    "name": "login",
+    "route": "/login",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "login__dark__desktop.png",
+    "finalUrl": "/login",
+    "errors": []
+  },
+  {
+    "name": "login",
+    "route": "/login",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "login__dark__mobile.png",
+    "finalUrl": "/login",
+    "errors": []
+  },
+  {
+    "name": "select-profile",
+    "route": "/select-profile",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "select-profile__light__desktop.png",
+    "finalUrl": "/select-profile",
+    "errors": []
+  },
+  {
+    "name": "select-profile",
+    "route": "/select-profile",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "select-profile__dark__desktop.png",
+    "finalUrl": "/select-profile",
+    "errors": []
+  },
+  {
+    "name": "investor-home",
+    "route": "/investor",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "investor-home__light__desktop.png",
+    "finalUrl": "/investor",
+    "errors": []
+  },
+  {
+    "name": "investor-home",
+    "route": "/investor",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "investor-home__light__mobile.png",
+    "finalUrl": "/investor",
+    "errors": []
+  },
+  {
+    "name": "investor-home",
+    "route": "/investor",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "investor-home__dark__desktop.png",
+    "finalUrl": "/investor",
+    "errors": []
+  },
+  {
+    "name": "investor-home",
+    "route": "/investor",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "investor-home__dark__mobile.png",
+    "finalUrl": "/investor",
+    "errors": []
+  },
+  {
+    "name": "investor-opportunities",
+    "route": "/investor/opportunities",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "investor-opportunities__light__desktop.png",
+    "finalUrl": "/investor/opportunities",
+    "errors": []
+  },
+  {
+    "name": "investor-opportunities",
+    "route": "/investor/opportunities",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "investor-opportunities__light__mobile.png",
+    "finalUrl": "/investor/opportunities",
+    "errors": []
+  },
+  {
+    "name": "investor-opportunities",
+    "route": "/investor/opportunities",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "investor-opportunities__dark__desktop.png",
+    "finalUrl": "/investor/opportunities",
+    "errors": []
+  },
+  {
+    "name": "investor-opportunities",
+    "route": "/investor/opportunities",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "investor-opportunities__dark__mobile.png",
+    "finalUrl": "/investor/opportunities",
+    "errors": []
+  },
+  {
+    "name": "investor-offer-detail",
+    "route": "/investor/offers/offer-demo-001",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "investor-offer-detail__light__desktop.png",
+    "finalUrl": "/investor/offers/offer-demo-001",
+    "errors": []
+  },
+  {
+    "name": "investor-offer-detail",
+    "route": "/investor/offers/offer-demo-001",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "investor-offer-detail__light__mobile.png",
+    "finalUrl": "/investor/offers/offer-demo-001",
+    "errors": []
+  },
+  {
+    "name": "investor-offer-detail",
+    "route": "/investor/offers/offer-demo-001",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "investor-offer-detail__dark__desktop.png",
+    "finalUrl": "/investor/offers/offer-demo-001",
+    "errors": []
+  },
+  {
+    "name": "investor-offer-detail",
+    "route": "/investor/offers/offer-demo-001",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "investor-offer-detail__dark__mobile.png",
+    "finalUrl": "/investor/offers/offer-demo-001",
+    "errors": []
+  },
+  {
+    "name": "investor-investments",
+    "route": "/investor/investments",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "investor-investments__light__desktop.png",
+    "finalUrl": "/investor/investments",
+    "errors": []
+  },
+  {
+    "name": "investor-investments",
+    "route": "/investor/investments",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "investor-investments__dark__desktop.png",
+    "finalUrl": "/investor/investments",
+    "errors": []
+  },
+  {
+    "name": "seller-dashboard",
+    "route": "/seller",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "seller-dashboard__light__desktop.png",
+    "finalUrl": "/seller",
+    "errors": []
+  },
+  {
+    "name": "seller-dashboard",
+    "route": "/seller",
+    "theme": "light",
+    "viewport": "mobile",
+    "file": "seller-dashboard__light__mobile.png",
+    "finalUrl": "/seller",
+    "errors": []
+  },
+  {
+    "name": "seller-dashboard",
+    "route": "/seller",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "seller-dashboard__dark__desktop.png",
+    "finalUrl": "/seller",
+    "errors": []
+  },
+  {
+    "name": "seller-dashboard",
+    "route": "/seller",
+    "theme": "dark",
+    "viewport": "mobile",
+    "file": "seller-dashboard__dark__mobile.png",
+    "finalUrl": "/seller",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicatas",
+    "route": "/seller/duplicatas",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "seller-duplicatas__light__desktop.png",
+    "finalUrl": "/seller/duplicatas",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicatas",
+    "route": "/seller/duplicatas",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "seller-duplicatas__dark__desktop.png",
+    "finalUrl": "/seller/duplicatas",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicata-new",
+    "route": "/seller/duplicatas/new",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "seller-duplicata-new__light__desktop.png",
+    "finalUrl": "/seller/duplicatas/new",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicata-new",
+    "route": "/seller/duplicatas/new",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "seller-duplicata-new__dark__desktop.png",
+    "finalUrl": "/seller/duplicatas/new",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicata-detail",
+    "route": "/seller/duplicatas/dup-001",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "seller-duplicata-detail__light__desktop.png",
+    "finalUrl": "/seller/duplicatas/dup-001",
+    "errors": []
+  },
+  {
+    "name": "seller-duplicata-detail",
+    "route": "/seller/duplicatas/dup-001",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "seller-duplicata-detail__dark__desktop.png",
+    "finalUrl": "/seller/duplicatas/dup-001",
+    "errors": []
+  },
+  {
+    "name": "analyst-dashboard",
+    "route": "/analyst",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "analyst-dashboard__light__desktop.png",
+    "finalUrl": "/analyst",
+    "errors": []
+  },
+  {
+    "name": "analyst-dashboard",
+    "route": "/analyst",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "analyst-dashboard__dark__desktop.png",
+    "finalUrl": "/analyst",
+    "errors": []
+  },
+  {
+    "name": "analyst-duplicata-detail",
+    "route": "/analyst/duplicatas/dup-001",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "analyst-duplicata-detail__light__desktop.png",
+    "finalUrl": "/analyst/duplicatas/dup-001",
+    "errors": []
+  },
+  {
+    "name": "analyst-duplicata-detail",
+    "route": "/analyst/duplicatas/dup-001",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "analyst-duplicata-detail__dark__desktop.png",
+    "finalUrl": "/analyst/duplicatas/dup-001",
+    "errors": []
+  },
+  {
+    "name": "admin-dashboard",
+    "route": "/admin",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "admin-dashboard__light__desktop.png",
+    "finalUrl": "/admin",
+    "errors": []
+  },
+  {
+    "name": "admin-dashboard",
+    "route": "/admin",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "admin-dashboard__dark__desktop.png",
+    "finalUrl": "/admin",
+    "errors": []
+  },
+  {
+    "name": "admin-offers",
+    "route": "/admin/offers",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "admin-offers__light__desktop.png",
+    "finalUrl": "/admin/offers",
+    "errors": []
+  },
+  {
+    "name": "admin-offers",
+    "route": "/admin/offers",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "admin-offers__dark__desktop.png",
+    "finalUrl": "/admin/offers",
+    "errors": []
+  },
+  {
+    "name": "admin-offer-detail",
+    "route": "/admin/offers/offer-demo-001",
+    "theme": "light",
+    "viewport": "desktop",
+    "file": "admin-offer-detail__light__desktop.png",
+    "finalUrl": "/admin/offers/offer-demo-001",
+    "errors": []
+  },
+  {
+    "name": "admin-offer-detail",
+    "route": "/admin/offers/offer-demo-001",
+    "theme": "dark",
+    "viewport": "desktop",
+    "file": "admin-offer-detail__dark__desktop.png",
+    "finalUrl": "/admin/offers/offer-demo-001",
+    "errors": []
+  }
+]
