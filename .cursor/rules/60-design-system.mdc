@@ -1,0 +1,53 @@
+---
+description: Design system Dupply — tokens, componentes de produto e o que é proibido na UI
+globs: src/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Design system
+
+Fonte: `DESIGN.md` (resumo), `src/index.css` (semânticos), `src/styles/palette.css` (primitivos, gerado), `public/brand/dupply-brand-book.pdf` (marca). Catálogo vivo em `/__ds` (DEV).
+
+## Cor
+
+- Só classes de token: `bg-primary`, `text-muted-foreground`, `border-border`, `bg-success`, `text-ai`… ou ramps `blue|cyan|mint|violet|emerald|amber|coral|neutral` de 50 a 950.
+- Papel único: azul = ação, verde/âmbar/coral = status, violeta = IA, ciano/menta = marca. Não use `bg-primary` para "destaque" nem `text-success` para "positivo genérico".
+- Proibido: hex ou `rgb()` em `src/` fora de `components/ui`; `text-[#…]`, `bg-[#…]`; famílias padrão do Tailwind (`slate`, `zinc`, `gray`, `indigo`, `red`, `rose`, `green`, `sky`, `teal` — existem só como alias temporário, não escreva código novo com elas).
+- Gradientes da marca (`var(--gradient-brand)`, `var(--gradient-brand-accent)`) uma vez por tela, nunca em botão ou status.
+
+## Componentes de produto (obrigatórios)
+
+| Situação | Use | Nunca |
+|---|---|---|
+| Status de duplicata, oferta, aporte, KYC, documento, tx | `<StatusBadge entity="…" value={…} />` | `<Badge className="bg-emerald-100 …">` |
+| Valor em R$ | `<Money value={…} />` | `formatCurrencyBRL()` direto em JSX |
+| Taxa ou percentual | `<Rate value={…} />` | string formatada à mão |
+| KPI com rótulo | `<Stat label value delta />` | card ad hoc com `text-2xl font-bold` |
+| Topo de página | `<PageHeader title description actions />` | `<h1>` solto |
+| Bloco de página | `<Section title>` | `<div className="space-y-4">` repetido |
+| Lista vazia / sem resultado | `<EmptyState>` | texto "Nenhum item" solto |
+| Hash, endereço, ID on-chain | `<HashAddress>` | `truncate` manual |
+
+Primitivos do shadcn (`src/components/ui`) não são editados à mão além do tema; novos entram com `npx shadcn add` (inclusive registries `@beui/*`). Componentes do RareUI só na landing.
+
+## Tipografia e números
+
+- Só Inter. Tamanhos: `text-2xs` (10) · `text-xs` · `text-sm` (corpo) · `text-base` · `text-lg` · `text-xl` · `text-2xl` (KPI) · `text-3xl`. Proibido `text-[10px]` e tamanhos arbitrários.
+- Valores, taxas, datas, IDs: utility `numeric` (algarismos tabulares). Hash e endereço: `font-mono`.
+- Sem caixa alta em rótulo (`uppercase` só no nome da marca na topbar).
+
+## Espaço e forma
+
+- Card `p-6` (`p-4` compacto), grid `gap-4`, seção `space-y-6`, dentro `space-y-2`. Página `max-w-7xl mx-auto px-4 md:px-6`.
+- Radius pelo tema (`rounded-lg` em card, `rounded-md` em input/botão, `rounded-full` só em badge e avatar). Nada de `rounded-[…]`.
+- Sombra só `shadow-xs` em card no claro; no escuro, borda.
+
+## Motion
+
+- Durações `var(--duration-fast|base|slow)`, easings `ease-standard` / `ease-emphasized`.
+- Anima entrada, mudança de estado e número. Não anima layout de tabela. Respeite `prefers-reduced-motion` (já global; não use `!important` para sobrescrever).
+
+## Antes de finalizar
+
+- `npm run lint:ds` (bloqueia hex, arbitrários e famílias proibidas) e `npm run typecheck`.
+- Tela nova ou alterada: conferir em light e dark, e em 375 px se for de investidor ou admin.

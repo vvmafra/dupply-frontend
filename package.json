@@ -9,7 +9,9 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "brand:book": "python3 scripts/brand/build_book.py && node scripts/brand/render.mjs",
-    "brand:icons": "node scripts/brand/icons.mjs"
+    "brand:icons": "node scripts/brand/icons.mjs",
+    "lint:ds": "bash scripts/lint-ds.sh",
+    "brand:tokens": "python3 scripts/brand/tokens.py"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

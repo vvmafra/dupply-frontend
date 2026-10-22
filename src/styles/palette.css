@@ -1,0 +1,221 @@
+/* GERADO por scripts/brand/tokens.py a partir de scripts/brand/ramps.json. Não editar à mão. */
+/* Primitivos de cor da Dupply. Os semânticos (--primary, --background…) ficam em src/index.css. */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-brand-blue: #0192FE;
+  --color-brand-blue-deep: #064DCD;
+  --color-brand-cyan: #0FCBF4;
+  --color-brand-mint: #52EDBA;
+  --color-navy: #0B1F3B;
+  --color-ink-950: #07101C;
+  --color-ink-900: #101B2B;
+  --color-ink-800: #1B2737;
+
+  /* blue */
+  --color-blue-50: #f1f8ff;
+  --color-blue-100: #deedfe;
+  --color-blue-200: #bdddff;
+  --color-blue-300: #8bc3fe;
+  --color-blue-400: #4da6ff;
+  --color-blue-500: #0088ee;
+  --color-blue-600: #0070c7;
+  --color-blue-700: #0059a1;
+  --color-blue-800: #00467f;
+  --color-blue-900: #15324f;
+  --color-blue-950: #141e28;
+
+  /* cyan */
+  --color-cyan-50: #ebfaff;
+  --color-cyan-100: #cff2fe;
+  --color-cyan-200: #a9e4f7;
+  --color-cyan-300: #6bcdea;
+  --color-cyan-400: #00b3d9;
+  --color-cyan-500: #0095b5;
+  --color-cyan-600: #007b96;
+  --color-cyan-700: #006278;
+  --color-cyan-800: #004e60;
+  --color-cyan-900: #113640;
+  --color-cyan-950: #131f23;
+
+  /* mint */
+  --color-mint-50: #e9fcf4;
+  --color-mint-100: #d3f4e6;
+  --color-mint-200: #b0e8d0;
+  --color-mint-300: #78d3b0;
+  --color-mint-400: #32bb90;
+  --color-mint-500: #009e76;
+  --color-mint-600: #008361;
+  --color-mint-700: #00694d;
+  --color-mint-800: #00523c;
+  --color-mint-900: #17382c;
+  --color-mint-950: #15201b;
+
+  /* violet */
+  --color-violet-50: #f6f6fe;
+  --color-violet-100: #e9e9fe;
+  --color-violet-200: #d4d5fe;
+  --color-violet-300: #b6b4fe;
+  --color-violet-400: #9990ff;
+  --color-violet-500: #7e6ef2;
+  --color-violet-600: #6859cb;
+  --color-violet-700: #5348a0;
+  --color-violet-800: #413b79;
+  --color-violet-900: #2d2c4c;
+  --color-violet-950: #1c1b27;
+
+  /* emerald */
+  --color-emerald-50: #ebfcee;
+  --color-emerald-100: #d6f5dc;
+  --color-emerald-200: #b5e8c1;
+  --color-emerald-300: #83d399;
+  --color-emerald-400: #4abb72;
+  --color-emerald-500: #00a151;
+  --color-emerald-600: #008541;
+  --color-emerald-700: #006b33;
+  --color-emerald-800: #12522b;
+  --color-emerald-900: #1b3823;
+  --color-emerald-950: #162018;
+
+  /* amber */
+  --color-amber-50: #fff6e7;
+  --color-amber-100: #fce9ca;
+  --color-amber-200: #f3d4a1;
+  --color-amber-300: #e4b563;
+  --color-amber-400: #d19501;
+  --color-amber-500: #af7c00;
+  --color-amber-600: #916600;
+  --color-amber-700: #755000;
+  --color-amber-800: #5d3f00;
+  --color-amber-900: #3e2d0f;
+  --color-amber-950: #221c12;
+
+  /* coral */
+  --color-coral-50: #fef4f3;
+  --color-coral-100: #ffe4e1;
+  --color-coral-200: #fecbc5;
+  --color-coral-300: #ffa098;
+  --color-coral-400: #fc6e68;
+  --color-coral-500: #e64343;
+  --color-coral-600: #c13334;
+  --color-coral-700: #982c2b;
+  --color-coral-800: #742826;
+  --color-coral-900: #4a2321;
+  --color-coral-950: #271917;
+
+  /* neutral */
+  --color-neutral-50: #f5f7f8;
+  --color-neutral-100: #e9ebee;
+  --color-neutral-200: #d6d9de;
+  --color-neutral-300: #b9bec5;
+  --color-neutral-400: #9ba2aa;
+  --color-neutral-500: #7f8790;
+  --color-neutral-600: #696f77;
+  --color-neutral-700: #53595e;
+  --color-neutral-800: #42454a;
+  --color-neutral-900: #2f3033;
+  --color-neutral-950: #1c1d1e;
+
+  /* aliases temporários (famílias padrão ainda usadas no código) */
+  --color-slate-50: var(--color-neutral-50);
+  --color-slate-100: var(--color-neutral-100);
+  --color-slate-200: var(--color-neutral-200);
+  --color-slate-300: var(--color-neutral-300);
+  --color-slate-400: var(--color-neutral-400);
+  --color-slate-500: var(--color-neutral-500);
+  --color-slate-600: var(--color-neutral-600);
+  --color-slate-700: var(--color-neutral-700);
+  --color-slate-800: var(--color-neutral-800);
+  --color-slate-900: var(--color-neutral-900);
+  --color-slate-950: var(--color-neutral-950);
+  --color-zinc-50: var(--color-neutral-50);
+  --color-zinc-100: var(--color-neutral-100);
+  --color-zinc-200: var(--color-neutral-200);
+  --color-zinc-300: var(--color-neutral-300);
+  --color-zinc-400: var(--color-neutral-400);
+  --color-zinc-500: var(--color-neutral-500);
+  --color-zinc-600: var(--color-neutral-600);
+  --color-zinc-700: var(--color-neutral-700);
+  --color-zinc-800: var(--color-neutral-800);
+  --color-zinc-900: var(--color-neutral-900);
+  --color-zinc-950: var(--color-neutral-950);
+  --color-gray-50: var(--color-neutral-50);
+  --color-gray-100: var(--color-neutral-100);
+  --color-gray-200: var(--color-neutral-200);
+  --color-gray-300: var(--color-neutral-300);
+  --color-gray-400: var(--color-neutral-400);
+  --color-gray-500: var(--color-neutral-500);
+  --color-gray-600: var(--color-neutral-600);
+  --color-gray-700: var(--color-neutral-700);
+  --color-gray-800: var(--color-neutral-800);
+  --color-gray-900: var(--color-neutral-900);
+  --color-gray-950: var(--color-neutral-950);
+  --color-indigo-50: var(--color-violet-50);
+  --color-indigo-100: var(--color-violet-100);
+  --color-indigo-200: var(--color-violet-200);
+  --color-indigo-300: var(--color-violet-300);
+  --color-indigo-400: var(--color-violet-400);
+  --color-indigo-500: var(--color-violet-500);
+  --color-indigo-600: var(--color-violet-600);
+  --color-indigo-700: var(--color-violet-700);
+  --color-indigo-800: var(--color-violet-800);
+  --color-indigo-900: var(--color-violet-900);
+  --color-indigo-950: var(--color-violet-950);
+  --color-red-50: var(--color-coral-50);
+  --color-red-100: var(--color-coral-100);
+  --color-red-200: var(--color-coral-200);
+  --color-red-300: var(--color-coral-300);
+  --color-red-400: var(--color-coral-400);
+  --color-red-500: var(--color-coral-500);
+  --color-red-600: var(--color-coral-600);
+  --color-red-700: var(--color-coral-700);
+  --color-red-800: var(--color-coral-800);
+  --color-red-900: var(--color-coral-900);
+  --color-red-950: var(--color-coral-950);
+  --color-rose-50: var(--color-coral-50);
+  --color-rose-100: var(--color-coral-100);
+  --color-rose-200: var(--color-coral-200);
+  --color-rose-300: var(--color-coral-300);
+  --color-rose-400: var(--color-coral-400);
+  --color-rose-500: var(--color-coral-500);
+  --color-rose-600: var(--color-coral-600);
+  --color-rose-700: var(--color-coral-700);
+  --color-rose-800: var(--color-coral-800);
+  --color-rose-900: var(--color-coral-900);
+  --color-rose-950: var(--color-coral-950);
+  --color-green-50: var(--color-emerald-50);
+  --color-green-100: var(--color-emerald-100);
+  --color-green-200: var(--color-emerald-200);
+  --color-green-300: var(--color-emerald-300);
+  --color-green-400: var(--color-emerald-400);
+  --color-green-500: var(--color-emerald-500);
+  --color-green-600: var(--color-emerald-600);
+  --color-green-700: var(--color-emerald-700);
+  --color-green-800: var(--color-emerald-800);
+  --color-green-900: var(--color-emerald-900);
+  --color-green-950: var(--color-emerald-950);
+  --color-sky-50: var(--color-blue-50);
+  --color-sky-100: var(--color-blue-100);
+  --color-sky-200: var(--color-blue-200);
+  --color-sky-300: var(--color-blue-300);
+  --color-sky-400: var(--color-blue-400);
+  --color-sky-500: var(--color-blue-500);
+  --color-sky-600: var(--color-blue-600);
+  --color-sky-700: var(--color-blue-700);
+  --color-sky-800: var(--color-blue-800);
+  --color-sky-900: var(--color-blue-900);
+  --color-sky-950: var(--color-blue-950);
+  --color-teal-50: var(--color-cyan-50);
+  --color-teal-100: var(--color-cyan-100);
+  --color-teal-200: var(--color-cyan-200);
+  --color-teal-300: var(--color-cyan-300);
+  --color-teal-400: var(--color-cyan-400);
+  --color-teal-500: var(--color-cyan-500);
+  --color-teal-600: var(--color-cyan-600);
+  --color-teal-700: var(--color-cyan-700);
+  --color-teal-800: var(--color-cyan-800);
+  --color-teal-900: var(--color-cyan-900);
+  --color-teal-950: var(--color-cyan-950);
+}

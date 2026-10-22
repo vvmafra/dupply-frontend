@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/demo-local, feat/design-system]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Design system lint
+        # Vira bloqueante quando T4 (aplicar DS nas telas) zerar as violações.
+        continue-on-error: true
+        run: npm run lint:ds
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_USE_MOCKS: "true"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7

@@ -1,13 +1,32 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/palette.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   TOKENS SEMÂNTICOS
+   Primitivos (ramps 50–950, cores da marca) vivem em styles/palette.css,
+   gerado de scripts/brand/ramps.json. Aqui só o que tem papel na interface.
+   Regra: azul = ação · verde/âmbar/coral = status · violeta = IA · ciano/menta = marca.
+   Ver DESIGN.md e public/brand/dupply-brand-book.pdf.
+   ============================================================ */
+
 @theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -24,6 +43,14 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -32,6 +59,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -40,132 +68,133 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
 }
-
-/*
-  ============================================================
-  THEME CONFIGURATION
-  ============================================================
-
-  Theme: neutral (default)
-  Mode:  light (:root) / dark (.dark)
-
-  To switch to dark mode by default, change the ThemeProvider
-  defaultTheme prop in src/main.tsx:
-    <ThemeProvider defaultTheme="dark">
-
-  To change theme colors, replace the OKLCH values below.
-  Visit https://ui.shadcn.com/themes to generate theme CSS.
-
-  To change the base color palette (e.g. stone, zinc, gray),
-  re-initialize with the shadcn CLI:
-    npx shadcn@latest init -t vite --preset nova -y -f
-    npx shadcn@latest init -t vite --preset vega -y -f
-
-  Available presets: nova, vega, maia, lyra, mira
-  Available base colors: neutral, stone, zinc, gray, mauve,
-                         olive, mist, taupe
-
-  CLI non-interactive theme change:
-    npx shadcn@latest init -t vite -d -y -f
-  ============================================================
-*/
 
 :root {
   --radius: 0.625rem;
-  /* Dupply — alinhar fundo escuro e páginas públicas */
-  --dupply-brand-navy: #0b1f3b;
-  --dupply-brand-blue: #2f6bff;
-  --background: oklch(0.98 0.003 240);
-  --foreground: oklch(0.13 0.025 245);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.025 245);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.025 245);
-  --primary: oklch(0.47 0.18 255);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.94 0.015 245);
-  --secondary-foreground: oklch(0.25 0.04 245);
-  --muted: oklch(0.95 0.01 240);
-  --muted-foreground: oklch(0.5 0.03 245);
-  --accent: oklch(0.93 0.025 215);
-  --accent-foreground: oklch(0.25 0.08 215);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.89 0.015 240);
-  --input: oklch(0.89 0.015 240);
-  --ring: oklch(0.47 0.18 255);
-  --chart-1: oklch(0.47 0.18 255);
-  --chart-2: oklch(0.6 0.16 185);
-  --chart-3: oklch(0.55 0.14 150);
-  --chart-4: oklch(0.75 0.14 85);
-  --chart-5: oklch(0.65 0.2 30);
-  --sidebar: oklch(0.97 0.008 248);
-  --sidebar-foreground: oklch(0.13 0.025 245);
-  --sidebar-primary: oklch(0.47 0.18 255);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.93 0.018 245);
-  --sidebar-accent-foreground: oklch(0.13 0.025 245);
-  --sidebar-border: oklch(0.88 0.015 245);
-  --sidebar-ring: oklch(0.47 0.18 255);
-  --success: oklch(0.55 0.15 145);
-  --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.75 0.16 80);
-  --warning-foreground: oklch(0.25 0.06 60);
-  --info: oklch(0.55 0.15 230);
-  --info-foreground: oklch(0.99 0 0);
+
+  /* motion: usar nas transições e no Motion (motion/react) */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  /* gradientes de marca: só em momentos de marca (hero, capa, destaque). Nunca em botão ou status. */
+  --gradient-brand: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-blue-deep));
+  --gradient-brand-accent: linear-gradient(135deg, var(--color-brand-cyan), var(--color-brand-mint));
+
+  /* superfícies */
+  --background: var(--color-neutral-50);
+  --foreground: var(--color-ink-950);
+  --card: var(--color-white);
+  --card-foreground: var(--color-ink-950);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-ink-950);
+
+  /* ação: entre os dois azuis do símbolo; 5:1 com texto branco (o #0192FE do logo dá 3,2:1) */
+  --primary: #0060de;
+  --primary-foreground: var(--color-white);
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-800);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-600);
+  --accent: var(--color-blue-50);
+  --accent-foreground: var(--color-blue-900);
+
+  /* status (sólidos). Para badges use o par ramp-100 / ramp-700 via StatusBadge. */
+  --destructive: var(--color-coral-600);
+  --destructive-foreground: var(--color-white);
+  --success: var(--color-emerald-600);
+  --success-foreground: var(--color-white);
+  --warning: var(--color-amber-600);
+  --warning-foreground: var(--color-white);
+  --info: var(--color-blue-600);
+  --info-foreground: var(--color-white);
+  --ai: var(--color-violet-600);
+  --ai-foreground: var(--color-white);
+
+  --border: var(--color-neutral-200);
+  --input: var(--color-neutral-200);
+  --ring: var(--primary);
+
+  /* séries categóricas, nesta ordem */
+  --chart-1: var(--color-blue-500);
+  --chart-2: var(--color-cyan-500);
+  --chart-3: var(--color-mint-500);
+  --chart-4: var(--color-violet-500);
+  --chart-5: var(--color-amber-500);
+  --chart-6: var(--color-coral-500);
+
+  --sidebar: var(--color-white);
+  --sidebar-foreground: var(--color-ink-950);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-accent: var(--color-blue-50);
+  --sidebar-accent-foreground: var(--color-blue-900);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-ring: var(--primary);
+
+  /* DEPRECATED: aliases até a landing e a topbar migrarem para tokens (tasks T3). */
+  --dupply-brand-navy: var(--color-navy);
+  --dupply-brand-blue: var(--primary);
 }
 
 .dark {
-  --background: var(--dupply-brand-navy);
-  --foreground: oklch(0.95 0.01 240);
-  --card: oklch(0.2 0.04 264);
-  --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.22 0.045 264);
-  --popover-foreground: oklch(0.95 0.01 240);
-  --primary: oklch(0.65 0.2 255);
-  --primary-foreground: oklch(0.1 0.02 245);
-  --secondary: oklch(0.26 0.04 264);
-  --secondary-foreground: oklch(0.95 0.01 240);
-  --muted: oklch(0.26 0.035 264);
-  --muted-foreground: oklch(0.7 0.02 250);
-  --accent: oklch(0.28 0.05 250);
-  --accent-foreground: oklch(0.95 0.01 240);
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.2 255);
-  --chart-1: oklch(0.65 0.2 255);
-  --chart-2: oklch(0.65 0.18 185);
-  --chart-3: oklch(0.6 0.14 150);
-  --chart-4: oklch(0.75 0.14 85);
-  --chart-5: oklch(0.65 0.2 30);
-  --sidebar: #08162c;
-  --sidebar-foreground: oklch(0.9 0.01 240);
-  --sidebar-primary: oklch(0.65 0.2 255);
-  --sidebar-primary-foreground: oklch(0.1 0.02 245);
-  --sidebar-accent: oklch(0.24 0.04 264);
-  --sidebar-accent-foreground: oklch(0.9 0.01 240);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.65 0.2 255);
-  --success: oklch(0.6 0.15 145);
-  --success-foreground: oklch(0.1 0.02 145);
-  --warning: oklch(0.75 0.16 80);
-  --warning-foreground: oklch(0.2 0.06 60);
-  --info: oklch(0.6 0.15 230);
-  --info-foreground: oklch(0.1 0.02 230);
+  --background: var(--color-ink-950);
+  --foreground: var(--color-neutral-50);
+  --card: var(--color-ink-900);
+  --card-foreground: var(--color-neutral-50);
+  --popover: var(--color-ink-900);
+  --popover-foreground: var(--color-neutral-50);
+
+  /* no escuro o azul do símbolo funciona como ação (5,1:1 sobre ink) */
+  --primary: var(--color-brand-blue);
+  --primary-foreground: var(--color-ink-950);
+  --secondary: var(--color-ink-800);
+  --secondary-foreground: var(--color-neutral-100);
+  --muted: var(--color-ink-800);
+  --muted-foreground: var(--color-neutral-400);
+  --accent: var(--color-ink-800);
+  --accent-foreground: var(--color-neutral-50);
+
+  --destructive: var(--color-coral-500);
+  --destructive-foreground: var(--color-white);
+  --success: var(--color-emerald-400);
+  --success-foreground: var(--color-ink-950);
+  --warning: var(--color-amber-400);
+  --warning-foreground: var(--color-ink-950);
+  --info: var(--color-blue-400);
+  --info-foreground: var(--color-ink-950);
+  --ai: var(--color-violet-400);
+  --ai-foreground: var(--color-ink-950);
+
+  --border: color-mix(in oklch, var(--color-white) 10%, transparent);
+  --input: color-mix(in oklch, var(--color-white) 14%, transparent);
+  --ring: var(--color-brand-blue);
+
+  --chart-1: var(--color-blue-400);
+  --chart-2: var(--color-cyan-400);
+  --chart-3: var(--color-mint-400);
+  --chart-4: var(--color-violet-400);
+  --chart-5: var(--color-amber-400);
+  --chart-6: var(--color-coral-400);
+
+  --sidebar: var(--color-ink-900);
+  --sidebar-foreground: var(--color-neutral-100);
+  --sidebar-primary: var(--color-brand-blue);
+  --sidebar-primary-foreground: var(--color-ink-950);
+  --sidebar-accent: var(--color-ink-800);
+  --sidebar-accent-foreground: var(--color-neutral-50);
+  --sidebar-border: color-mix(in oklch, var(--color-white) 8%, transparent);
+  --sidebar-ring: var(--color-brand-blue);
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+  html {
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
   }
   body {
     @apply bg-background text-foreground;
@@ -174,6 +203,23 @@
     background-color: var(--card);
     color: var(--foreground);
   }
+  /* respeitar quem desligou animações no sistema */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Valores: dinheiro, taxas, datas e IDs alinham em coluna */
+@utility numeric {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
 }
 
 @keyframes skeleton-shimmer-slide {
@@ -185,7 +231,7 @@
   }
 }
 
-/* Landing: divisor “fibra óptica” (feixe percorrendo o cabo) */
+/* Landing: divisor "fibra óptica". Migrar para componente com tokens em T3. */
 @keyframes landing-fiber-beam {
   0% {
     background-position: 120% 0;
@@ -245,20 +291,4 @@
   opacity: 0.55;
   mix-blend-mode: screen;
   filter: blur(0.5px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-fiber-divider::before,
-  .landing-fiber-divider::after {
-    animation: none;
-  }
-
-  .landing-fiber-divider::before {
-    background-position: 50% 0;
-    opacity: 0.85;
-  }
-
-  .landing-fiber-divider::after {
-    opacity: 0;
-  }
 }
