@@ -42,8 +42,9 @@ jobs:
           path: dist
           retention-days: 7
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright
+        # playwright ainda não está no package-lock (registry inacessível ao adicionar); entra como devDependency em T2.
+        run: npm install --no-save playwright@1.58.0 && npx playwright install --with-deps chromium
 
       - name: Screenshots (light/dark, desktop/mobile)
         run: npm run ds:shots -- ci
