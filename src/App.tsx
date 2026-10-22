@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { GuestRoute, ProtectedRoute, SemiProtectedRoute } from "@/routes/guards";
@@ -38,6 +39,10 @@ import { SellerReviewDetailPage } from "@/pages/SellerReviewDetailPage";
 import { SellerDuplicatasPage } from "@/pages/seller/SellerDuplicatasPage";
 import { NewDuplicataPage } from "@/pages/seller/NewDuplicataPage";
 import { SellerDuplicataDetailPage } from "@/pages/seller/SellerDuplicataDetailPage";
+
+/** Catálogo do design system: só em DEV ou com VITE_DS_CATALOG=true (nunca entra no bundle de produção). */
+const DS_CATALOG_ENABLED = import.meta.env.DEV || import.meta.env.VITE_DS_CATALOG === "true";
+const DesignSystemPage = DS_CATALOG_ENABLED ? lazy(() => import("@/pages/__ds/DesignSystemPage")) : null;
 
 function NavigateToSellerDuplicataDetail() {
   const { id } = useParams<{ id: string }>();
@@ -346,6 +351,16 @@ function AppRoutes() {
         }
       />
 
+      {DesignSystemPage ? (
+        <Route
+          path="/__ds"
+          element={
+            <Suspense fallback={null}>
+              <DesignSystemPage />
+            </Suspense>
+          }
+        />
+      ) : null}
       <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
     </Routes>
   );

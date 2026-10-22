@@ -33,6 +33,7 @@ const SESSIONS = {
 
 // [nome, rota, sessão, mobile?]
 const PAGES = [
+  ["ds-catalog", "/__ds", "public", false],
   ["landing", "/", "public", true],
   ["login", "/login", "public", true],
   ["select-profile", "/select-profile", "seller-noprofile", false],
